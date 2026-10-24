@@ -11,14 +11,17 @@
 `src/game/input.js`, HTML/CSS/шрифты — в `assets`. Основная логика пока
 остаётся в обёртке монолита;
 `src/legacy/karnage.js` — замороженная копия для сравнения. `tools/build.mjs`
-собирает `src/main.js` через esbuild в `release/app.js`, копирует только
-`assets/fonts`, `styles`, `fx` и `arenas` (без `vendor`), релиз запускается как
-папка `release/index.html`.
+собирает `src/main.js` через esbuild в `release/app.js`, копирует
+`assets/fonts`, `styles`, `fx`, `arenas` и `audio` (без `vendor`), релиз
+запускается как папка `release/index.html`.
 
 Аркада хранит активный забег в `localStorage.karnageArcRun`:
 `{v, c1, ladder, step}`. `ladder` — 11 обычных противников, босс всегда
 последний; `step` — индекс текущего боя. `newBattleDefs` принимает def-объекты,
-поэтому бой с `BOSS` не требует отдельного бойца в `CH`.
+поэтому бой с `BOSS` не требует отдельного бойца в `CH`. После финальной
+победы `drawEnd` берёт концовку из `src/data/endings.js` по `S.arcP1`;
+для неизвестного бойца остаётся общий фолбэк. SFX загружаются из WAV,
+музыка — из MP3; OGG в runtime не копируется.
 
 ## Слои, к которым идём
 

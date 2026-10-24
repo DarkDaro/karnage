@@ -490,7 +490,8 @@ test('arcade saves progress, resumes and ends with final boss', async () => {
       game: K.GAME,
       saved: K.loadArcRun(),
       top: K.TOP(),
-      arc: localStorage.karnageArc
+      arc: localStorage.karnageArc,
+      endingTitle: K.arcEnding().ending.title
     };
     localStorage.removeItem('karnageTop');
     localStorage.removeItem('karnageArc');
@@ -502,6 +503,7 @@ test('arcade saves progress, resumes and ends with final boss', async () => {
   assert.deepEqual(finish.top.map(({ id, step }) => ({ id, step })), [{ id: 0, step: 12 }]);
   assert.match(finish.top[0].date, /^\d{4}-\d{2}-\d{2}$/);
   assert.equal(finish.arc, '12');
+  assert.equal(finish.endingTitle, 'ПЕПЕЛ НА ВЕТРУ');
 });
 
 test('main menu offers continue for a saved arcade run', async () => {

@@ -836,11 +836,11 @@ g.font='40px "Russo One"';g.fillStyle='#000';g.fillText('VS',RW/2+3,103);g.fillS
 panel(132,158,160,18);g.font='8px "Russo One"';g.fillStyle='#e8c040';g.textAlign='center';
 g.fillText('АРЕНА: '+AR[S.battle.arena].n,RW/2,170);
 if(S.vsEscT>0&&blink()){g.font='8px "Russo One"';g.fillStyle='#e04020';g.fillText('ЕЩЁ РАЗ ESC — ПОКИНУТЬ ТУРНИР',RW/2,200);}else if(S.vsT>50&&blink()){g.font='9px "Russo One"';g.fillStyle='#e8e0c0';g.fillText('J — НАЧАТЬ БОЙ',RW/2,214);}}// 08.09: подтверждение выхода
+function arcEnding(){const d=CH[S.arcP1]||CH[0];return {fighter:d,ending:ENDINGS[d.id]||{title:'ТУРНИР ЗАВЕРШЁН',lines:['Арена опустела.','Победитель уходит в тишину.'],col:'#e8c040'}};}
 function drawEnd(){bgFill();
 panel(102,12,220,28);g.font='10px "Russo One"';g.fillStyle='#e8c040';g.textAlign='center';g.fillText('ПОБЕДИТЕЛЬ ТУРНИРА',RW/2,30);
-const d=CH[S.arcP1];drawPort(d,RW/2,94,2.1);
+const {fighter:d,ending:e}=arcEnding();drawPort(d,RW/2,94,2.1);
 g.font='16px "Russo One"';g.fillStyle='#e8e0c0';g.fillText(d.name,RW/2,146);
-const e=ENDINGS[d.id]||{title:'ТУРНИР ЗАВЕРШЁН',lines:['Арена опустела.','Победитель уходит в тишину.'],col:'#e8c040'};
 g.font='9px "Russo One"';g.fillStyle=e.col;g.fillText(e.title,RW/2,166);
 g.font='7px "Russo One"';g.fillStyle='#c8a040';for(let i=0;i<e.lines.length&&i<2;i++)g.fillText(e.lines[i],RW/2,182+i*12);
 g.font='7px "Russo One"';g.fillStyle='#807850';g.fillText('КАЙЗЕР-ПРАЙМ ПОВЕРЖЕН',RW/2,212);
@@ -1007,6 +1007,7 @@ if (new URLSearchParams(location.search).has('debug')) {
     get lStep() { return S.lStep; },
     get arcP1() { return S.arcP1; },
     get arcTotal() { return arcTotal(); },
+    arcEnding,
     BOSS,
     TOP,
     addTop,

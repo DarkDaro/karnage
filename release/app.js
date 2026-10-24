@@ -5524,6 +5524,10 @@
         g.fillText("J \u2014 \u041D\u0410\u0427\u0410\u0422\u042C \u0411\u041E\u0419", RW / 2, 214);
       }
     }
+    function arcEnding() {
+      const d = CH[S.arcP1] || CH[0];
+      return { fighter: d, ending: ENDINGS[d.id] || { title: "\u0422\u0423\u0420\u041D\u0418\u0420 \u0417\u0410\u0412\u0415\u0420\u0428\u0401\u041D", lines: ["\u0410\u0440\u0435\u043D\u0430 \u043E\u043F\u0443\u0441\u0442\u0435\u043B\u0430.", "\u041F\u043E\u0431\u0435\u0434\u0438\u0442\u0435\u043B\u044C \u0443\u0445\u043E\u0434\u0438\u0442 \u0432 \u0442\u0438\u0448\u0438\u043D\u0443."], col: "#e8c040" } };
+    }
     function drawEnd() {
       bgFill();
       panel(102, 12, 220, 28);
@@ -5531,12 +5535,11 @@
       g.fillStyle = "#e8c040";
       g.textAlign = "center";
       g.fillText("\u041F\u041E\u0411\u0415\u0414\u0418\u0422\u0415\u041B\u042C \u0422\u0423\u0420\u041D\u0418\u0420\u0410", RW / 2, 30);
-      const d = CH[S.arcP1];
+      const { fighter: d, ending: e } = arcEnding();
       drawPort(d, RW / 2, 94, 2.1);
       g.font = '16px "Russo One"';
       g.fillStyle = "#e8e0c0";
       g.fillText(d.name, RW / 2, 146);
-      const e = ENDINGS[d.id] || { title: "\u0422\u0423\u0420\u041D\u0418\u0420 \u0417\u0410\u0412\u0415\u0420\u0428\u0401\u041D", lines: ["\u0410\u0440\u0435\u043D\u0430 \u043E\u043F\u0443\u0441\u0442\u0435\u043B\u0430.", "\u041F\u043E\u0431\u0435\u0434\u0438\u0442\u0435\u043B\u044C \u0443\u0445\u043E\u0434\u0438\u0442 \u0432 \u0442\u0438\u0448\u0438\u043D\u0443."], col: "#e8c040" };
       g.font = '9px "Russo One"';
       g.fillStyle = e.col;
       g.fillText(e.title, RW / 2, 166);
@@ -6169,6 +6172,7 @@
         get arcTotal() {
           return arcTotal();
         },
+        arcEnding,
         BOSS,
         TOP,
         addTop,
