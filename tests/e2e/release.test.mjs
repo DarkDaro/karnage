@@ -32,9 +32,20 @@ for (const [name, entry] of Object.entries(entries)) {
         arenas: window.KARNAGE.AR.length,
         fx: Object.values(window.KARNAGE.fxAssets).filter((asset) => asset.ready).length,
         arenaAssets: Object.values(window.KARNAGE.arenaAssets || {}).filter((asset) => asset.ready).length,
+        layeredArenas: Object.values(window.KARNAGE.arenaAssets || {}).filter((asset) => asset.ready && asset.layers?.length).length,
+        arenaLayers: Object.values(window.KARNAGE.arenaAssets || {}).map((asset) => asset.layers?.length || 0),
         uiAssets: Object.values(window.KARNAGE.uiAssets || {}).filter((asset) => asset.ready).length
       }));
-      assert.deepEqual(state, { game: 'title', fighters: 13, arenas: 10, fx: 10, arenaAssets: 2, uiAssets: 2 });
+      assert.deepEqual(state, {
+        game: 'title',
+        fighters: 13,
+        arenas: 10,
+        fx: 10,
+        arenaAssets: 4,
+        layeredArenas: 2,
+        arenaLayers: [4, 4, 0, 0],
+        uiAssets: 2
+      });
       assert.deepEqual(errors, []);
     } finally {
       await browser.close();

@@ -386,7 +386,7 @@ def fetch_one(name: str, item: dict[str, object], force: bool, dry: bool, do_pre
     vendor.mkdir(parents=True, exist_ok=True)
     if dry:
         return {"pack": name, "status": "dry", "url": url, "keep": keep, "ignore": ignore}
-    existing = sorted(vendor.glob("pack.*"))
+    existing = [path for path in sorted(vendor.glob("pack.*")) if path.name != "pack.download"]
     if existing and not force:
         archive = existing[0]
         archive_status = "exists"

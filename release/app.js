@@ -1,6 +1,49 @@
 (() => {
   // src/assets/arena-manifest.js
   var arena_manifest_default = {
+    "0": {
+      "image": "0/far.png",
+      "props": "0/props.png",
+      "layers": [
+        { "file": "far.png", "scroll": 0.12, "y": 0 },
+        { "file": "mid.png", "scroll": 0.38, "y": 0 },
+        { "file": "props.png", "scroll": 0.82, "y": 0 },
+        { "file": "fg.png", "scroll": 1.15, "y": 0, "foreground": true }
+      ],
+      "ambient": [
+        { "type": "rain", "every": 2, "wind": -0.6 },
+        { "type": "motes", "every": 22, "color": "rgba(180,200,220,.14)" }
+      ],
+      "lights": [
+        { "x": 122, "y": 138, "radius": 62, "color": "#f0a030", "alpha": 0.2 },
+        { "x": 596, "y": 138, "radius": 62, "color": "#f0a030", "alpha": 0.18 },
+        { "x": 792, "y": 138, "radius": 62, "color": "#f0a030", "alpha": 0.16 },
+        { "x": 700, "y": 34, "radius": 96, "color": "#a8c8e8", "alpha": 0.1 }
+      ],
+      "wet": true
+    },
+    "1": {
+      "image": "1/far.png",
+      "props": "1/props.png",
+      "layers": [
+        { "file": "far.png", "scroll": 0.12, "y": 0 },
+        { "file": "mid.png", "scroll": 0.38, "y": 0 },
+        { "file": "props.png", "scroll": 0.82, "y": 0 },
+        { "file": "fg.png", "scroll": 1.15, "y": 0, "foreground": true }
+      ],
+      "ambient": [
+        { "type": "motes", "every": 18, "color": "rgba(180,160,220,.22)" },
+        { "type": "fog", "every": 8 }
+      ],
+      "lights": [
+        { "x": 120, "y": 172, "radius": 42, "color": "#f0a050", "alpha": 0.16 },
+        { "x": 158, "y": 168, "radius": 42, "color": "#f0a050", "alpha": 0.14 },
+        { "x": 650, "y": 168, "radius": 42, "color": "#f0a050", "alpha": 0.14 },
+        { "x": 672, "y": 164, "radius": 42, "color": "#f0a050", "alpha": 0.14 },
+        { "x": 650, "y": 42, "radius": 110, "color": "#ff5ab0", "alpha": 0.09 }
+      ],
+      "fog": true
+    },
     "4": {
       "image": "4/bg.png",
       "props": "4/props.png"
@@ -21,6 +64,11 @@
       image.src = src;
     });
   }
+  async function loadLayer(key, layer) {
+    const source = layer.image || `${key}/${layer.file}`;
+    const image = await loadImage(new URL(source, base).href);
+    return { ...layer, image };
+  }
   async function loadArenaAssets() {
     const entries = await Promise.all(
       Object.entries(arena_manifest_default).map(async ([key, definition]) => {
@@ -34,9 +82,10 @@
               props = null;
             }
           }
-          return [key, { ...definition, image, props, ready: true }];
+          const layers = Array.isArray(definition.layers) ? await Promise.all(definition.layers.map((layer) => loadLayer(key, layer))) : [];
+          return [key, { ...definition, image, props, layers, ready: true }];
         } catch {
-          return [key, { ...definition, ready: false }];
+          return [key, { ...definition, layers: [], ready: false }];
         }
       })
     );
@@ -302,8 +351,8 @@
 
   // src/data/arenas.js
   var AR = [
-    { n: "\u0414\u041E\u041A", sky: ["#0a0e18", "#0e1626", "#16243a", "#1e3448"], far: "#0c141e", mid: "bldg", mc: "#141d2a", gr: "#2a2620", gr2: "#38332a", moon: "#c8d0d8" },
-    { n: "\u0425\u0420\u0410\u041C \u041F\u0420\u0418\u0417\u0420\u0410\u041A\u041E\u0412", sky: ["#0c0a14", "#141024", "#1c1834", "#282048"], far: "#120e1e", mid: "col", mc: "#1c1630", gr: "#2e2a38", gr2: "#3a3448", moon: "#a8b8c8" },
+    { n: "\u0414\u041E\u041A", sky: ["#0a0e18", "#0e1626", "#16243a", "#1e3448"], far: "#0c141e", mid: "bldg", mc: "#141d2a", gr: "#25282c", gr2: "#33383c", moon: "#c8d0d8" },
+    { n: "\u0425\u0420\u0410\u041C \u041F\u0420\u0418\u0417\u0420\u0410\u041A\u041E\u0412", sky: ["#0c0a14", "#141024", "#1c1834", "#282048"], far: "#120e1e", mid: "col", mc: "#1c1630", gr: "#241c32", gr2: "#322744", moon: "#c8a8e0" },
     { n: "\u0413\u0420\u041E\u0417\u041E\u0412\u041E\u0419 \u0413\u041E\u0420\u041E\u0414", sky: ["#0a1018", "#122028", "#1a3038", "#284850"], far: "#0e1a20", mid: "roof", mc: "#15242c", gr: "#26302e", gr2: "#303c38", moon: "#e8e088", rain: 1 },
     { n: "\u041A\u0410\u041C\u0415\u041D\u041D\u041E\u041B\u041E\u041C\u041D\u042F", sky: ["#1a1410", "#241c14", "#34281c", "#443424"], far: "#241c14", mid: "mtn", mc: "#302418", gr: "#4a3c2c", gr2: "#584836", moon: "#e0c8a0" },
     { n: "\u0414\u041E\u0414\u0417\u0401 \u041A\u041B\u0418\u041D\u041A\u0410", sky: ["#101408", "#1a200c", "#28301a", "#38402a"], far: "#141a0c", mid: "bam", mc: "#20301a", gr: "#3a3c28", gr2: "#484a32", moon: "#d8d8a8" },
@@ -336,6 +385,191 @@
     });
   }
 
+  // src/game/world/arena.js
+  var clamp = (value, min, max) => value < min ? min : value > max ? max : value;
+  function rgba(hex, alpha) {
+    const value = hex.replace("#", "");
+    const r = parseInt(value.slice(0, 2), 16);
+    const g = parseInt(value.slice(2, 4), 16);
+    const b = parseInt(value.slice(4, 6), 16);
+    return `rgba(${r},${g},${b},${alpha})`;
+  }
+  function createArenaView({ g, RW, RH, FL, AR: AR2, assets, shade, mix }) {
+    function drawLayer(layer, cam) {
+      const image = layer.image;
+      if (!image) return;
+      const maxSource = Math.max(0, image.width - RW);
+      const sourceX = clamp(Math.round(cam * (layer.scroll ?? 1)), 0, maxSource);
+      const height = Math.min(layer.height ?? RH, RH);
+      const y = layer.y ?? 0;
+      g.save();
+      g.globalAlpha = layer.alpha ?? 1;
+      g.imageSmoothingEnabled = false;
+      if (layer.blend) g.globalCompositeOperation = layer.blend;
+      g.drawImage(image, sourceX, 0, RW, height, 0, y, RW, height);
+      g.restore();
+    }
+    function drawFog(asset, cam, time) {
+      if (!asset.fog) return;
+      for (let i = 0; i < 3; i++) {
+        const x = ((i * 174 - cam * 0.24 + time * 0.18) % (RW + 260) + RW + 260) % (RW + 260) - 130;
+        const horizon = g.createRadialGradient(x, FL - 18, 8, x, FL - 18, 94);
+        horizon.addColorStop(0, "rgba(184,164,232,.15)");
+        horizon.addColorStop(1, "rgba(184,164,232,0)");
+        g.fillStyle = horizon;
+        g.fillRect(x - 94, FL - 112, 188, 112);
+      }
+      const haze = g.createLinearGradient(0, FL - 40, 0, FL);
+      haze.addColorStop(0, "rgba(158,142,202,0)");
+      haze.addColorStop(0.68, "rgba(158,142,202,.14)");
+      haze.addColorStop(1, "rgba(158,142,202,.03)");
+      g.fillStyle = haze;
+      g.fillRect(0, FL - 40, RW, 40);
+    }
+    function drawGround(A, asset, cam, time) {
+      const gr = g.createLinearGradient(0, FL, 0, RH);
+      gr.addColorStop(0, A.gr);
+      gr.addColorStop(1, shade(A.gr, 0.55));
+      g.fillStyle = gr;
+      g.fillRect(0, FL, RW, RH - FL);
+      g.fillStyle = mix(A.gr, "#ffffff", 0.14);
+      g.fillRect(0, FL, RW, 1);
+      g.fillStyle = "rgba(0,0,0,.25)";
+      g.fillRect(0, FL, RW, 2);
+      const horizon = g.createLinearGradient(0, FL - 12, 0, FL);
+      horizon.addColorStop(0, "rgba(178,188,208,0)");
+      horizon.addColorStop(1, "rgba(178,188,208,.08)");
+      g.fillStyle = horizon;
+      g.fillRect(0, FL - 12, RW, 12);
+      g.strokeStyle = "rgba(0,0,0,.15)";
+      g.lineWidth = 1;
+      const vanishX = RW / 2 - (cam - RW / 2) * 0.35;
+      for (let i = -8; i <= 8; i++) {
+        g.beginPath();
+        g.moveTo(vanishX + i * 26, FL + 2);
+        g.lineTo(vanishX + i * 72, RH);
+        g.stroke();
+      }
+      for (const y of [FL + 5, FL + 14, FL + 26]) {
+        g.beginPath();
+        g.moveTo(0, y);
+        g.lineTo(RW, y);
+        g.stroke();
+      }
+      if (Array.isArray(A.rb)) {
+        g.fillStyle = A.gr2;
+        for (const rb of A.rb) {
+          const x = Math.round(((rb.x - cam) % (RW + 40) + RW + 40) % (RW + 40) - 20);
+          g.globalAlpha = rb.a;
+          g.fillRect(x, rb.y, rb.w, 2);
+        }
+        g.globalAlpha = 1;
+      }
+      if (asset.wet) {
+        const sheen = g.createLinearGradient(0, FL, 0, FL + 26);
+        sheen.addColorStop(0, "rgba(150,190,210,.12)");
+        sheen.addColorStop(1, "rgba(150,190,210,0)");
+        g.fillStyle = sheen;
+        g.fillRect(0, FL, RW, 26);
+        for (const light of asset.lights || []) {
+          if (light.y < FL - 40) continue;
+          const x = light.x - cam * 0.82;
+          if (x < -20 || x > RW + 20) continue;
+          const reflection = g.createLinearGradient(0, FL, 0, Math.min(RH, FL + 30));
+          reflection.addColorStop(0, rgba(light.color, 0.16));
+          reflection.addColorStop(1, rgba(light.color, 0));
+          g.fillStyle = reflection;
+          g.fillRect(x - 7, FL, 14, Math.min(RH, FL + 30) - FL);
+        }
+      }
+      g.fillStyle = "rgba(0,0,0,.25)";
+      g.fillRect(0, FL, RW, 2);
+      if (asset.wet) {
+        const ripple = 0.06 + Math.sin(time * 0.08) * 0.02;
+        g.fillStyle = `rgba(190,220,235,${ripple})`;
+        g.fillRect(0, FL + 3, RW, 1);
+      }
+    }
+    function drawLights(asset, cam, time) {
+      if (!Array.isArray(asset.lights)) return;
+      g.save();
+      g.globalCompositeOperation = "lighter";
+      for (const light of asset.lights) {
+        const x = light.x - cam * 0.82;
+        if (x < -light.radius || x > RW + light.radius) continue;
+        const flicker = 0.88 + Math.sin(time * 0.07 + light.x * 0.5) * 0.12;
+        const halo = g.createRadialGradient(x, light.y, 2, x, light.y, light.radius);
+        halo.addColorStop(0, rgba(light.color, light.alpha * flicker));
+        halo.addColorStop(1, rgba(light.color, 0));
+        g.fillStyle = halo;
+        g.fillRect(x - light.radius, light.y - light.radius, light.radius * 2, light.radius * 2);
+      }
+      g.restore();
+    }
+    function draw(ai, cam, time) {
+      const asset = assets[ai];
+      if (!asset || !asset.ready || !Array.isArray(asset.layers) || !asset.layers.length) return false;
+      const A = AR2[ai] || AR2[0];
+      for (const layer of asset.layers) {
+        if (!layer.foreground) drawLayer(layer, cam);
+      }
+      drawFog(asset, cam, time);
+      drawGround(A, asset, cam, time);
+      drawLights(asset, cam, time);
+      return true;
+    }
+    function foreground(ai, cam) {
+      const asset = assets[ai];
+      if (!asset || !asset.ready || !Array.isArray(asset.layers)) return false;
+      let drawn = false;
+      for (const layer of asset.layers) {
+        if (!layer.foreground) continue;
+        drawLayer(layer, cam);
+        drawn = true;
+      }
+      return drawn;
+    }
+    function hasForeground(ai) {
+      const asset = assets[ai];
+      return Boolean(asset && asset.ready && Array.isArray(asset.layers) && asset.layers.some((layer) => layer.foreground));
+    }
+    function ambient({ arena, cam, frame, parts }) {
+      const asset = assets[arena];
+      if (!asset || !asset.ready || !Array.isArray(asset.ambient) || !asset.ambient.length) return false;
+      for (const item of asset.ambient) {
+        const every = Math.max(1, item.every || 1);
+        if (frame % every !== 0) continue;
+        if (item.type === "rain") {
+          parts.push({
+            x: cam + Math.random() * (RW + 50) - 20,
+            y: -6,
+            vx: item.wind ?? -0.5,
+            vy: 7,
+            c: "rgba(170,190,215,.28)",
+            l: 60,
+            s: 1,
+            gv: 0,
+            line: 1,
+            kf: 1
+          });
+        } else if (item.type === "motes") {
+          parts.push({
+            x: cam + Math.random() * RW,
+            y: FL - Math.random() * 145,
+            vx: (Math.random() - 0.5) * 0.24,
+            vy: -0.06 - Math.random() * 0.16,
+            c: item.color || "rgba(180,170,220,.2)",
+            l: 110 + Math.random() * 170,
+            s: 1 + Math.random() * 1.6,
+            gv: 0
+          });
+        }
+      }
+      return true;
+    }
+    return { draw, foreground, hasForeground, ambient };
+  }
+
   // src/game/karnage.js
   function startKarnage(fxAssets = {}, arenaAssets = {}, uiAssets = {}) {
     const RW = 424, RH = 240, FL = 206, AW = 760, GR = 8, OUT = "#0e0b08";
@@ -351,7 +585,7 @@
     addEventListener("resize", fit);
     fit();
     if (document.fonts) document.fonts.load('20px "Russo One"');
-    const clamp = (v, a, b) => v < a ? a : v > b ? b : v, lerp = (a, b, t) => a + (b - a) * t, rnd = (a, b) => a + Math.random() * (b - a), pick = (a) => a[Math.random() * a.length | 0], blink = () => (FRAME >> 4) % 2 === 0;
+    const clamp2 = (v, a, b) => v < a ? a : v > b ? b : v, lerp = (a, b, t) => a + (b - a) * t, rnd = (a, b) => a + Math.random() * (b - a), pick = (a) => a[Math.random() * a.length | 0], blink = () => (FRAME >> 4) % 2 === 0;
     function mul(s) {
       return function() {
         s |= 0;
@@ -372,6 +606,7 @@
       return "rgb(" + (lerp(A[0], B[0], t) | 0) + "," + (lerp(A[1], B[1], t) | 0) + "," + (lerp(A[2], B[2], t) | 0) + ")";
     }
     const shade = (h, k) => mix(h, "#000000", 1 - k);
+    const arenaView = createArenaView({ g, RW, RH, FL, AR, assets: ARENA_IMG, shade, mix });
     const SOUND_URL = new URLSearchParams(location.search).has("sound");
     const FORCE_MUTE = !SOUND_URL;
     const OPT = { crt: true, blood: true, shake: true, reduce: false };
@@ -398,7 +633,7 @@
       if (localStorage.karnageVox !== void 0) AU.voice = localStorage.karnageVox === "1";
       if (localStorage.karnageVol !== void 0) {
         const v = parseFloat(localStorage.karnageVol);
-        if (Number.isFinite(v)) AU.vol = clamp(v, 0, 100);
+        if (Number.isFinite(v)) AU.vol = clamp2(v, 0, 100);
       }
       if (localStorage.karnageSnd !== void 0) AU.on = localStorage.karnageSnd === "1";
     } catch (e) {
@@ -815,6 +1050,7 @@
     ;
     ;
     function drawArena(ai, cam2, t) {
+      if (arenaView.draw(ai, cam2, t)) return;
       const A = AR[ai], AS = ARENA_IMG[ai];
       if (AS && AS.ready) {
         g.drawImage(AS.image, 0, 0, RW, RH);
@@ -1016,6 +1252,7 @@
       g.fillRect(0, FL + 2, RW, 1);
     }
     function ambient() {
+      if (arenaView.ambient({ arena: battle.arena, cam, frame: FRAME, parts })) return;
       const A = AR[battle.arena];
       if (A.rain && FRAME % 2 === 0) parts.push({ x: cam + rnd(-20, RW + 30), y: -6, vx: -0.6, vy: 7, c: "rgba(170,190,215,.28)", l: 60, s: 1, gv: 0, line: 1, kf: 1 });
       if (A.snow && FRAME % 2 === 0) parts.push({ x: cam + rnd(-10, RW + 10), y: -4, vx: rnd(-0.3, 0.3), vy: rnd(0.3, 0.6), c: "rgba(230,240,255,.7)", l: 420, s: 1, gv: 0 });
@@ -1306,7 +1543,7 @@
             this.atk = null;
           }
         }
-        this.x = clamp(this.x, 16, AW - 16);
+        this.x = clamp2(this.x, 16, AW - 16);
         if ((this.state === "down" || this.state === "hit") && Math.abs(this.vx) > 3 && (this.x <= 17 || this.x >= AW - 17)) {
           this.vx *= -0.55;
           shake = Math.max(shake, 4);
@@ -1318,8 +1555,8 @@
           const push = (16 - Math.abs(dx)) / 2 * (dx < 0 ? -1 : 1);
           this.x += push;
           foe.x -= push;
-          this.x = clamp(this.x, 16, AW - 16);
-          foe.x = clamp(foe.x, 16, AW - 16);
+          this.x = clamp2(this.x, 16, AW - 16);
+          foe.x = clamp2(foe.x, 16, AW - 16);
         }
         if (["idle", "walk", "crouch", "block"].includes(this.state)) this.face = foe.x < this.x ? -1 : 1;
         if (this.state === "atk" && this.atk) {
@@ -1418,7 +1655,7 @@
           });
         } else if (id === 1) {
           E(10, () => {
-            me.x = clamp(me.foe.x - me.foe.face * 26, 20, AW - 20);
+            me.x = clamp2(me.foe.x - me.foe.face * 26, 20, AW - 20);
             smoke(me.x, me.y - 30);
             SFX.tele();
           });
@@ -1442,7 +1679,7 @@
           });
         } else if (id === 4) {
           E(10, () => {
-            me.x = clamp(me.foe.x - me.foe.face * 24, 20, AW - 20);
+            me.x = clamp2(me.foe.x - me.foe.face * 24, 20, AW - 20);
             smoke(me.x, me.y - 30);
             SFX.tele();
           });
@@ -1455,7 +1692,7 @@
           SFX.tele();
           SFX.mirror();
           E(10, () => {
-            me.x = clamp(me.foe.x - me.foe.face * 30, 20, AW - 20);
+            me.x = clamp2(me.foe.x - me.foe.face * 30, 20, AW - 20);
             smoke(me.x, me.y - 30);
             SFX.tele();
           });
@@ -1517,7 +1754,7 @@
         } else if (id === 11) {
           SFX.tele();
           E(10, () => {
-            me.x = clamp(me.foe.x - me.foe.face * 26, 20, AW - 20);
+            me.x = clamp2(me.foe.x - me.foe.face * 26, 20, AW - 20);
             smoke(me.x, me.y - 30);
             SFX.tele();
           });
@@ -1552,7 +1789,7 @@
             break;
           // 08.09: баланс — снаряды слабее ударов в упор
           case 1:
-            this.x = clamp(foe.x - foe.face * 30, 20, AW - 20);
+            this.x = clamp2(foe.x - foe.face * 30, 20, AW - 20);
             smoke(this.x, this.y - 30);
             SFX.tele();
             break;
@@ -1610,7 +1847,7 @@
           case 12:
             this.marks = this.marks || [];
             if (this.marks.length >= 2) this.marks.shift();
-            this.marks.push({ x: clamp(this.x + this.face * 46, 20, AW - 20), y: this.y });
+            this.marks.push({ x: clamp2(this.x + this.face * 46, 20, AW - 20), y: this.y });
             SFX.cast2();
             for (let i = 0; i < 6; i++) P(this.x + this.face * 46 + rnd(-8, 8), this.y - rnd(0, 40), 0, rnd(-0.5, -0.1), "#b89aff", 26, 2, 0);
             break;
@@ -1634,7 +1871,7 @@
             break;
           // Огненный веер
           case 1:
-            this.x = clamp(foe.x - foe.face * 28, 20, AW - 20);
+            this.x = clamp2(foe.x - foe.face * 28, 20, AW - 20);
             this.face = foe.face;
             this.invis = 40;
             smoke(this.x, this.y - 30);
@@ -1644,12 +1881,12 @@
           // Хватка тени — телепорт за спину, лицом к затылку врага
           case 2:
             fx.push({ ty: "castbolt", x: this.x, y: this.y, t: 0, h: this.def.h });
-            for (const off of [-30, 0, 30]) projs.push({ ty: "bolt", x: clamp(foe.x + off, 20, AW - 20), y: FL, vx: 0, vy: 0, o: this, d: 5, l: 16 });
+            for (const off of [-30, 0, 30]) projs.push({ ty: "bolt", x: clamp2(foe.x + off, 20, AW - 20), y: FL, vx: 0, vy: 0, o: this, d: 5, l: 16 });
             SFX.zap();
             break;
           // Грозовой столб + канал из руки
           case 3:
-            for (let i = 0; i < 3; i++) projs.push({ ty: "meteor", x: clamp(foe.x + rnd(-44, 44), 20, AW - 20), y: -10 - i * 30, vx: 0, vy: 5.5, o: this, d: 6, l: 120 });
+            for (let i = 0; i < 3; i++) projs.push({ ty: "meteor", x: clamp2(foe.x + rnd(-44, 44), 20, AW - 20), y: -10 - i * 30, vx: 0, vy: 5.5, o: this, d: 6, l: 120 });
             SFX.bone();
             break;
           // Камнепад
@@ -1680,14 +1917,14 @@
             break;
           // Проклятие — отравление
           case 10:
-            for (let i = 0; i < 3; i++) projs.push({ ty: "shard", c: "#d82040", x: clamp(foe.x + rnd(-32, 32), 20, AW - 20), y: FL + GR - 4, vx: 0, vy: -(4.4 + i * 0.5), o: this, d: 5, l: 60, s: 5 });
+            for (let i = 0; i < 3; i++) projs.push({ ty: "shard", c: "#d82040", x: clamp2(foe.x + rnd(-32, 32), 20, AW - 20), y: FL + GR - 4, vx: 0, vy: -(4.4 + i * 0.5), o: this, d: 5, l: 60, s: 5 });
             SFX.bone();
             shake = 3;
             break;
           // 30.09: Кровавые шипы — взмывают из земли под врагом
           case 11: {
             const ox = this.x;
-            this.x = clamp(foe.x + foe.face * 30, 20, AW - 20);
+            this.x = clamp2(foe.x + foe.face * 30, 20, AW - 20);
             smoke(ox, this.y - 30);
             smoke(this.x, this.y - 30);
             SFX.tele();
@@ -1705,7 +1942,7 @@
             if (this.marks.length) {
               const m = this.marks.pop();
               smoke(this.x, this.y - 30);
-              this.x = clamp(m.x, 20, AW - 16);
+              this.x = clamp2(m.x, 20, AW - 16);
               smoke(this.x, this.y - 30);
               SFX.tele();
               for (let i = 0; i < 8; i++) P(this.x + rnd(-10, 10), this.y - rnd(0, 50), rnd(-1, 1), rnd(-1.5, 0.5), "#b89aff", 24, 2, 0);
@@ -1716,7 +1953,7 @@
                 SFX.cast2();
               }
             } else {
-              this.x = clamp(foe.x - foe.face * 30, 20, AW - 20);
+              this.x = clamp2(foe.x - foe.face * 30, 20, AW - 20);
               smoke(this.x, this.y - 30);
               SFX.tele();
               if (foe.state !== "down") resolveHit(this, foe, 5, {});
@@ -3636,7 +3873,7 @@
         }
         if (l.cutT && (t === 55 || t === 80 || t === 105 || t === 130)) {
           w.face = l.x > w.x ? 1 : -1;
-          const nx = clamp(l.x + w.face * rnd(20, 28), 20, AW - 20);
+          const nx = clamp2(l.x + w.face * rnd(20, 28), 20, AW - 20);
           for (let i = 0; i < 8; i++) P(w.x + (nx - w.x) * (i / 8), w.y - rnd(6, 50), (nx - w.x) / 10, rnd(-0.5, 0.5), "#9adcee", 18, 2, 0);
           w.x = nx;
           smoke(nx, w.y - 30);
@@ -3978,7 +4215,7 @@
         saveSet();
         SFX.menu();
       } else if (i === 2) {
-        AU.vol = clamp(AU.vol + (dir < 0 ? -10 : 10), 0, 100);
+        AU.vol = clamp2(AU.vol + (dir < 0 ? -10 : 10), 0, 100);
         setVol();
         saveSet();
         SFX.menu();
@@ -4296,7 +4533,7 @@
         const dd = k === "KeyD" || k === "ArrowRight" ? 1 : k === "KeyA" || k === "ArrowLeft" ? -1 : 0;
         const idx = s.mode === "cpu" ? s.row : 1;
         if (dd) {
-          if (idx === 0) s.diff = clamp(s.diff + dd, 0, 2);
+          if (idx === 0) s.diff = clamp2(s.diff + dd, 0, 2);
           else s.ar = dd > 0 ? s.ar >= 9 ? -1 : s.ar + 1 : s.ar <= -1 ? 9 : s.ar - 1;
           SFX.menu();
         }
@@ -4310,7 +4547,7 @@
       const d2 = k === "ArrowRight" ? 1 : k === "ArrowLeft" ? -1 : k === "ArrowUp" ? -5 : k === "ArrowDown" ? 5 : 0;
       const move = (slot, d) => {
         if (d) {
-          s[slot] = clamp(s[slot] + d, 0, CH.length - 1);
+          s[slot] = clamp2(s[slot] + d, 0, CH.length - 1);
           s.last = slot;
           SFX.menu();
         }
@@ -4885,7 +5122,7 @@
             shake = Math.max(0, shake - 0.5);
             flashS = Math.max(0, flashS - 1);
             const mid = (battle.p1.x + battle.p2.x) / 2;
-            cam = clamp(lerp(cam, mid - RW / 2, 0.12), 0, AW - RW);
+            cam = clamp2(lerp(cam, mid - RW / 2, 0.12), 0, AW - RW);
             cam = Math.round(cam);
           }
         } else {
@@ -5017,14 +5254,17 @@
       drawProjs(cam);
       drawFx(cam);
       drawParts(cam);
-      g.fillStyle = "rgba(0,0,0,.4)";
-      for (let i = 0; i < 12; i++) {
-        const x = Math.round(((i * 67 - cam * 1.25) % (RW + 67) + RW + 67) % (RW + 67) - 33), h2 = 6 + i * 13 % 14;
-        g.beginPath();
-        g.moveTo(x - 9, RH);
-        g.lineTo(x, RH - h2);
-        g.lineTo(x + 9, RH);
-        g.fill();
+      arenaView.foreground(b.arena, cam, FRAME);
+      if (!arenaView.hasForeground(b.arena)) {
+        g.fillStyle = "rgba(0,0,0,.4)";
+        for (let i = 0; i < 12; i++) {
+          const x = Math.round(((i * 67 - cam * 1.25) % (RW + 67) + RW + 67) % (RW + 67) - 33), h2 = 6 + i * 13 % 14;
+          g.beginPath();
+          g.moveTo(x - 9, RH);
+          g.lineTo(x, RH - h2);
+          g.lineTo(x + 9, RH);
+          g.fill();
+        }
       }
       if (b.p1.state === "super" || b.p2.state === "super" || b.phase === "fatal") {
         g.fillStyle = "rgba(10,0,0,.22)";
@@ -5085,7 +5325,7 @@
         let a = 1;
         if (t > 90) a = 1 - (t - 90) / 20;
         g.save();
-        g.globalAlpha = clamp(a, 0, 1);
+        g.globalAlpha = clamp2(a, 0, 1);
         let col = announce.col;
         if (announce.pulse) col = blink() ? "#e02020" : "#e8c040";
         bigText(announce.txt, 118, col, sc);

@@ -1,0 +1,75 @@
+{
+  "name": "ДОК",
+  "width": 848,
+  "floor": 206,
+  "bg": "far.png",
+  "props": "props.png",
+  "layers": [
+    {
+      "file": "far.png",
+      "scroll": 0.12,
+      "y": 0
+    },
+    {
+      "file": "mid.png",
+      "scroll": 0.38,
+      "y": 0
+    },
+    {
+      "file": "props.png",
+      "scroll": 0.82,
+      "y": 0
+    },
+    {
+      "file": "fg.png",
+      "scroll": 1.15,
+      "y": 0,
+      "foreground": true
+    }
+  ],
+  "ambient": [
+    {
+      "type": "rain",
+      "every": 2,
+      "wind": -0.6
+    },
+    {
+      "type": "motes",
+      "every": 22,
+      "color": "rgba(180,200,220,.14)"
+    }
+  ],
+  "lights": [
+    {
+      "x": 122,
+      "y": 138,
+      "radius": 62,
+      "color": "#f0a030",
+      "alpha": 0.2
+    },
+    {
+      "x": 596,
+      "y": 138,
+      "radius": 62,
+      "color": "#f0a030",
+      "alpha": 0.18
+    },
+    {
+      "x": 792,
+      "y": 138,
+      "radius": 62,
+      "color": "#f0a030",
+      "alpha": 0.16
+    },
+    {
+      "x": 700,
+      "y": 34,
+      "radius": 96,
+      "color": "#a8c8e8",
+      "alpha": 0.1
+    }
+  ],
+  "fog": false,
+  "wet": true,
+  "source": "Superpowers backgrounds: night sea + city; custom port props"
+}

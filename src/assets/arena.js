@@ -11,6 +11,12 @@ function loadImage(src) {
   });
 }
 
+async function loadLayer(key, layer) {
+  const source = layer.image || `${key}/${layer.file}`;
+  const image = await loadImage(new URL(source, base).href);
+  return { ...layer, image };
+}
+
 export async function loadArenaAssets() {
   const entries = await Promise.all(
     Object.entries(manifest).map(async ([key, definition]) => {
@@ -24,9 +30,12 @@ export async function loadArenaAssets() {
             props = null;
           }
         }
-        return [key, { ...definition, image, props, ready: true }];
+        const layers = Array.isArray(definition.layers)
+          ? await Promise.all(definition.layers.map((layer) => loadLayer(key, layer)))
+          : [];
+        return [key, { ...definition, image, props, layers, ready: true }];
       } catch {
-        return [key, { ...definition, ready: false }];
+        return [key, { ...definition, layers: [], ready: false }];
       }
     })
   );

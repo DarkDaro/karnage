@@ -1,5 +1,6 @@
 import { CH } from '../data/characters.js';
 import { AR, initArenas } from '../data/arenas.js';
+import { createArenaView } from './world/arena.js';
 
 export function startKarnage(fxAssets = {}, arenaAssets = {}, uiAssets = {}) {
 const RW=424,RH=240,FL=206,AW=760,GR=8,OUT='#0e0b08';
@@ -14,6 +15,7 @@ initArenas({ mul, RW, RH, FL, GR });
 function colorParts(c){if(c[0]==='#')return[parseInt(c.slice(1,3),16),parseInt(c.slice(3,5),16),parseInt(c.slice(5,7),16)];const m=/^rgba?\((\d+),\s*(\d+),\s*(\d+)/.exec(c);return m?[+m[1],+m[2],+m[3]]:[0,0,0];}
 function mix(a,b,t){const A=colorParts(a),B=colorParts(b);return'rgb('+(lerp(A[0],B[0],t)|0)+','+(lerp(A[1],B[1],t)|0)+','+(lerp(A[2],B[2],t)|0)+')';}
 const shade=(h,k)=>mix(h,'#000000',1-k);
+const arenaView=createArenaView({g,RW,RH,FL,AR,assets:ARENA_IMG,shade,mix});
 /* ЗВУК */
 const SOUND_URL=new URLSearchParams(location.search).has('sound');const FORCE_MUTE=!SOUND_URL;// временно: звук выключен по умолчанию, ?sound=1 включает
 const OPT={crt:true,blood:true,shake:true,reduce:false};
@@ -23,11 +25,12 @@ const applyCrt=()=>{const el=document.getElementById('crt');if(el)el.style.displ
 applyCrt();
 const AU={ctx:null,on:!FORCE_MUTE,voice:true,vol:100};
 try{if(localStorage.karnageVox!==undefined)AU.voice=localStorage.karnageVox==='1';if(localStorage.karnageVol!==undefined){const v=parseFloat(localStorage.karnageVol);if(Number.isFinite(v))AU.vol=clamp(v,0,100);}if(localStorage.karnageSnd!==undefined)AU.on=localStorage.karnageSnd==='1';}catch(e){}if(SOUND_URL)AU.on=true;
-const setVol=()=>{if(AU.master)AU.master.gain.value=AU.on?.9*AU.vol/100:0;};// 08.09: применение громкости; 24.10: mute применяется сразу
+const setVol=()=>{if(AU.master)AU.master.gain.value=AU.on ? .9*AU.vol/100 : 0;};// 08.09: применение громкости; 24.10: mute применяется сразу
+
 const saveSet=()=>{try{localStorage.karnageSnd=AU.on?1:0;localStorage.karnageVox=AU.voice?1:0;localStorage.karnageVol=AU.vol;}catch(e){}};// 08.09
 const TOP=()=>{try{const raw=JSON.parse(localStorage.karnageTop||'[]');if(!Array.isArray(raw))return[];return raw.filter(e=>e&&Number.isInteger(e.id)&&e.id>=0&&e.id<CH.length&&Number.isFinite(e.step)&&e.step>=0).slice(0,5);}catch(e){return[]}};
 const addTop=(id,step)=>{try{const tp=TOP();tp.push({id,step});tp.sort((a,b)=>b.step-a.step);localStorage.karnageTop=JSON.stringify(tp.slice(0,5));}catch(e){}};
-function initA(){if(AU.ctx)return;try{AU.ctx=new(window.AudioContext||window.webkitAudioContext)();AU.master=AU.ctx.createGain();AU.master.gain.value=AU.on?.9*AU.vol/100:0;AU.master.connect(AU.ctx.destination);AU.mg=AU.ctx.createGain();AU.mg.gain.value=.3;AU.mg.connect(AU.master);MU.next=AU.ctx.currentTime+.1;}catch(e){}}
+function initA(){if(AU.ctx)return;try{AU.ctx=new(window.AudioContext||window.webkitAudioContext)();AU.master=AU.ctx.createGain();AU.master.gain.value=AU.on ? .9*AU.vol/100 : 0;AU.master.connect(AU.ctx.destination);AU.mg=AU.ctx.createGain();AU.mg.gain.value=.3;AU.mg.connect(AU.master);MU.next=AU.ctx.currentTime+.1;}catch(e){}}
 addEventListener('pointerdown',()=>{initA();if(AU.ctx&&AU.ctx.state==='suspended')AU.ctx.resume();if(GAME==='title'){toLobby('menu');SFX.sel();}});// 08.09: клик мыши на титуле тоже открывает меню
 function tone(o){if(!AU.ctx||!AU.on)return;const c=AU.ctx,t=c.currentTime+(o.w||0);const os=c.createOscillator(),gn=c.createGain();os.type=o.t||'square';os.frequency.setValueAtTime(o.f,t);if(o.f2)os.frequency.exponentialRampToValueAtTime(Math.max(1,o.f2),t+(o.d||.1));gn.gain.setValueAtTime(o.v||.3,t);gn.gain.exponentialRampToValueAtTime(.001,t+(o.d||.1));os.connect(gn);gn.connect(o.m?AU.mg:AU.master);os.start(t);os.stop(t+(o.d||.1)+.02);}
 function nz(o){if(!AU.ctx||!AU.on)return;const c=AU.ctx,t=c.currentTime+(o.w||0),d=o.d||.1;const n=c.sampleRate*d|0,b=c.createBuffer(1,Math.max(1,n),c.sampleRate),ch=b.getChannelData(0);for(let i=0;i<n;i++)ch[i]=Math.random()*2-1;const s=c.createBufferSource();s.buffer=b;const f=c.createBiquadFilter();f.type=o.ft||'lowpass';f.frequency.setValueAtTime(o.fl||800,t);if(o.fl2)f.frequency.exponentialRampToValueAtTime(o.fl2,t+d);const gn=c.createGain();gn.gain.setValueAtTime(o.v||.3,t);gn.gain.exponentialRampToValueAtTime(.001,t+d);s.connect(f);f.connect(gn);gn.connect(o.m?AU.mg:AU.master);s.start(t);s.stop(t+d+.02);}
@@ -94,7 +97,7 @@ clear(){this.buf.length=0;}}
 /* ВТОРЫЕ СПЕЦПРИЁМЫ (08.09): по одному на бойца, ввод — 3 кнопки */
 /* АРЕНЫ */
 ;
-function drawArena(ai,cam,t){const A=AR[ai],AS=ARENA_IMG[ai];
+function drawArena(ai,cam,t){if(arenaView.draw(ai,cam,t))return;const A=AR[ai],AS=ARENA_IMG[ai];
 if(AS&&AS.ready){g.drawImage(AS.image,0,0,RW,RH);if(AS.props)g.drawImage(AS.props,0,0,RW,RH);const fg=g.createLinearGradient(0,FL-26,0,FL);fg.addColorStop(0,'rgba(178,188,208,0)');fg.addColorStop(1,'rgba(178,188,208,.08)');g.fillStyle=fg;g.fillRect(0,FL-26,RW,26);const gr=g.createLinearGradient(0,FL,0,RH);gr.addColorStop(0,A.gr);gr.addColorStop(1,shade(A.gr,.55));g.fillStyle=gr;g.fillRect(0,FL,RW,RH-FL);g.fillStyle=mix(A.gr,'#fff',.14);g.fillRect(0,FL,RW,1);g.fillStyle='rgba(0,0,0,.25)';g.fillRect(0,FL,RW,2);return;}// 24.10: пилот арены на ассетах
 const sky=g.createLinearGradient(0,0,0,FL);// 08.09: небо градиентом вместо плоских полос
 sky.addColorStop(0,A.sky[0]);sky.addColorStop(.45,A.sky[1]);sky.addColorStop(.75,A.sky[2]);sky.addColorStop(1,A.sky[3]);
@@ -139,7 +142,7 @@ for(const x of[x0,x0-(RW+47)])g.fillRect(x,y,w2,2);}
 g.strokeStyle='rgba(0,0,0,.18)';g.lineWidth=1;for(const yy of[FL+9,FL+20,FL+32]){g.beginPath();g.moveTo(0,yy);g.lineTo(RW,yy);g.stroke();}// 30.09: швы плит
 g.fillStyle=A.gr2;for(const rb of A.rb){const x=Math.round(((rb.x-cam)%(RW+40)+RW+40)%(RW+40)-20);g.globalAlpha=rb.a;g.fillRect(x,rb.y,rb.w,2);}g.globalAlpha=1;// 30.09: щебень с параллаксом
 g.fillStyle='rgba(0,0,0,.25)';g.fillRect(0,FL,RW,2);g.fillStyle='rgba(255,255,255,.06)';g.fillRect(0,FL+2,RW,1);}// 30.09: кромка земли// 08.09: вторая копия крапинок на стыке
-function ambient(){const A=AR[battle.arena];
+function ambient(){if(arenaView.ambient({arena:battle.arena,cam,frame:FRAME,parts}))return;const A=AR[battle.arena];
 if(A.rain&&FRAME%2===0)parts.push({x:cam+rnd(-20,RW+30),y:-6,vx:-.6,vy:7,c:'rgba(170,190,215,.28)',l:60,s:1,gv:0,line:1,kf:1});
 if(A.snow&&FRAME%2===0)parts.push({x:cam+rnd(-10,RW+10),y:-4,vx:rnd(-.3,.3),vy:rnd(.3,.6),c:'rgba(230,240,255,.7)',l:420,s:1,gv:0});
 if(A.sand&&FRAME%8===0)parts.push({x:cam+RW+10,y:rnd(60,FL),vx:rnd(-2.6,-1.6),vy:0,c:'rgba(220,180,110,.2)',l:120,s:1,gv:0,line:1,kf:1});
@@ -1018,7 +1021,8 @@ for(const f of[b.p2,b.p1])drawF(f,cam);
 if(b.p1.state==='super'&&b.p1.def.id===5&&b.p1.st>14&&b.p1.st<90){g.globalAlpha=.5;drawFakeShift(b.p1,cam,-30);drawFakeShift(b.p1,cam,30);g.globalAlpha=1;}
 if(b.p2.state==='super'&&b.p2.def.id===5&&b.p2.st>14&&b.p2.st<90){g.globalAlpha=.5;drawFakeShift(b.p2,cam,-30);drawFakeShift(b.p2,cam,30);g.globalAlpha=1;}
 drawProjs(cam);drawFx(cam);drawParts(cam);
-g.fillStyle='rgba(0,0,0,.4)';for(let i=0;i<12;i++){const x=Math.round(((i*67-cam*1.25)%(RW+67)+RW+67)%(RW+67)-33),h2=6+(i*13)%14;g.beginPath();g.moveTo(x-9,RH);g.lineTo(x,RH-h2);g.lineTo(x+9,RH);g.fill();}// 08.09: силуэты переднего плана — параллакс быстрее камеры, глубина сцены
+arenaView.foreground(b.arena,cam,FRAME);
+if(!arenaView.hasForeground(b.arena)){g.fillStyle='rgba(0,0,0,.4)';for(let i=0;i<12;i++){const x=Math.round(((i*67-cam*1.25)%(RW+67)+RW+67)%(RW+67)-33),h2=6+(i*13)%14;g.beginPath();g.moveTo(x-9,RH);g.lineTo(x,RH-h2);g.lineTo(x+9,RH);g.fill();}}// 08.09: силуэты переднего плана — параллакс быстрее камеры, глубина сцены
 if(b.p1.state==='super'||b.p2.state==='super'||b.phase==='fatal'){g.fillStyle='rgba(10,0,0,.22)';g.fillRect(0,0,RW,RH);}// 08.09: драматическое затемнение при супере/фаталити
 if(b.loser&&b.loser.laserT&&b.phase==='fatal'&&b.phaseT>60&&b.phaseT<160){g.fillStyle='rgba(248,248,96,.8)';g.fillRect(b.loser.x-cam-6,0,12,FL+GR);}
 g.restore();

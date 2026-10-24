@@ -54,6 +54,7 @@
 - `updProjs` — снаряды, наведение, столкновения, AoE.
 - `startSuper` — цепочка событий `supEv`; `fatalStep` — покадровый сценарий фаталити.
 - `drawF`/`pose`/`drawGear`/`drawPort` — процедурная отрисовка бойцов.
+- `src/game/world/arena.js` — слоёный рендер арен: `far/mid/props/fg`, параллакс, свет, туман, погода.
 - `drawHUD`/`drawSelect`/`drawPause`/`drawVS` — интерфейс.
 - `step` — фиксированный шаг 60 Гц; `render` — кадр; `loop` — rAF.
 
@@ -98,7 +99,7 @@
 
 - Портреты обрезают рога Базальта, нимб Веги и корону Кармин.
 - Аркада не сохраняет прогресс, рекорды дублируются, отдельного босса нет.
-- Нет stage-specific декора и кэша портретов/градиентов.
+- Остальные шесть арен процедурные; «Кладбище» и «Додзё» ждут слоёного фона.
 - `TOP` санирован, но не хранит имя, сложность и дату.
 - `src/game/karnage.js` всё ещё обёртка монолита.
 
@@ -112,6 +113,8 @@
 - special cancel: только после попадания, окно 10 кадров;
 - FX: block, smoke, dustRun, fireImpact, iceImpact, shadowImpact, explosion;
 - арена «Кладбище» на ассетах GothicVania с fallback;
+- «Док» и «Храм призраков» на четырёх слоях с параллаксом, дождём, туманом и светом;
+- `src/game/world/arena.js` вынесен из монолита;
 - Вега получила женский силуэт: хвост с лентой, серьга, губы, ресницы и юбка;
 - пропуск фаталити/победы и таймер FINISH HIM;
 - low/high-блок, blockstun и wakeup;
@@ -127,6 +130,9 @@
 ## Ассеты
 
 - `tools/assets_fetch.py` — загрузка zip/tar/7z/rar, magic bytes, keep/ignore, preview.
+- `tools/arenas_import.py` — сборка `far/mid/props/fg` и `arena.json` для арен.
+- `src/game/world/arena.js` — отрисовка слоёв, света и погоды.
+- `assets/arenas/0` — «Док»; `assets/arenas/1` — «Храм призраков»; `4` и `9` — старые однослойные.
 - `assets/vendor/packs.json` — реестр паков.
 - `selected/` и `extracted/` не в git.
 - 7-Zip: `C:\Program Files\7-Zip\7z.exe`.
