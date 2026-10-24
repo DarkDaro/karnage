@@ -3,5 +3,9 @@ export default {
   "panel": {
     "image": "panel.png",
     "slice": 12
+  },
+  "button": {
+    "image": "button.png",
+    "slice": 12
   }
 };

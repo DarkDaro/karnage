@@ -9,7 +9,10 @@ from pathlib import Path
 from PIL import Image, ImageEnhance
 
 ROOT = Path(__file__).resolve().parent.parent
-SRC = ROOT / "assets" / "vendor" / "gothicvania-cemetery" / "extracted" / "gothicvania-cemetery-files" / "PNG" / "Environment"
+BASE = ROOT / "assets" / "vendor" / "gothicvania-cemetery"
+SRC_SELECTED = BASE / "selected" / "gothicvania-cemetery-files" / "PNG" / "Environment"
+SRC_EXTRACTED = BASE / "extracted" / "gothicvania-cemetery-files" / "PNG" / "Environment"
+SRC = SRC_SELECTED if SRC_SELECTED.exists() else SRC_EXTRACTED
 OUT = ROOT / "assets" / "arenas" / "9"
 W, H = 424, 240
 FLOOR = 206

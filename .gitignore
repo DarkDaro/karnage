@@ -5,6 +5,7 @@ test-results/
 playwright-report/
 .cache/
 assets/vendor/*/extracted/
+assets/vendor/*/selected/
 *.log
 .env
 .env.*

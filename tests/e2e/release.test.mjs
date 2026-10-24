@@ -34,7 +34,7 @@ for (const [name, entry] of Object.entries(entries)) {
         arenaAssets: Object.values(window.KARNAGE.arenaAssets || {}).filter((asset) => asset.ready).length,
         uiAssets: Object.values(window.KARNAGE.uiAssets || {}).filter((asset) => asset.ready).length
       }));
-      assert.deepEqual(state, { game: 'title', fighters: 13, arenas: 10, fx: 10, arenaAssets: 1, uiAssets: 1 });
+      assert.deepEqual(state, { game: 'title', fighters: 13, arenas: 10, fx: 10, arenaAssets: 1, uiAssets: 2 });
       assert.deepEqual(errors, []);
     } finally {
       await browser.close();

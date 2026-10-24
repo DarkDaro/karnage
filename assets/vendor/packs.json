@@ -1,0 +1,61 @@
+{
+  "gothicvania-cemetery": {
+    "page": "https://opengameart.org/content/gothicvania-cemetery-pack",
+    "zip": "https://opengameart.org/sites/default/files/gothicvania-cemetery-files.zip",
+    "license": "CC0",
+    "keep": [
+      "gothicvania-cemetery-files/PNG/Environment/**",
+      "gothicvania-cemetery-files/public-license.txt"
+    ],
+    "ignore": [
+      "__MACOSX/**",
+      ".DS_Store",
+      "gothicvania-cemetery-files/PSD/**",
+      "gothicvania-cemetery-files/Phaser-code-gothicvania-cemetery/**",
+      "gothicvania-cemetery-files/GIFS/**"
+    ],
+    "max_mb": 8
+  },
+  "superpowers-backgrounds": {
+    "zip": "https://opengameart.org/sites/default/files/superpowers-asset-packs-background-elements.zip",
+    "license": "CC0",
+    "keep": ["backgrounds/**", "LICENSE.txt", "CREDIT.txt", "README.md"],
+    "ignore": ["__MACOSX/**", ".DS_Store"],
+    "max_mb": 8
+  },
+  "kenney-fantasy-ui-borders": {
+    "zip": "https://kenney.nl/media/pages/assets/fantasy-ui-borders/ab29cd0165-1701602367/kenney_fantasy-ui-borders.zip",
+    "license": "CC0",
+    "keep": ["PNG/**", "License.txt"],
+    "ignore": ["__MACOSX/**", ".DS_Store"],
+    "max_mb": 5
+  },
+  "kenney-ui-rpg": {
+    "zip": "https://kenney.nl/media/pages/assets/ui-pack-rpg-expansion/7ec4a46657-1677661824/kenney_ui-pack-rpg-expansion.zip",
+    "license": "CC0",
+    "keep": ["PNG/**", "license.txt"],
+    "ignore": ["__MACOSX/**", ".DS_Store"],
+    "max_mb": 5
+  },
+  "kenney-input-prompts": {
+    "zip": "https://kenney.nl/media/pages/assets/input-prompts-pixel/84a40a31f6-1774771309/kenney_input-prompts-pixel.zip",
+    "license": "CC0",
+    "keep": ["Tiles/**", "Tilemap/**", "License.txt"],
+    "ignore": ["__MACOSX/**", ".DS_Store"],
+    "max_mb": 5
+  },
+  "kenney-particle-pack": {
+    "zip": "https://kenney.nl/media/pages/assets/particle-pack/f8fe0f8cb8-1677578741/kenney_particle-pack.zip",
+    "license": "CC0",
+    "keep": ["PNG/**", "License.txt"],
+    "ignore": ["__MACOSX/**", ".DS_Store"],
+    "max_mb": 20
+  },
+  "kenney-light-masks": {
+    "zip": "https://kenney.nl/media/pages/assets/light-masks/6530e254f9-1775631687/kenney_light-masks-1.0.zip",
+    "license": "CC0",
+    "keep": ["PNG/**", "License.txt"],
+    "ignore": ["__MACOSX/**", ".DS_Store"],
+    "max_mb": 20
+  }
+}

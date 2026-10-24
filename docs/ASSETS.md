@@ -204,17 +204,17 @@
 ## Пайплайн
 
 ```text
-assets/vendor/<pack>/          исходный zip + LICENSE + SOURCE.md
+assets/vendor/<pack>/pack.*    исходный архив (zip/tar/7z/rar)
+assets/vendor/<pack>/selected/ только keep-файлы, вне git
 assets/fx/<name>.png           готовый атлас эффекта
-assets/fx/<name>.json          кадры, fps, loop, anchor, blend
-assets/arenas/<id>/far.png     дальний слой
-assets/arenas/<id>/mid.png     средний слой
-assets/arenas/<id>/fore.png    передний слой
+assets/arenas/<id>/bg.png      фон арены
 assets/arenas/<id>/props.png   пропсы
-assets/arenas/<id>/arena.json  параллакс, палитра, якоря
-assets/manifest.json           общий реестр
-tools/assets_import.py         импорт и упаковка
-tools/assets_preview.py        контактные листы
+assets/ui/panel.png            9-slice UI
+tools/assets_fetch.py          скачивание, проверка, фильтр, preview
+assets/vendor/packs.json       реестр паков
+tools/assets_import.py         импорт FX
+tools/arenas_import.py         сборка арены
+tools/ui_import.py             сборка UI
 ```
 
 Импорт:
@@ -242,11 +242,13 @@ tools/assets_preview.py        контактные листы
 ## UI
 
 - `assets/ui/panel.png` — 9-slice рамка, Kenney Fantasy UI Borders, slice 12.
+- `assets/ui/button.png` — 9-slice кнопка, Kenney UI RPG, slice 12.
 - `src/assets/ui-manifest.js` — манифест.
 - `src/assets/ui.js` — загрузчик с fallback.
 - `tools/ui_import.py` — тонирование рамки в золото.
 - Подключено в `panel()` и `frame()`; меню, выбор бойца, пауза, зал славы, HUD и таймер получают новую рамку.
-- Следующее: кнопки, иконки, экран настроек.
+- Кнопка используется для выбранной строки меню и настроек.
+- Следующее: иконки и экран настроек.
 
 ## Проверка
 

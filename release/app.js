@@ -222,6 +222,10 @@
     "panel": {
       "image": "panel.png",
       "slice": 12
+    },
+    "button": {
+      "image": "button.png",
+      "slice": 12
     }
   };
 
@@ -3294,8 +3298,8 @@
       g.fillText(t, 0, 0);
       g.restore();
     }
-    function frame(x, y, w, h) {
-      const p = UI.panel;
+    function frame(x, y, w, h, key = "panel") {
+      const p = UI[key];
       if (p && p.ready) {
         const sm = p.slice || 12, dm = Math.min(sm, Math.max(2, Math.floor(Math.min(w, h) / 2))), iw = p.image.width, ih = p.image.height, cw = iw - sm * 2, ch = ih - sm * 2;
         g.save();
@@ -4630,7 +4634,8 @@
         const y = 82 + i * 19, on = i === menuIdx;
         if (on) {
           g.fillStyle = "rgba(224,32,32,.08)";
-          g.fillRect(46, y - 13, 176, 18);
+          g.fillRect(56, y - 13, 156, 18);
+          frame(56, y - 13, 156, 18, "button");
         }
         g.font = on ? '12px "Russo One"' : '10px "Russo One"';
         g.fillStyle = on ? blink() ? "#fff" : "#e02020" : "#c8a040";
@@ -4674,7 +4679,8 @@
         const y = y0 + i * step2, on = i === settingsIdx;
         if (on) {
           g.fillStyle = "rgba(224,32,32,.08)";
-          g.fillRect(52, y - 12, RW - 104, 15);
+          g.fillRect(64, y - 12, RW - 128, 15);
+          frame(64, y - 12, RW - 128, 15, "button");
         }
         g.font = on ? '9px "Russo One"' : '8px "Russo One"';
         g.fillStyle = on ? blink() ? "#fff" : "#e02020" : "#c8a040";

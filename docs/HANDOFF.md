@@ -53,7 +53,7 @@
 - damage scaling, броски `P+K` и special cancel;
 - FX: block, smoke, dustRun, fireImpact, iceImpact, shadowImpact, explosion;
 - арена «Кладбище» на GothicVania с fallback;
-- UI: 9-slice панель из Kenney Fantasy UI, HUD и таймер в новой рамке;
+- UI: 9-slice панель и кнопка из Kenney; HUD/таймер и выбранные строки в новой рамке;
 - Вега: женский силуэт, хвост с лентой, серьга, губы, ресницы и боевая юбка;
 - low/high-блок, пропуск фаталити/победы и таймер FINISH HIM;
 - P2 в выборе получает свои подписи, панель и нормальные шкалы;
@@ -76,6 +76,8 @@ npm run assets:build
 - `npm run build` обновляет `release/`.
 - `npm test` собирает release и гоняет unit + e2e.
 - `npm run assets:build` пересобирает FX из `assets/vendor`.
+- `py -3.14 -B tools/assets_fetch.py --check-tools` проверяет zip/tar/7z/rar.
+- `py -3.14 -B tools/assets_fetch.py --only <pack>` качает и фильтрует пак.
 - `?sound=1` включает звук.
 - `?debug=1` даёт `window.KARNAGE`.
 

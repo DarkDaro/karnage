@@ -20,7 +20,15 @@
 | `kenney-light-masks` | kenney.nl | CC0 | свет, ауры, свечение |
 | `kenney-splat-pack` | kenney.nl | CC0 | пятна и брызги |
 
-Каждый пак хранит `pack.zip`, `SOURCE.md` и `LICENSE.txt`. Распакованные `extracted/` не входят в git: они создаются локально из zip.
+Каждый пак хранит `pack.*`, `SOURCE.md` и `LICENSE.txt`. `extracted/` и `selected/` не входят в git.
 
-Сборка FX: `npm run assets:build`.
-Сборка пилота арены: `py -3.14 -B tools/arenas_import.py`.
+```bash
+py -3.14 -B tools/assets_fetch.py --check-tools
+py -3.14 -B tools/assets_fetch.py --only gothicvania-cemetery
+py -3.14 -B tools/assets_fetch.py --manifest assets/vendor/packs.json
+npm run assets:build
+py -3.14 -B tools/arenas_import.py
+py -3.14 -B tools/ui_import.py
+```
+
+`packs.json` — реестр паков и фильтров `keep`/`ignore`.

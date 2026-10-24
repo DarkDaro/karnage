@@ -124,6 +124,14 @@
 - пауза при `blur`/`visibilitychange`;
 - звук по умолчанию выключен.
 
+## Ассеты
+
+- `tools/assets_fetch.py` — загрузка zip/tar/7z/rar, magic bytes, keep/ignore, preview.
+- `assets/vendor/packs.json` — реестр паков.
+- `selected/` и `extracted/` не в git.
+- 7-Zip: `C:\Program Files\7-Zip\7z.exe`.
+- `py7zr` и `rarfile` установлены для Python 3.14.
+
 ## Звук на время разработки
 
 - По умолчанию звук выключен: `FORCE_MUTE` в `src/game/karnage.js`.
