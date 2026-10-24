@@ -23,8 +23,10 @@
 - Пилот CC0-эффектов: `hitLight` (CodeManu), `hitHeavy` и `dust` (Kenney).
 - Добавлены `tools/assets_import.py`, `assets/fx`, `src/assets/fx.js`, `tests/e2e/fx.test.mjs`.
 - Снимок: `archive/2026-10-24-fx-pilot`.
-- На время разработки звук по умолчанию выключен; `?sound=1` включает.
+- На время разработки звук по умолчанию выключен; настройки или `?sound=1` включают его.
 - Технический проход: announce/wipe, drawFx, drawTitle, rgb-цвета, jkick, blockstun, wakeup, P2-выбор, пауза при blur.
 - Добавлены пропуск фаталити/победы, таймер FINISH HIM и low/high-блок.
+- Добавлены настройки в главном меню: звук, голос, громкость, CRT, кровь, тряска и reduce motion; выбор сохраняется.
 - Добавлен `docs/HANDOFF.md` для старта нового чата.
 - Снимок: `archive/2026-10-24-handoff`, `archive/2026-10-24-final-tails`.
+- GitHub Pages: https://darkdaro.github.io/karnage/ — страница запущена и проверена.

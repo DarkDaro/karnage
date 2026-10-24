@@ -15,9 +15,14 @@ function colorParts(c){if(c[0]==='#')return[parseInt(c.slice(1,3),16),parseInt(c
 function mix(a,b,t){const A=colorParts(a),B=colorParts(b);return'rgb('+(lerp(A[0],B[0],t)|0)+','+(lerp(A[1],B[1],t)|0)+','+(lerp(A[2],B[2],t)|0)+')';}
 const shade=(h,k)=>mix(h,'#000000',1-k);
 /* ЗВУК */
-const FORCE_MUTE=!new URLSearchParams(location.search).has('sound');// временно: звук выключен, ?sound=1 включает
+const SOUND_URL=new URLSearchParams(location.search).has('sound');const FORCE_MUTE=!SOUND_URL;// временно: звук выключен по умолчанию, ?sound=1 включает
+const OPT={crt:true,blood:true,shake:true,reduce:false};
+try{const raw=JSON.parse(localStorage.karnageOpts||'{}');if(raw&&typeof raw==='object'){for(const k of['crt','blood','shake','reduce'])if(typeof raw[k]==='boolean')OPT[k]=raw[k];}}catch(e){}
+const saveOpts=()=>{try{localStorage.karnageOpts=JSON.stringify(OPT);}catch(e){}};
+const applyCrt=()=>{const el=document.getElementById('crt');if(el)el.style.display=OPT.crt?'block':'none';};
+applyCrt();
 const AU={ctx:null,on:!FORCE_MUTE,voice:true,vol:100};
-try{if(localStorage.karnageVox!==undefined)AU.voice=localStorage.karnageVox==='1';if(localStorage.karnageVol!==undefined){const v=parseFloat(localStorage.karnageVol);if(Number.isFinite(v))AU.vol=clamp(v,0,100);}if(!FORCE_MUTE&&localStorage.karnageSnd!==undefined)AU.on=localStorage.karnageSnd==='1';}catch(e){}if(FORCE_MUTE)AU.on=false;
+try{if(localStorage.karnageVox!==undefined)AU.voice=localStorage.karnageVox==='1';if(localStorage.karnageVol!==undefined){const v=parseFloat(localStorage.karnageVol);if(Number.isFinite(v))AU.vol=clamp(v,0,100);}if(localStorage.karnageSnd!==undefined)AU.on=localStorage.karnageSnd==='1';}catch(e){}if(SOUND_URL)AU.on=true;
 const setVol=()=>{if(AU.master)AU.master.gain.value=.9*AU.vol/100;};// 08.09: применение громкости
 const saveSet=()=>{try{localStorage.karnageSnd=AU.on?1:0;localStorage.karnageVox=AU.voice?1:0;localStorage.karnageVol=AU.vol;}catch(e){}};// 08.09
 const TOP=()=>{try{const raw=JSON.parse(localStorage.karnageTop||'[]');if(!Array.isArray(raw))return[];return raw.filter(e=>e&&Number.isInteger(e.id)&&e.id>=0&&e.id<CH.length&&Number.isFinite(e.step)&&e.step>=0).slice(0,5);}catch(e){return[]}};
@@ -139,11 +144,11 @@ if(A.rain&&Math.random()<.004){flashS=Math.max(flashS,3);SFX.thunder();}}// 08.0
 /* ЧАСТИЦЫ */
 let parts=[],projs=[],decals=[],fx=[];
 function spriteFx(name,x,y,opts){const a=FX[name];if(!a||!a.ready)return false;opts=opts||{};const frames=a.frames||1;const fps=a.fps||30;fx.push({ty:'sprite',img:a.image,x,y,t:0,dur:Math.max(1,Math.round(frames*60/fps)),frames,frameW:a.frameWidth,frameH:a.frameHeight,anchor:a.anchor||[a.frameWidth/2,a.frameHeight/2],blend:a.blend||'source-over',scale:opts.scale??a.scale??1,alpha:opts.alpha??a.alpha??1});return true;}
-function P(x,y,vx,vy,c,l,s,gv){parts.push({x,y,vx,vy,c,l:l||30,s:s||2,gv:gv===undefined?.3:gv});}
-function blood(x,y,n,pw){for(let i=0;i<n;i++)P(x,y,rnd(-2.5,2.5)*(pw||1),rnd(-4,1),'#b01818',rnd(20,50),rnd(1,3));}
+function P(x,y,vx,vy,c,l,s,gv){if(!OPT.blood&&c==='#b01818')return;parts.push({x,y,vx,vy,c,l:l||30,s:s||2,gv:gv===undefined?.3:gv});}
+function blood(x,y,n,pw){if(!OPT.blood)return;for(let i=0;i<n;i++)P(x,y,rnd(-2.5,2.5)*(pw||1),rnd(-4,1),'#b01818',rnd(20,50),rnd(1,3));}
 function updParts(){for(let i=parts.length;i--;){const p=parts[i];p.x+=p.vx;p.y+=p.vy;p.vy+=p.gv;p.l--;
 if(p.kf&&p.y>FL+GR){parts.splice(i,1);continue;}
-if(!p.line&&p.y>=FL+GR-1&&p.gv>0){if(p.c==='#b01818'&&Math.random()<.5)decals.push({x:p.x,y:FL+2+rnd(0,4),s:rnd(1,3),t:0,l:rnd(480,900)});p.y=FL+GR-1;p.vy*=-.3;p.vx*=.6;}// 08.09: пятна крови получили таймер истечения
+if(!p.line&&p.y>=FL+GR-1&&p.gv>0){if(OPT.blood&&p.c==='#b01818'&&Math.random()<.5)decals.push({x:p.x,y:FL+2+rnd(0,4),s:rnd(1,3),t:0,l:rnd(480,900)});p.y=FL+GR-1;p.vy*=-.3;p.vx*=.6;}// 08.09: пятна крови получили таймер истечения
 if(p.l<=0)parts.splice(i,1);}
 for(let i=decals.length;i--;){const dd=decals[i];dd.t++;if(dd.t>dd.l)decals.splice(i,1);}// 08.09: пятна исчезают по таймеру
 if(decals.length>240)decals.splice(0,decals.length-240);if(parts.length>400)parts.splice(0,parts.length-400);}
@@ -607,16 +612,16 @@ if(Math.random()<agg){f.aiDir=null;const pk=Math.random();if(pk<.3)c.ax.P=true;e
 if(Math.random()<.28){f.aiDir=null;c.ax.B=true;return;}
 f.aiDir=Math.random()<.6?(dx>0?'r':'l'):null;}
 /* БОЙ */
-let GAME='title',FRAME=0,freeze=0,shake=0,cam=0,menuIdx=0,ladder=[],lStep=0,paused=false,pauseIdx=0,wipe=0;
+let GAME='title',FRAME=0,freeze=0,shake=0,cam=0,menuIdx=0,settingsIdx=0,ladder=[],lStep=0,paused=false,pauseIdx=0,wipe=0;
 let battle=null,flashS=0,announce=null,sel={mode:'cpu',c1:0,c2:1,ph:0,l1:false,l2:false,diff:1,ar:-1,row:0},vsT=0,titleT=0,contT=0,arcP1=0,lastSel=null,vsEscT=0,bstat=null;// 08.09: lastSel — реванш, vsEscT — подтверждение выхода, bstat — статистика боя
-function toLobby(gm){GAME=gm;cam=0;parts=[];decals=[];projs=[];fx=[];announce=null;paused=false;if(gm==='menu')menuIdx=0;}
+function toLobby(gm){GAME=gm;cam=0;parts=[];decals=[];projs=[];fx=[];announce=null;paused=false;if(gm==='menu')menuIdx=0;if(gm==='settings')settingsIdx=0;}
 function newBattle(i1,c1,i2,c2,arena){battle={p1:new F(CH[i1],c1),p2:new F(CH[i2],c2),round:1,phase:'intro',phaseT:0,timer:60,arena};
 battle.p1.foe=battle.p2;battle.p2.foe=battle.p1;decals=[];projs=[];parts=[];fx=[];bstat={h1:0,d1:0,c1:0,h2:0,d2:0,c2:0};// 08.09: сброс статистики
 startRound();GAME='fight';}// 08.09: newBattle теперь расставляет бойцов через startRound — раньше оба спавнились в одной точке x=200
 function startRound(){const b=battle;freeze=0;shake=0;flashS=0;b.p1.reset(180,1);b.p2.reset(AW-180,-1);b.phase='intro';b.phaseT=0;b.timer=60;// 08.09: бойцы по краям видимой области (180/580, дистанция 400) — раньше кучковались у центра
 b.p1.rage=Math.floor(b.p1.rage*.5);b.p2.rage=Math.floor(b.p2.rage*.5);// 08.09: ярость переносится наполовину — без мгновенного супера
 decals=[];projs=[];fx=[];// 08.09: кровь и снаряды копились между раундами
-wipe=24;// 30.09: шторки раунда
+wipe=OPT.reduce?0:24;// 30.09: шторки раунда
 announce={txt:'РАУНД '+b.round,t:0,col:'#e8c040'};say('Round '+['one','two','three'][Math.min(2,b.round-1)]);}
 function endBattle(w){battle.phase='over';battle.phaseT=0;battle.winner=w;w.state='win';w.st=0;w.atk=null;if(battle.loser)battle.loser.defeated=1;projs.length=0;
 announce={txt:w.def.name+' ?????????',t:0,col:'#e8c040'};say(w.def.en+' wins');SFX.win();}
@@ -711,6 +716,15 @@ function resumeArc(){const idx=ladder[lStep];newBattle(arcP1,new Ctrl(KM1),idx,n
 battle.mode='arcade';battle.p2.ctrl.ai=true;battle.aiLvl=Math.min(7,lStep+(lStep===ladder.length-1?2:0));GAME='vs';vsT=0;SFX.coin();}// 08.09: босс сохраняет буст после продолжения
 /* ЭКРАНЫ: ВВОД */
 function pauseItems(){return['ПРОДОЛЖИТЬ','ЗВУК: '+(AU.on?'ВКЛ':'ВЫКЛ'),'ГОЛОС ДИКТОРА: '+(AU.voice?'ВКЛ':'ВЫКЛ'),'ГРОМКОСТЬ: '+AU.vol+'%','В МЕНЮ'];}// 08.09: +громкость
+function settingsItems(){return['ЗВУК: '+(AU.on?'ВКЛ':'ВЫКЛ'),'ГОЛОС: '+(AU.voice?'ВКЛ':'ВЫКЛ'),'ГРОМКОСТЬ: '+AU.vol+'%','CRT-ФИЛЬТР: '+(OPT.crt?'ВКЛ':'ВЫКЛ'),'КРОВЬ: '+(OPT.blood?'ВКЛ':'ВЫКЛ'),'ТРЯСКА: '+(OPT.shake?'ВКЛ':'ВЫКЛ'),'МЕНЬШЕ ДВИЖЕНИЯ: '+(OPT.reduce?'ВКЛ':'ВЫКЛ'),'НАЗАД'];}
+function settingsChange(i,dir){
+if(i===0){AU.on=!AU.on;if(!AU.on){try{speechSynthesis.cancel();}catch(e){}}else SFX.menu();saveSet();}
+else if(i===1){AU.voice=!AU.voice;if(!AU.voice){try{speechSynthesis.cancel();}catch(e){}}saveSet();SFX.menu();}
+else if(i===2){AU.vol=clamp(AU.vol+(dir<0?-10:10),0,100);setVol();saveSet();SFX.menu();}
+else if(i===3){OPT.crt=!OPT.crt;applyCrt();saveOpts();SFX.menu();}
+else if(i===4){OPT.blood=!OPT.blood;saveOpts();SFX.menu();}
+else if(i===5){OPT.shake=!OPT.shake;saveOpts();SFX.menu();}
+else if(i===6){OPT.reduce=!OPT.reduce;if(OPT.reduce){shake=0;flashS=0;}saveOpts();SFX.menu();}}
 function onKey(k){
 if(k==='KeyM'){AU.on=!AU.on;if(!AU.on){try{speechSynthesis.cancel();}catch(e){}}else SFX.menu();saveSet();return;}// 08.09: +сохранение настройки
 if(GAME==='fight'&&!paused&&battle&&(k==='KeyJ'||k==='Enter'||k==='Space')){if(battle.phase==='fatal'&&battle.phaseT>30){endBattle(battle.winner);return;}if(battle.phase==='over'&&battle.phaseT>30){afterBattle();return;}}
@@ -730,14 +744,24 @@ else if(pauseIdx===3){AU.vol=AU.vol>=100?0:AU.vol+25;setVol();saveSet();}// 08.0
 else toLobby('menu');}
 return;}
 if(GAME==='menu'){
-if(k==='KeyW'||k==='ArrowUp'){menuIdx=(menuIdx+4)%5;SFX.menu();}
-if(k==='KeyS'||k==='ArrowDown'){menuIdx=(menuIdx+1)%5;SFX.menu();}
+if(k==='KeyW'||k==='ArrowUp'){menuIdx=(menuIdx+5)%6;SFX.menu();}
+if(k==='KeyS'||k==='ArrowDown'){menuIdx=(menuIdx+1)%6;SFX.menu();}
 if(k==='KeyJ'||k==='Enter'||k==='Space'){SFX.sel();
 if(menuIdx===0){GAME='select';sel={mode:'arcade',c1:0,c2:1,ph:0,l1:false,l2:false,diff:1,ar:-1,row:0};say('Choose your fighter');}
 else if(menuIdx===1){GAME='select';sel={mode:'cpu',c1:0,c2:1,ph:0,l1:false,l2:false,diff:1,ar:-1,row:0};say('Choose your fighter');}
 else if(menuIdx===2){GAME='select';sel={mode:'2p',c1:0,c2:1,ph:0,l1:false,l2:false,diff:1,ar:-1,row:0};say('Choose your fighters');}// 08.09: sel унифицирован, мёртвые go/selT убраны
-else if(menuIdx===3)GAME='controls';
+else if(menuIdx===3){settingsIdx=0;GAME='settings';}
+else if(menuIdx===4)GAME='controls';
 else GAME='top';}// 08.09: 5-й пункт — зал славы
+return;}
+if(GAME==='settings'){
+const n=settingsItems().length;
+if(k==='KeyW'||k==='ArrowUp'){settingsIdx=(settingsIdx+n-1)%n;SFX.menu();}
+if(k==='KeyS'||k==='ArrowDown'){settingsIdx=(settingsIdx+1)%n;SFX.menu();}
+if(k==='KeyA'||k==='ArrowLeft')settingsChange(settingsIdx,-1);
+if(k==='KeyD'||k==='ArrowRight')settingsChange(settingsIdx,1);
+if(k==='KeyJ'||k==='Enter'||k==='Space'){if(settingsIdx===n-1){toLobby('menu');SFX.menu();}else settingsChange(settingsIdx,1);}
+if(k==='Escape'){toLobby('menu');SFX.menu();}
 return;}
 if(GAME==='controls'){if(k==='KeyJ'||k==='Enter'||k==='Escape'){toLobby('menu');SFX.menu();}return;}
 if(GAME==='select'){selKey(k);return;}
@@ -891,16 +915,24 @@ if(blink()){g.fillStyle='#e8e0c0';g.font='11px "Russo One"';g.fillText('НАЖМ
 function drawMenu(){bgFill();
 g.font='22px "Rubik Mono One","Russo One",sans-serif';g.textAlign='center';g.fillStyle='#000';g.fillText('KARNAGE',RW/2+2,42);g.fillStyle='#e02020';g.fillText('KARNAGE',RW/2,40);
 const gl2=.12+Math.sin(FRAME*.04)*.06;g.globalAlpha=Math.max(0,gl2);g.fillStyle='#e02020';g.fillRect(RW/2-90,20,180,30);g.globalAlpha=1;// 08.09: пульсирующее зарево за логотипом
-panel(36,62,196,130);
-const items=['АРКАДА','БОЙ ПРОТИВ CPU','БОЙ НА ДВОИХ','УПРАВЛЕНИЕ','ЗАЛ СЛАВЫ'];
-items.forEach((it,i)=>{const y=84+i*22,on=i===menuIdx;
-g.font=on?'13px "Russo One"':'11px "Russo One"';
+panel(36,62,196,140);
+const items=['АРКАДА','БОЙ ПРОТИВ CPU','БОЙ НА ДВОИХ','НАСТРОЙКИ','УПРАВЛЕНИЕ','ЗАЛ СЛАВЫ'];
+items.forEach((it,i)=>{const y=82+i*19,on=i===menuIdx;
+g.font=on?'12px "Russo One"':'10px "Russo One"';
 g.fillStyle=on?(blink()?'#fff':'#e02020'):'#c8a040';g.textAlign='center';g.fillText(it,134,y);
 if(on){g.fillStyle='#e02020';g.beginPath();g.moveTo(48,y-7);g.lineTo(55,y-3);g.lineTo(48,y+1);g.fill();}});
 panel(252,66,136,116);
 const si=FRAME/300%CH.length|0;drawFake(si,320,158,1.15,-1);
 g.font='8px "Russo One"';g.fillStyle='#e8e0c0';g.textAlign='center';g.fillText(CH[si].name,320,172);
 if(blink()){g.font='8px "Russo One"';g.fillStyle='#807850';g.textAlign='center';g.fillText('W/S — выбор · J — подтвердить · M — звук',RW/2,212);}}
+function drawSettings(){bgFill();
+g.font='20px "Rubik Mono One","Russo One",sans-serif';g.textAlign='center';g.fillStyle='#000';g.fillText('НАСТРОЙКИ',RW/2+2,38);g.fillStyle='#e02020';g.fillText('НАСТРОЙКИ',RW/2,36);
+panel(30,50,RW-60,158);
+const items=settingsItems();const y0=70,step=16;
+items.forEach((it,i)=>{const y=y0+i*step,on=i===settingsIdx;
+g.font=on?'9px "Russo One"':'8px "Russo One"';
+g.fillStyle=on?(blink()?'#fff':'#e02020'):'#c8a040';g.textAlign='center';g.fillText((on?'> ':'')+it,RW/2,y);});
+g.font='7px "Russo One"';g.fillStyle='#807850';g.textAlign='center';g.fillText('W/S — выбор · A/D — изменить · J — переключить · ESC — назад',RW/2,224);}
 function drawPause(){g.fillStyle='rgba(0,0,0,.65)';g.fillRect(0,0,RW,RH);panel(10,50,RW-20,158);// 08.09: широкая пауза — меню + способности обоих бойцов
 g.font='13px "Russo One"';g.fillStyle='#e8c040';g.textAlign='center';g.fillText('ПАУЗА',RW/2,64);
 pauseItems().forEach((it,i)=>{const y=84+i*16,on=i===pauseIdx;
@@ -943,6 +975,7 @@ function render(){g.setTransform(2,0,0,2,0,0);// 08.09: рендер в 2× ра
 g.fillStyle='#000';g.fillRect(0,0,RW,RH);// 08.09: полная очистка кадра — небо (0-192) не доходило до земли (FL=206), в полосе 192-206 накапливались пиксели бойцов; плюс тряска обнажала края
 if(GAME==='title'){drawTitle();drawParts(0);return;}
 if(GAME==='menu'){drawMenu();drawParts(0);return;}
+if(GAME==='settings'){drawSettings();return;}
 if(GAME==='controls'){drawControls();return;}
 if(GAME==='select'){drawSelect();return;}
 if(GAME==='vs'){drawVS();return;}
@@ -953,13 +986,13 @@ if(GAME==='continue'){drawCont();drawParts(0);return;}
 if(GAME==='rematch'){drawRematch();drawParts(0);return;}// 08.09
 const b=battle;
 g.save();
-if(shake>0)g.translate(rnd(-shake,shake)|0,rnd(-shake,shake)|0);
+if(shake>0&&OPT.shake&&!OPT.reduce)g.translate(rnd(-shake,shake)|0,rnd(-shake,shake)|0);
 drawArena(b.arena,cam,FRAME);
 for(const ff of[b.p1,b.p2])if(ff.marks)for(const m of ff.marks){const mx2=m.x-cam;
 if(mx2>-20&&mx2<RW+20){g.save();g.translate(mx2,m.y);g.rotate(FRAME*.05);
 g.strokeStyle='#b89aff';g.lineWidth=1.5;for(let i2=0;i2<4;i2++){g.rotate(Math.PI/2);g.beginPath();g.moveTo(0,-3);g.lineTo(0,-9);g.stroke();}
 g.fillStyle='#e8e8ff';g.fillRect(-1.5,-1.5,3,3);g.restore();}}// 30.09: звёздные метки
-g.fillStyle='#b01818';for(const d of decals){const a=d.l?1-Math.max(0,(d.t-d.l*.6)/(d.l*.4)):1;g.globalAlpha=a;g.fillRect(d.x-cam,d.y,d.s,d.s>2?2:1);}g.globalAlpha=1;// 08.09: пятна тают в последние 40% жизни
+if(OPT.blood){g.fillStyle='#b01818';for(const d of decals){const a=d.l?1-Math.max(0,(d.t-d.l*.6)/(d.l*.4)):1;g.globalAlpha=a;g.fillRect(d.x-cam,d.y,d.s,d.s>2?2:1);}g.globalAlpha=1;}// 08.09: пятна тают в последние 40% жизни
 for(const f of[b.p2,b.p1])drawF(f,cam);
 if(b.p1.state==='super'&&b.p1.def.id===5&&b.p1.st>14&&b.p1.st<90){g.globalAlpha=.5;drawFakeShift(b.p1,cam,-30);drawFakeShift(b.p1,cam,30);g.globalAlpha=1;}
 if(b.p2.state==='super'&&b.p2.def.id===5&&b.p2.st>14&&b.p2.st<90){g.globalAlpha=.5;drawFakeShift(b.p2,cam,-30);drawFakeShift(b.p2,cam,30);g.globalAlpha=1;}
@@ -968,9 +1001,9 @@ g.fillStyle='rgba(0,0,0,.4)';for(let i=0;i<12;i++){const x=Math.round(((i*67-cam
 if(b.p1.state==='super'||b.p2.state==='super'||b.phase==='fatal'){g.fillStyle='rgba(10,0,0,.22)';g.fillRect(0,0,RW,RH);}// 08.09: драматическое затемнение при супере/фаталити
 if(b.loser&&b.loser.laserT&&b.phase==='fatal'&&b.phaseT>60&&b.phaseT<160){g.fillStyle='rgba(248,248,96,.8)';g.fillRect(b.loser.x-cam-6,0,12,FL+GR);}
 g.restore();
-if(flashS>0){g.fillStyle='rgba(255,255,255,'+(flashS/10)+')';g.fillRect(0,0,RW,RH);}
+if(flashS>0&&!OPT.reduce){g.fillStyle='rgba(255,255,255,'+(flashS/10)+')';g.fillRect(0,0,RW,RH);}
 drawHUD(b);
-if(wipe>0){const wh=RH*(wipe/24);g.fillStyle='#000';g.fillRect(0,0,RW,wh/2);g.fillRect(0,RH-wh/2,RW,wh/2);}// 30.09: раскрывающиеся шторки
+if(wipe>0&&!OPT.reduce){const wh=RH*(wipe/24);g.fillStyle='#000';g.fillRect(0,0,RW,wh/2);g.fillRect(0,RH-wh/2,RW,wh/2);}// 30.09: раскрывающиеся шторки
 for(const f of[b.p1,b.p2])if(f.combo>=2&&f.comboT<50){const sc2=1+.25*Math.max(0,1-f.comboT/8);g.save();g.translate(f===b.p1?70:RW-70,80);g.scale(sc2,sc2);g.font='12px "Russo One"';g.textAlign='center';g.fillStyle=f.combo>=5?'#e02020':f.combo>=3?'#f08020':'#e8c040';g.fillText('КОМБО x'+f.combo,0,0);g.restore();}// 08.09: комбо-счётчик — цвет растёт с серией
 if(b.phase==='finish'){const left=Math.max(0,1-b.phaseT/430);g.fillStyle='rgba(0,0,0,.6)';g.fillRect(RW/2-80,220,160,5);g.fillStyle=left>.35?'#c8a040':'#e04020';g.fillRect(RW/2-80,220,160*left,5);g.strokeStyle='#c8a040';g.lineWidth=1;g.strokeRect(RW/2-80.5,219.5,161,6);}
 if((b.phase==='fatal'||b.phase==='over')&&b.phaseT>30){g.font='8px "Russo One"';g.fillStyle='#e8e0c0';g.textAlign='center';g.fillText('J — ПРОПУСТИТЬ',RW/2,232);}
@@ -1000,8 +1033,12 @@ if (new URLSearchParams(location.search).has('debug')) {
     get AU() { return AU; },
     get keys() { return keys; },
     get fxAssets() { return FX; },
+    get OPT() { return OPT; },
+    get settingsIdx() { return settingsIdx; },
     autoHit,
     onKey,
+    toLobby,
+    applyCrt,
     step,
     render,
     newBattle,

@@ -1,4 +1,4 @@
-/* global window, localStorage */
+/* global window, localStorage, document */
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { after, before, test } from 'node:test';
@@ -376,4 +376,62 @@ test('interrupted special does not leak spec2go', async () => {
   });
   assert.equal(result.spec2go, 0);
   assert.deepEqual(result.types, ['fire']);
+});
+
+test('settings open from the main menu and persist video toggles', async () => {
+  const result = await page.evaluate(() => {
+    const K = window.KARNAGE;
+    K.toLobby('menu');
+    K.onKey('ArrowDown');
+    K.onKey('ArrowDown');
+    K.onKey('ArrowDown');
+    K.onKey('Enter');
+    const opened = K.GAME;
+    K.onKey('ArrowDown');
+    K.onKey('ArrowDown');
+    K.onKey('ArrowDown');
+    const before = K.OPT.crt;
+    K.onKey('Enter');
+    const after = K.OPT.crt;
+    const display = document.getElementById('crt').style.display;
+    const saved = JSON.parse(localStorage.karnageOpts || '{}');
+    K.onKey('Enter');
+    K.onKey('Escape');
+    return {
+      opened,
+      before,
+      after,
+      display,
+      savedCrt: saved.crt,
+      restored: K.OPT.crt,
+      closed: K.GAME
+    };
+  });
+  assert.equal(result.opened, 'settings');
+  assert.notEqual(result.after, result.before);
+  assert.equal(result.display, result.after ? 'block' : 'none');
+  assert.equal(result.savedCrt, result.after);
+  assert.equal(result.restored, result.before);
+  assert.equal(result.closed, 'menu');
+});
+
+test('settings load from storage on reload', async () => {
+  await page.evaluate(() => {
+    localStorage.setItem('karnageOpts', JSON.stringify({ crt: false, blood: false, shake: false, reduce: true }));
+    localStorage.setItem('karnageSnd', '1');
+  });
+  await page.reload({ waitUntil: 'load' });
+  await page.waitForFunction(() => Boolean(window.KARNAGE));
+  const result = await page.evaluate(() => ({
+    options: window.KARNAGE.OPT,
+    crt: document.getElementById('crt').style.display,
+    sound: window.KARNAGE.AU.on
+  }));
+  assert.deepEqual(result.options, { crt: false, blood: false, shake: false, reduce: true });
+  assert.equal(result.crt, 'none');
+  assert.equal(result.sound, true);
+  await page.evaluate(() => {
+    localStorage.removeItem('karnageOpts');
+    localStorage.removeItem('karnageSnd');
+  });
 });

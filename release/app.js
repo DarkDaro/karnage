@@ -186,7 +186,27 @@
       return "rgb(" + (lerp(A[0], B[0], t) | 0) + "," + (lerp(A[1], B[1], t) | 0) + "," + (lerp(A[2], B[2], t) | 0) + ")";
     }
     const shade = (h, k) => mix(h, "#000000", 1 - k);
-    const FORCE_MUTE = !new URLSearchParams(location.search).has("sound");
+    const SOUND_URL = new URLSearchParams(location.search).has("sound");
+    const FORCE_MUTE = !SOUND_URL;
+    const OPT = { crt: true, blood: true, shake: true, reduce: false };
+    try {
+      const raw = JSON.parse(localStorage.karnageOpts || "{}");
+      if (raw && typeof raw === "object") {
+        for (const k of ["crt", "blood", "shake", "reduce"]) if (typeof raw[k] === "boolean") OPT[k] = raw[k];
+      }
+    } catch (e) {
+    }
+    const saveOpts = () => {
+      try {
+        localStorage.karnageOpts = JSON.stringify(OPT);
+      } catch (e) {
+      }
+    };
+    const applyCrt = () => {
+      const el = document.getElementById("crt");
+      if (el) el.style.display = OPT.crt ? "block" : "none";
+    };
+    applyCrt();
     const AU = { ctx: null, on: !FORCE_MUTE, voice: true, vol: 100 };
     try {
       if (localStorage.karnageVox !== void 0) AU.voice = localStorage.karnageVox === "1";
@@ -194,10 +214,10 @@
         const v = parseFloat(localStorage.karnageVol);
         if (Number.isFinite(v)) AU.vol = clamp(v, 0, 100);
       }
-      if (!FORCE_MUTE && localStorage.karnageSnd !== void 0) AU.on = localStorage.karnageSnd === "1";
+      if (localStorage.karnageSnd !== void 0) AU.on = localStorage.karnageSnd === "1";
     } catch (e) {
     }
-    if (FORCE_MUTE) AU.on = false;
+    if (SOUND_URL) AU.on = true;
     const setVol = () => {
       if (AU.master) AU.master.gain.value = 0.9 * AU.vol / 100;
     };
@@ -766,9 +786,11 @@
       return true;
     }
     function P(x, y, vx, vy, c, l, s, gv) {
+      if (!OPT.blood && c === "#b01818") return;
       parts.push({ x, y, vx, vy, c, l: l || 30, s: s || 2, gv: gv === void 0 ? 0.3 : gv });
     }
     function blood(x, y, n, pw) {
+      if (!OPT.blood) return;
       for (let i = 0; i < n; i++) P(x, y, rnd(-2.5, 2.5) * (pw || 1), rnd(-4, 1), "#b01818", rnd(20, 50), rnd(1, 3));
     }
     function updParts() {
@@ -783,7 +805,7 @@
           continue;
         }
         if (!p.line && p.y >= FL + GR - 1 && p.gv > 0) {
-          if (p.c === "#b01818" && Math.random() < 0.5) decals.push({ x: p.x, y: FL + 2 + rnd(0, 4), s: rnd(1, 3), t: 0, l: rnd(480, 900) });
+          if (OPT.blood && p.c === "#b01818" && Math.random() < 0.5) decals.push({ x: p.x, y: FL + 2 + rnd(0, 4), s: rnd(1, 3), t: 0, l: rnd(480, 900) });
           p.y = FL + GR - 1;
           p.vy *= -0.3;
           p.vx *= 0.6;
@@ -2993,7 +3015,7 @@
       }
       f.aiDir = Math.random() < 0.6 ? dx > 0 ? "r" : "l" : null;
     }
-    let GAME = "title", FRAME = 0, freeze = 0, shake = 0, cam = 0, menuIdx = 0, ladder = [], lStep = 0, paused = false, pauseIdx = 0, wipe = 0;
+    let GAME = "title", FRAME = 0, freeze = 0, shake = 0, cam = 0, menuIdx = 0, settingsIdx = 0, ladder = [], lStep = 0, paused = false, pauseIdx = 0, wipe = 0;
     let battle = null, flashS = 0, announce = null, sel = { mode: "cpu", c1: 0, c2: 1, ph: 0, l1: false, l2: false, diff: 1, ar: -1, row: 0 }, vsT = 0, titleT = 0, contT = 0, arcP1 = 0, lastSel = null, vsEscT = 0, bstat = null;
     function toLobby(gm) {
       GAME = gm;
@@ -3005,6 +3027,7 @@
       announce = null;
       paused = false;
       if (gm === "menu") menuIdx = 0;
+      if (gm === "settings") settingsIdx = 0;
     }
     function newBattle(i1, c1, i2, c2, arena) {
       battle = { p1: new F(CH[i1], c1), p2: new F(CH[i2], c2), round: 1, phase: "intro", phaseT: 0, timer: 60, arena };
@@ -3033,7 +3056,7 @@
       decals = [];
       projs = [];
       fx = [];
-      wipe = 24;
+      wipe = OPT.reduce ? 0 : 24;
       announce = { txt: "\u0420\u0410\u0423\u041D\u0414 " + b.round, t: 0, col: "#e8c040" };
       say("Round " + ["one", "two", "three"][Math.min(2, b.round - 1)]);
     }
@@ -3457,6 +3480,57 @@
     function pauseItems() {
       return ["\u041F\u0420\u041E\u0414\u041E\u041B\u0416\u0418\u0422\u042C", "\u0417\u0412\u0423\u041A: " + (AU.on ? "\u0412\u041A\u041B" : "\u0412\u042B\u041A\u041B"), "\u0413\u041E\u041B\u041E\u0421 \u0414\u0418\u041A\u0422\u041E\u0420\u0410: " + (AU.voice ? "\u0412\u041A\u041B" : "\u0412\u042B\u041A\u041B"), "\u0413\u0420\u041E\u041C\u041A\u041E\u0421\u0422\u042C: " + AU.vol + "%", "\u0412 \u041C\u0415\u041D\u042E"];
     }
+    function settingsItems() {
+      return ["\u0417\u0412\u0423\u041A: " + (AU.on ? "\u0412\u041A\u041B" : "\u0412\u042B\u041A\u041B"), "\u0413\u041E\u041B\u041E\u0421: " + (AU.voice ? "\u0412\u041A\u041B" : "\u0412\u042B\u041A\u041B"), "\u0413\u0420\u041E\u041C\u041A\u041E\u0421\u0422\u042C: " + AU.vol + "%", "CRT-\u0424\u0418\u041B\u042C\u0422\u0420: " + (OPT.crt ? "\u0412\u041A\u041B" : "\u0412\u042B\u041A\u041B"), "\u041A\u0420\u041E\u0412\u042C: " + (OPT.blood ? "\u0412\u041A\u041B" : "\u0412\u042B\u041A\u041B"), "\u0422\u0420\u042F\u0421\u041A\u0410: " + (OPT.shake ? "\u0412\u041A\u041B" : "\u0412\u042B\u041A\u041B"), "\u041C\u0415\u041D\u042C\u0428\u0415 \u0414\u0412\u0418\u0416\u0415\u041D\u0418\u042F: " + (OPT.reduce ? "\u0412\u041A\u041B" : "\u0412\u042B\u041A\u041B"), "\u041D\u0410\u0417\u0410\u0414"];
+    }
+    function settingsChange(i, dir) {
+      if (i === 0) {
+        AU.on = !AU.on;
+        if (!AU.on) {
+          try {
+            speechSynthesis.cancel();
+          } catch (e) {
+          }
+        } else SFX.menu();
+        saveSet();
+      } else if (i === 1) {
+        AU.voice = !AU.voice;
+        if (!AU.voice) {
+          try {
+            speechSynthesis.cancel();
+          } catch (e) {
+          }
+        }
+        saveSet();
+        SFX.menu();
+      } else if (i === 2) {
+        AU.vol = clamp(AU.vol + (dir < 0 ? -10 : 10), 0, 100);
+        setVol();
+        saveSet();
+        SFX.menu();
+      } else if (i === 3) {
+        OPT.crt = !OPT.crt;
+        applyCrt();
+        saveOpts();
+        SFX.menu();
+      } else if (i === 4) {
+        OPT.blood = !OPT.blood;
+        saveOpts();
+        SFX.menu();
+      } else if (i === 5) {
+        OPT.shake = !OPT.shake;
+        saveOpts();
+        SFX.menu();
+      } else if (i === 6) {
+        OPT.reduce = !OPT.reduce;
+        if (OPT.reduce) {
+          shake = 0;
+          flashS = 0;
+        }
+        saveOpts();
+        SFX.menu();
+      }
+    }
     function onKey(k) {
       if (k === "KeyM") {
         AU.on = !AU.on;
@@ -3547,11 +3621,11 @@
       }
       if (GAME === "menu") {
         if (k === "KeyW" || k === "ArrowUp") {
-          menuIdx = (menuIdx + 4) % 5;
+          menuIdx = (menuIdx + 5) % 6;
           SFX.menu();
         }
         if (k === "KeyS" || k === "ArrowDown") {
-          menuIdx = (menuIdx + 1) % 5;
+          menuIdx = (menuIdx + 1) % 6;
           SFX.menu();
         }
         if (k === "KeyJ" || k === "Enter" || k === "Space") {
@@ -3568,8 +3642,35 @@
             GAME = "select";
             sel = { mode: "2p", c1: 0, c2: 1, ph: 0, l1: false, l2: false, diff: 1, ar: -1, row: 0 };
             say("Choose your fighters");
-          } else if (menuIdx === 3) GAME = "controls";
+          } else if (menuIdx === 3) {
+            settingsIdx = 0;
+            GAME = "settings";
+          } else if (menuIdx === 4) GAME = "controls";
           else GAME = "top";
+        }
+        return;
+      }
+      if (GAME === "settings") {
+        const n = settingsItems().length;
+        if (k === "KeyW" || k === "ArrowUp") {
+          settingsIdx = (settingsIdx + n - 1) % n;
+          SFX.menu();
+        }
+        if (k === "KeyS" || k === "ArrowDown") {
+          settingsIdx = (settingsIdx + 1) % n;
+          SFX.menu();
+        }
+        if (k === "KeyA" || k === "ArrowLeft") settingsChange(settingsIdx, -1);
+        if (k === "KeyD" || k === "ArrowRight") settingsChange(settingsIdx, 1);
+        if (k === "KeyJ" || k === "Enter" || k === "Space") {
+          if (settingsIdx === n - 1) {
+            toLobby("menu");
+            SFX.menu();
+          } else settingsChange(settingsIdx, 1);
+        }
+        if (k === "Escape") {
+          toLobby("menu");
+          SFX.menu();
         }
         return;
       }
@@ -4105,11 +4206,11 @@
       g.fillStyle = "#e02020";
       g.fillRect(RW / 2 - 90, 20, 180, 30);
       g.globalAlpha = 1;
-      panel(36, 62, 196, 130);
-      const items = ["\u0410\u0420\u041A\u0410\u0414\u0410", "\u0411\u041E\u0419 \u041F\u0420\u041E\u0422\u0418\u0412 CPU", "\u0411\u041E\u0419 \u041D\u0410 \u0414\u0412\u041E\u0418\u0425", "\u0423\u041F\u0420\u0410\u0412\u041B\u0415\u041D\u0418\u0415", "\u0417\u0410\u041B \u0421\u041B\u0410\u0412\u042B"];
+      panel(36, 62, 196, 140);
+      const items = ["\u0410\u0420\u041A\u0410\u0414\u0410", "\u0411\u041E\u0419 \u041F\u0420\u041E\u0422\u0418\u0412 CPU", "\u0411\u041E\u0419 \u041D\u0410 \u0414\u0412\u041E\u0418\u0425", "\u041D\u0410\u0421\u0422\u0420\u041E\u0419\u041A\u0418", "\u0423\u041F\u0420\u0410\u0412\u041B\u0415\u041D\u0418\u0415", "\u0417\u0410\u041B \u0421\u041B\u0410\u0412\u042B"];
       items.forEach((it, i) => {
-        const y = 84 + i * 22, on = i === menuIdx;
-        g.font = on ? '13px "Russo One"' : '11px "Russo One"';
+        const y = 82 + i * 19, on = i === menuIdx;
+        g.font = on ? '12px "Russo One"' : '10px "Russo One"';
         g.fillStyle = on ? blink() ? "#fff" : "#e02020" : "#c8a040";
         g.textAlign = "center";
         g.fillText(it, 134, y);
@@ -4135,6 +4236,29 @@
         g.textAlign = "center";
         g.fillText("W/S \u2014 \u0432\u044B\u0431\u043E\u0440 \xB7 J \u2014 \u043F\u043E\u0434\u0442\u0432\u0435\u0440\u0434\u0438\u0442\u044C \xB7 M \u2014 \u0437\u0432\u0443\u043A", RW / 2, 212);
       }
+    }
+    function drawSettings() {
+      bgFill();
+      g.font = '20px "Rubik Mono One","Russo One",sans-serif';
+      g.textAlign = "center";
+      g.fillStyle = "#000";
+      g.fillText("\u041D\u0410\u0421\u0422\u0420\u041E\u0419\u041A\u0418", RW / 2 + 2, 38);
+      g.fillStyle = "#e02020";
+      g.fillText("\u041D\u0410\u0421\u0422\u0420\u041E\u0419\u041A\u0418", RW / 2, 36);
+      panel(30, 50, RW - 60, 158);
+      const items = settingsItems();
+      const y0 = 70, step2 = 16;
+      items.forEach((it, i) => {
+        const y = y0 + i * step2, on = i === settingsIdx;
+        g.font = on ? '9px "Russo One"' : '8px "Russo One"';
+        g.fillStyle = on ? blink() ? "#fff" : "#e02020" : "#c8a040";
+        g.textAlign = "center";
+        g.fillText((on ? "> " : "") + it, RW / 2, y);
+      });
+      g.font = '7px "Russo One"';
+      g.fillStyle = "#807850";
+      g.textAlign = "center";
+      g.fillText("W/S \u2014 \u0432\u044B\u0431\u043E\u0440 \xB7 A/D \u2014 \u0438\u0437\u043C\u0435\u043D\u0438\u0442\u044C \xB7 J \u2014 \u043F\u0435\u0440\u0435\u043A\u043B\u044E\u0447\u0438\u0442\u044C \xB7 ESC \u2014 \u043D\u0430\u0437\u0430\u0434", RW / 2, 224);
     }
     function drawPause() {
       g.fillStyle = "rgba(0,0,0,.65)";
@@ -4260,6 +4384,10 @@
         drawParts(0);
         return;
       }
+      if (GAME === "settings") {
+        drawSettings();
+        return;
+      }
       if (GAME === "controls") {
         drawControls();
         return;
@@ -4299,7 +4427,7 @@
       }
       const b = battle;
       g.save();
-      if (shake > 0) g.translate(rnd(-shake, shake) | 0, rnd(-shake, shake) | 0);
+      if (shake > 0 && OPT.shake && !OPT.reduce) g.translate(rnd(-shake, shake) | 0, rnd(-shake, shake) | 0);
       drawArena(b.arena, cam, FRAME);
       for (const ff of [b.p1, b.p2]) if (ff.marks) for (const m of ff.marks) {
         const mx2 = m.x - cam;
@@ -4321,13 +4449,15 @@
           g.restore();
         }
       }
-      g.fillStyle = "#b01818";
-      for (const d of decals) {
-        const a = d.l ? 1 - Math.max(0, (d.t - d.l * 0.6) / (d.l * 0.4)) : 1;
-        g.globalAlpha = a;
-        g.fillRect(d.x - cam, d.y, d.s, d.s > 2 ? 2 : 1);
+      if (OPT.blood) {
+        g.fillStyle = "#b01818";
+        for (const d of decals) {
+          const a = d.l ? 1 - Math.max(0, (d.t - d.l * 0.6) / (d.l * 0.4)) : 1;
+          g.globalAlpha = a;
+          g.fillRect(d.x - cam, d.y, d.s, d.s > 2 ? 2 : 1);
+        }
+        g.globalAlpha = 1;
       }
-      g.globalAlpha = 1;
       for (const f of [b.p2, b.p1]) drawF(f, cam);
       if (b.p1.state === "super" && b.p1.def.id === 5 && b.p1.st > 14 && b.p1.st < 90) {
         g.globalAlpha = 0.5;
@@ -4362,12 +4492,12 @@
         g.fillRect(b.loser.x - cam - 6, 0, 12, FL + GR);
       }
       g.restore();
-      if (flashS > 0) {
+      if (flashS > 0 && !OPT.reduce) {
         g.fillStyle = "rgba(255,255,255," + flashS / 10 + ")";
         g.fillRect(0, 0, RW, RH);
       }
       drawHUD(b);
-      if (wipe > 0) {
+      if (wipe > 0 && !OPT.reduce) {
         const wh = RH * (wipe / 24);
         g.fillStyle = "#000";
         g.fillRect(0, 0, RW, wh / 2);
@@ -4468,8 +4598,16 @@
         get fxAssets() {
           return FX;
         },
+        get OPT() {
+          return OPT;
+        },
+        get settingsIdx() {
+          return settingsIdx;
+        },
         autoHit,
         onKey,
+        toLobby,
+        applyCrt,
         step,
         render,
         newBattle,
