@@ -6,7 +6,7 @@
 Ветка: `main`.
 Последний коммит: `60855e7` — «Vega».
 `origin/main` совпадает с локальной веткой.
-После коммита в рабочем дереве: P0-боёвка, FX-батчи, арена «Кладбище», `release/`, тесты и документы.
+После коммита в рабочем дереве: P0-боёвка, FX, арена «Кладбище», UI и touch-управление.
 
 ## С чего начать в новом чате
 
@@ -29,7 +29,7 @@
 - Процедурные бойцы; спрайты Аямэ не подключены.
 - CC0-эффекты: `hitLight`, `hitHeavy`, `dust`.
 - Звук по умолчанию выключен; настройки или `?sound=1` включают, выбор сохраняется.
-- Тесты: 30 сценариев (unit + Playwright).
+- Тесты: 32 сценария (unit + Playwright).
 - `npm run check`: синтаксис, ESLint, UTF-8/BOM, ростер, checksums архивов.
 
 ## Текущий технический проход
@@ -50,6 +50,7 @@
 - `jkick` попадает на высоте;
 - blockstun 6 кадров, wakeup-неуязвимость 8 кадров;
 - настройки в главном меню: звук, голос, громкость, CRT, кровь, тряска и reduce motion;
+- touch-управление, safe-area и мобильный canvas;
 - damage scaling, броски `P+K` и special cancel;
 - FX: block, smoke, dustRun, fireImpact, iceImpact, shadowImpact, explosion;
 - арена «Кладбище» на GothicVania с fallback;
@@ -85,9 +86,9 @@ npm run assets:build
 
 Приоритет:
 
-1. UI-кит: кнопки, иконки, экран настроек на Kenney Fantasy UI/RPG.
-2. Touch-управление и мобильный адаптив.
-3. Остальные арены на ассеты.
+1. UI-кит: иконки и экран настроек.
+2. Остальные арены на ассеты.
+3. Проверка мобилки на реальных iOS/Android.
 4. Аркада: сохранение прогресса, дедупликация рекордов, финальный босс.
 5. Портреты и кэш.
 6. Разбор `src/game/karnage.js` на модули `game/render/input/audio/screens`.
@@ -134,7 +135,7 @@ npm run assets:build
 
 - `HEAD` = `60855e7`.
 - `origin/main` = `60855e7`.
-- В рабочем дереве: P0-боёвка, FX, арена «Кладбище» и обновлённые документы.
+- В рабочем дереве: P0-боёвка, FX, арена, UI, touch и документы.
 - Финальный снимок: `archive/2026-10-24-final-tails`.
 
 Перед коммитом — чек-лист ниже.
@@ -146,7 +147,7 @@ npm run assets:build
 1. `git status --short` — нет случайных файлов, `node_modules` и `test-results` не в индексе.
 2. `npm run assets:build` — если менялись `assets/vendor` или `assets/fx`.
 3. `npm run build` — обновить `release/app.js` и `release/assets/fx`.
-4. `npm test` — 30/30.
+4. `npm test` — 32/32.
 5. `npm run check` — ESLint и audit без ошибок.
 6. Открыть `index.html` двойным кликом: титул, меню, бой, эффект удара.
 7. Проверить `release/index.html` отдельно, как переносимую папку.

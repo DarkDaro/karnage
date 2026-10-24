@@ -339,9 +339,10 @@
     const cv = document.getElementById("cv"), g = cv.getContext("2d");
     function fit() {
       let s = Math.min(innerWidth / RW, innerHeight / RH);
-      s = s >= 1 ? Math.floor(s) : s;
+      if (s >= 2) s = Math.floor(s);
       cv.style.width = s * RW + "px";
       cv.style.height = s * RH + "px";
+      document.body.classList.toggle("portrait", innerHeight > innerWidth);
     }
     addEventListener("resize", fit);
     fit();
@@ -684,6 +685,48 @@
       }
     }
     const keys = {};
+    const TOUCH = { l: 0, r: 0, u: 0, d: 0, P: 0, K: 0, B: 0 };
+    function bindTouch() {
+      const isTouch = "ontouchstart" in window || navigator.maxTouchPoints > 0;
+      if (!isTouch) return;
+      document.body.classList.add("touch");
+      const root = document.createElement("div");
+      root.id = "touch";
+      root.innerHTML = '<div class="dpad"><button class="up" data-key="u">\u25B2</button><button class="left" data-key="l">\u25C0</button><button class="down" data-key="d">\u25BC</button><button class="right" data-key="r">\u25B6</button></div><div class="actions"><button class="punch" data-key="P">P</button><button class="kick" data-key="K">K</button><button class="block" data-key="B">\u0411\u041B\u041E\u041A</button></div><button class="pause" data-key="pause">\u2161</button>';
+      document.body.appendChild(root);
+      const codes = { l: "ArrowLeft", r: "ArrowRight", u: "ArrowUp", d: "ArrowDown", P: "Enter", K: "KeyK", B: "Escape" };
+      for (const btn of root.querySelectorAll("button")) {
+        const key = btn.dataset.key;
+        const down = (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          if (btn.setPointerCapture) try {
+            btn.setPointerCapture(e.pointerId);
+          } catch (err) {
+          }
+          btn.classList.add("on");
+          initA();
+          if (AU.ctx && AU.ctx.state === "suspended") AU.ctx.resume();
+          if (key === "pause") {
+            onKey("Escape");
+            return;
+          }
+          TOUCH[key] = 1;
+          if (GAME !== "fight" || paused) onKey(codes[key]);
+          else if (key === "P") onKey("KeyJ");
+        };
+        const up = (e) => {
+          e.preventDefault();
+          btn.classList.remove("on");
+          if (key !== "pause") TOUCH[key] = 0;
+        };
+        btn.addEventListener("pointerdown", down);
+        btn.addEventListener("pointerup", up);
+        btn.addEventListener("pointercancel", up);
+        btn.addEventListener("lostpointercapture", up);
+      }
+    }
+    bindTouch();
     addEventListener("keydown", (e) => {
       if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Space"].includes(e.code)) e.preventDefault();
       if (!e.repeat) {
@@ -698,6 +741,8 @@
     });
     addEventListener("blur", () => {
       for (const k in keys) keys[k] = false;
+      for (const k in TOUCH) TOUCH[k] = 0;
+      document.querySelectorAll("#touch button.on").forEach((btn) => btn.classList.remove("on"));
       if (GAME === "fight" && !paused) {
         paused = true;
         pauseIdx = 0;
@@ -706,6 +751,8 @@
     addEventListener("visibilitychange", () => {
       if (document.hidden) {
         for (const k in keys) keys[k] = false;
+        for (const k in TOUCH) TOUCH[k] = 0;
+        document.querySelectorAll("#touch button.on").forEach((btn) => btn.classList.remove("on"));
         if (GAME === "fight" && !paused) {
           paused = true;
           pauseIdx = 0;
@@ -723,7 +770,7 @@
         this._ = {};
       }
       poll(FR) {
-        const q = (k) => this.ai ? !!this.ax[k] : !!keys[this.m[k]];
+        const q = (k) => this.ai ? !!this.ax[k] : !!keys[this.m[k]] || this.m === KM1 && !!TOUCH[k];
         const o = { l: q("l"), r: q("r"), u: q("u"), d: q("d"), P: q("P"), K: q("K"), B: q("B") };
         this.pP = o.P && !this._.P;
         this.pK = o.K && !this._.K;
@@ -5026,6 +5073,9 @@
         },
         get keys() {
           return keys;
+        },
+        get TOUCH() {
+          return TOUCH;
         },
         get fxAssets() {
           return FX;

@@ -5,7 +5,7 @@ export function startKarnage(fxAssets = {}, arenaAssets = {}, uiAssets = {}) {
 const RW=424,RH=240,FL=206,AW=760,GR=8,OUT='#0e0b08';
 const FX=fxAssets||{},ARENA_IMG=arenaAssets||{},UI=uiAssets||{};
 const cv=document.getElementById('cv'),g=cv.getContext('2d');
-function fit(){let s=Math.min(innerWidth/RW,innerHeight/RH);s=s>=1?Math.floor(s):s;cv.style.width=s*RW+'px';cv.style.height=s*RH+'px';}
+function fit(){let s=Math.min(innerWidth/RW,innerHeight/RH);if(s>=2)s=Math.floor(s);cv.style.width=s*RW+'px';cv.style.height=s*RH+'px';document.body.classList.toggle('portrait',innerHeight>innerWidth);}
 addEventListener('resize',fit);fit();
 if(document.fonts)document.fonts.load('20px "Russo One"');
 const clamp=(v,a,b)=>v<a?a:v>b?b:v,lerp=(a,b,t)=>a+(b-a)*t,rnd=(a,b)=>a+Math.random()*(b-a),pick=a=>a[Math.random()*a.length|0],blink=()=>((FRAME>>4)%2===0);
@@ -75,14 +75,17 @@ else{if([0,6,8,14,16,22,24,28].includes(s))tone({f:110,f2:38,d:.14,t:'sine',v:.4
 MU.s++;MU.next+=dt;}}
 /* ВВОД */
 const keys={};
+const TOUCH={l:0,r:0,u:0,d:0,P:0,K:0,B:0};
+function bindTouch(){const isTouch=('ontouchstart' in window)||navigator.maxTouchPoints>0;if(!isTouch)return;document.body.classList.add('touch');const root=document.createElement('div');root.id='touch';root.innerHTML='<div class="dpad"><button class="up" data-key="u">▲</button><button class="left" data-key="l">◀</button><button class="down" data-key="d">▼</button><button class="right" data-key="r">▶</button></div><div class="actions"><button class="punch" data-key="P">P</button><button class="kick" data-key="K">K</button><button class="block" data-key="B">БЛОК</button></div><button class="pause" data-key="pause">Ⅱ</button>';document.body.appendChild(root);const codes={l:'ArrowLeft',r:'ArrowRight',u:'ArrowUp',d:'ArrowDown',P:'Enter',K:'KeyK',B:'Escape'};for(const btn of root.querySelectorAll('button')){const key=btn.dataset.key;const down=e=>{e.preventDefault();e.stopPropagation();if(btn.setPointerCapture)try{btn.setPointerCapture(e.pointerId);}catch(err){}btn.classList.add('on');initA();if(AU.ctx&&AU.ctx.state==='suspended')AU.ctx.resume();if(key==='pause'){onKey('Escape');return;}TOUCH[key]=1;if(GAME!=='fight'||paused)onKey(codes[key]);else if(key==='P')onKey('KeyJ');};const up=e=>{e.preventDefault();btn.classList.remove('on');if(key!=='pause')TOUCH[key]=0;};btn.addEventListener('pointerdown',down);btn.addEventListener('pointerup',up);btn.addEventListener('pointercancel',up);btn.addEventListener('lostpointercapture',up);}}// 24.10: touch-управление
+bindTouch();
 addEventListener('keydown',e=>{if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code))e.preventDefault();if(!e.repeat){keys[e.code]=true;initA();if(AU.ctx&&AU.ctx.state==='suspended')AU.ctx.resume();onKey(e.code);}});
 addEventListener('keyup',e=>{keys[e.code]=false;});
-addEventListener('blur',()=>{for(const k in keys)keys[k]=false;if(GAME==='fight'&&!paused){paused=true;pauseIdx=0;}});
-addEventListener('visibilitychange',()=>{if(document.hidden){for(const k in keys)keys[k]=false;if(GAME==='fight'&&!paused){paused=true;pauseIdx=0;}}});
+addEventListener('blur',()=>{for(const k in keys)keys[k]=false;for(const k in TOUCH)TOUCH[k]=0;document.querySelectorAll('#touch button.on').forEach(btn=>btn.classList.remove('on'));if(GAME==='fight'&&!paused){paused=true;pauseIdx=0;}});
+addEventListener('visibilitychange',()=>{if(document.hidden){for(const k in keys)keys[k]=false;for(const k in TOUCH)TOUCH[k]=0;document.querySelectorAll('#touch button.on').forEach(btn=>btn.classList.remove('on'));if(GAME==='fight'&&!paused){paused=true;pauseIdx=0;}}});
 const KM1={l:'KeyA',r:'KeyD',u:'KeyW',d:'KeyS',P:'KeyJ',K:'KeyK',B:'KeyL'};
 const KM2={l:'ArrowLeft',r:'ArrowRight',u:'ArrowUp',d:'ArrowDown',P:'KeyI',K:'KeyO',B:'KeyP'};
 class Ctrl{constructor(m){this.m=m;this.ax={};this.ai=false;this.buf=[];this._={};}
-poll(FR){const q=k=>this.ai?!!this.ax[k]:!!keys[this.m[k]];const o={l:q('l'),r:q('r'),u:q('u'),d:q('d'),P:q('P'),K:q('K'),B:q('B')};this.pP=o.P&&!this._.P;this.pK=o.K&&!this._.K;this.pB=o.B&&!this._.B;this.pl=o.l&&!this._.l;this.pr=o.r&&!this._.r;this.pu=o.u&&!this._.u;this.pd=o.d&&!this._.d;this._=o;Object.assign(this,o);const push=k=>this.buf.push({k,t:FR});if(this.pP)push('P');if(this.pK)push('K');if(this.pl)push('L');if(this.pr)push('R');if(this.pd)push('D');if(this.pu)push('U');if(this.buf.length>14)this.buf.splice(0,this.buf.length-14);}
+poll(FR){const q=k=>this.ai?!!this.ax[k]:(!!keys[this.m[k]]||(this.m===KM1&&!!TOUCH[k]));const o={l:q('l'),r:q('r'),u:q('u'),d:q('d'),P:q('P'),K:q('K'),B:q('B')};this.pP=o.P&&!this._.P;this.pK=o.K&&!this._.K;this.pB=o.B&&!this._.B;this.pl=o.l&&!this._.l;this.pr=o.r&&!this._.r;this.pu=o.u&&!this._.u;this.pd=o.d&&!this._.d;this._=o;Object.assign(this,o);const push=k=>this.buf.push({k,t:FR});if(this.pP)push('P');if(this.pK)push('K');if(this.pl)push('L');if(this.pr)push('R');if(this.pd)push('D');if(this.pu)push('U');if(this.buf.length>14)this.buf.splice(0,this.buf.length-14);}
 match(seq,win){win=win||60;const b=this.buf;if(typeof seq==='string')seq=seq.split('');const n=seq.length;if(b.length<n)return false;if(b[b.length-1].t-b[b.length-n].t>win)return false;for(let i=0;i<n;i++)if(b[b.length-n+i].k!==seq[i])return false;return true;}
 matchRel(seq,face,win){const mapped=seq.split('').map(k=>k==='R'?(face>0?'R':'L'):k==='L'?(face>0?'L':'R'):k);return this.match(mapped,win);}
 clear(){this.buf.length=0;}}
@@ -1048,6 +1051,7 @@ if (new URLSearchParams(location.search).has('debug')) {
     get MU() { return MU; },
     get AU() { return AU; },
     get keys() { return keys; },
+    get TOUCH() { return TOUCH; },
     get fxAssets() { return FX; },
     get arenaAssets() { return ARENA_IMG; },
     get uiAssets() { return UI; },

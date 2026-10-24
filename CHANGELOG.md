@@ -37,6 +37,8 @@
 - Добавлен UI-кит: 9-slice панель из Kenney Fantasy UI, меню и выбор бойца используют новую рамку.
 - HUD и таймер получили 9-slice рамку.
 - Добавлена 9-slice кнопка для выбранных строк меню и настроек.
+- Добавлено touch-управление: D-pad, P/K/блок, пауза, меню.
+- Мобильный canvas заполняет landscape, добавлены safe-area и подсказка поворота.
 - Добавлен `docs/HANDOFF.md` для старта нового чата.
 - Снимок: `archive/2026-10-24-handoff`, `archive/2026-10-24-final-tails`.
 - GitHub Pages: https://darkdaro.github.io/karnage/ — страница запущена и проверена.
