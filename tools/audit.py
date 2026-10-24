@@ -181,12 +181,16 @@ def check_assets(errors: list[str]) -> None:
             continue
         if not (css.parent / match).resolve().exists():
             fail(f"assets/styles/main.css: missing asset {match}", errors)
-    html = ROOT / "index.html"
-    if not html.exists():
+    dev = ROOT / "dev.html"
+    if not dev.exists():
+        fail("dev.html: missing", errors)
+    elif "./src/main.js" not in read_text(dev):
+        fail("dev.html: module entry not found", errors)
+    index = ROOT / "index.html"
+    if not index.exists():
         fail("index.html: missing", errors)
-        return
-    if "./src/main.js" not in read_text(html):
-        fail("index.html: module entry not found", errors)
+    elif "./release/app.js" not in read_text(index):
+        fail("index.html: release entry not found", errors)
 
 
 def check_forbidden(errors: list[str]) -> None:

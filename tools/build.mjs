@@ -23,13 +23,13 @@ const bundle = await build({
 });
 await writeFile(join(release, 'app.js'), bundle.outputFiles[0].text, 'utf8');
 
-const html = await readFile(join(root, 'index.html'), 'utf8');
+const html = await readFile(join(root, 'dev.html'), 'utf8');
 const releaseHtml = html.replace(
   /<script type="module" src="\.\/src\/main\.js"><\/script>/,
   '<script src="./app.js"></script>'
 );
 if (releaseHtml === html) {
-  throw new Error('build: module script tag not found in index.html');
+  throw new Error('build: module script tag not found in dev.html');
 }
 await writeFile(join(release, 'index.html'), releaseHtml, 'utf8');
 

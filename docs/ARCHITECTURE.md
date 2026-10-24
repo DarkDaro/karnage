@@ -2,11 +2,13 @@
 
 ## Текущее состояние
 
-`src/main.js` вызывает `startKarnage()` из `src/game/karnage.js`. Бойцы и
-арены уже вынесены в `src/data`, HTML/CSS/шрифты — в `assets`. Основная логика
-пока остаётся в обёртке монолита; `src/legacy/karnage.js` — замороженная копия
-для сравнения. `tools/build.mjs` собирает `src/main.js` через esbuild в
-`release/app.js`, релиз запускается как папка `release/index.html`.
+`index.html` — готовый запуск, он читает `release/app.js`. `dev.html` —
+модульный вход для `npm run dev`: `src/main.js` вызывает `startKarnage()` из
+`src/game/karnage.js`. Бойцы и арены уже вынесены в `src/data`, HTML/CSS/шрифты
+— в `assets`. Основная логика пока остаётся в обёртке монолита;
+`src/legacy/karnage.js` — замороженная копия для сравнения. `tools/build.mjs`
+собирает `src/main.js` через esbuild в `release/app.js`, релиз запускается как
+папка `release/index.html`.
 
 ## Слои, к которым идём
 

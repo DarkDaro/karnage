@@ -8,7 +8,7 @@ import { chromium } from 'playwright';
 
 const root = resolve(import.meta.dirname, '..', '..');
 const port = 8713;
-const index = `http://127.0.0.1:${port}/index.html?debug=1`;
+const index = `http://127.0.0.1:${port}/dev.html?debug=1`;
 
 let browser;
 let page;
@@ -18,7 +18,7 @@ const pageErrors = [];
 async function waitForServer() {
   for (let attempt = 0; attempt < 60; attempt += 1) {
     try {
-      const response = await fetch(`http://127.0.0.1:${port}/index.html`);
+      const response = await fetch(`http://127.0.0.1:${port}/dev.html`);
       if (response.ok) return;
     } catch {
       // server is still starting

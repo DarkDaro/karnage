@@ -56,5 +56,6 @@ const server = createServer(async (req, res) => {
 });
 
 server.listen(port, '127.0.0.1', () => {
-  console.log(`KARNAGE: http://127.0.0.1:${port}/`);
+  console.log(`KARNAGE dev: http://127.0.0.1:${port}/dev.html`);
+  console.log(`KARNAGE release: http://127.0.0.1:${port}/release/index.html`);
 });

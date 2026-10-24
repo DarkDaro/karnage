@@ -115,7 +115,10 @@
     try {
       if (localStorage.karnageSnd !== void 0) AU.on = localStorage.karnageSnd === "1";
       if (localStorage.karnageVox !== void 0) AU.voice = localStorage.karnageVox === "1";
-      if (localStorage.karnageVol !== void 0) AU.vol = clamp(+localStorage.karnageVol || 100, 0, 100);
+      if (localStorage.karnageVol !== void 0) {
+        const v = parseFloat(localStorage.karnageVol);
+        if (Number.isFinite(v)) AU.vol = clamp(v, 0, 100);
+      }
     } catch (e) {
     }
     const setVol = () => {
@@ -131,7 +134,9 @@
     };
     const TOP = () => {
       try {
-        return JSON.parse(localStorage.karnageTop || "[]");
+        const raw = JSON.parse(localStorage.karnageTop || "[]");
+        if (!Array.isArray(raw)) return [];
+        return raw.filter((e) => e && Number.isInteger(e.id) && e.id >= 0 && e.id < CH.length && Number.isFinite(e.step) && e.step >= 0).slice(0, 5);
       } catch (e) {
         return [];
       }
@@ -342,7 +347,7 @@
       }
     }
     function say(t) {
-      if (!AU.on || !AU.voice || !window.speechSynthesis) return;
+      if (!AU.on || !AU.voice || AU.vol <= 0 || !window.speechSynthesis) return;
       try {
         speechSynthesis.cancel();
         const u = new SpeechSynthesisUtterance(t);
@@ -350,6 +355,7 @@
         if (v) u.voice = v;
         u.pitch = 0.3;
         u.rate = 0.8;
+        u.volume = AU.vol / 100;
         u.lang = "en-US";
         speechSynthesis.speak(u);
       } catch (e) {
@@ -363,6 +369,10 @@
     function music() {
       if (!AU.ctx || !AU.on) return;
       const c = AU.ctx;
+      if (MU.next < c.currentTime - 0.25) {
+        MU.next = c.currentTime + 0.05;
+        MU.s = 0;
+      }
       const md = GAME === "fight" && battle ? paused ? "pause" : "fight" : GAME === "vs" ? "vs" : GAME === "ending" || GAME === "continue" ? "end" : "menu";
       const tr = md === "fight" ? battle.arena : 0;
       const dt = md === "pause" ? 0.28 : md === "vs" ? 0.11 : md === "fight" && battle.aiLvl >= 7 ? 0.115 : md === "end" ? 0.22 : md === "menu" ? 0.16 : 0.13;
@@ -451,6 +461,10 @@
         if (b[b.length - 1].t - b[b.length - n].t > win) return false;
         for (let i = 0; i < n; i++) if (b[b.length - n + i].k !== seq[i]) return false;
         return true;
+      }
+      matchRel(seq, face, win) {
+        const mapped = seq.split("").map((k) => k === "R" ? face > 0 ? "R" : "L" : k === "L" ? face > 0 ? "L" : "R" : k);
+        return this.match(mapped, win);
       }
       clear() {
         this.buf.length = 0;
@@ -736,6 +750,14 @@
         this.dvx = 0;
         this.marks = [];
         this.poisonC = null;
+        this.spec2go = 0;
+        this.combo = 0;
+        this.comboT = 99;
+        this.pale = 0;
+        this.defeated = 0;
+        this.damageTaken = 0;
+        this.armor = 0;
+        this.blockStun = 0;
         this.ctrl.clear();
       }
       get onGround() {
@@ -750,6 +772,7 @@
         this.st = 0;
         this.atk = { t, A: ATK[t], hit: 0 };
         this.invis = 0;
+        this.spec2go = 0;
         SFX.swing();
       }
       // 08.09: атака пробивает невидимость
@@ -760,12 +783,19 @@
         this.flash = Math.max(0, this.flash - 1);
         this.squash = lerp(this.squash, 1, 0.12);
         this.hpLag = Math.max(this.hp, this.hpLag - 0.4);
+        if (this.defeated) {
+          this.tilt = lerp(this.tilt, this.state === "dizzy" ? 0 : -1.4, 0.2);
+          return;
+        }
+        if (this.netT > 0 && this.state !== "net") this.netT = 0;
         if (this.poison > 0) {
           this.poison--;
           this.hp = Math.max(1, this.hp - 0.06);
+          this.damageTaken = (this.damageTaken || 0) + 0.06;
           if (this.poison % 9 === 0) P(this.x, this.y - d.h * 0.6, rnd(-0.5, 0.5), rnd(-1.5, -0.3), this.poisonC || "#7ac83a", 20, 2);
         }
         if (this.invis > 0) this.invis--;
+        if (this.armor > 0) this.armor--;
         if (GAME === "fight" && !this.hidden) {
           if (d.id === 0 && FR % 9 === 0) P(this.x + rnd(-4, 4), this.y - d.h - 4, rnd(-0.3, 0.3), rnd(-1.2, -0.5), pick(["#f06020", "#f0a030"]), 26, 1, -0.02);
           if (d.id === 6 && FR % 12 === 0) P(this.x + rnd(-7, 7), this.y - d.h * rnd(0.3, 1), 0, rnd(0.2, 0.6), "#cfeaff", 30, 1, 0.02);
@@ -829,15 +859,15 @@
           if (["idle", "walk", "crouch", "block"].includes(this.state) && this.onGround && (c.pP || c.pK)) {
             const btn = c.pP ? "P" : "K";
             if (this.rage >= 100 && this.ctrl.match("DDP", 60)) this.startSuper();
-            else if (this.ctrl.match(d.spec, 60)) this.startSpec(foe);
-            else if (this.ctrl.match(d.spec2, 60)) this.startSpec2(foe);
+            else if (this.ctrl.matchRel(d.spec, this.face, 60)) this.startSpec(foe);
+            else if (this.ctrl.matchRel(d.spec2, this.face, 60)) this.startSpec2(foe);
             else if (btn === "P") this.startAtk(c.d ? "upper" : "punch");
             else if (c.d) this.startAtk("sweep");
             else this.startAtk(c.l && !c.r && this.face > 0 || c.r && !c.l && this.face < 0 ? "rh" : "kick");
           }
           if (this.state === "jump" && (c.pP || c.pK)) {
-            if (this.ctrl.match(d.spec, 60)) this.startSpec(foe);
-            else if (this.ctrl.match(d.spec2, 60)) this.startSpec2(foe);
+            if (this.ctrl.matchRel(d.spec, this.face, 60)) this.startSpec(foe);
+            else if (this.ctrl.matchRel(d.spec2, this.face, 60)) this.startSpec2(foe);
             else this.startAtk("jkick");
           }
         } else this.vx *= 0.98;
@@ -953,6 +983,7 @@
         this.state = "cast";
         this.st = 0;
         this.face = foe.x < this.x ? -1 : 1;
+        this.spec2go = 0;
         SFX.cast();
       }
       startSpec2(foe) {
@@ -967,6 +998,7 @@
         this.state = "super";
         this.st = 0;
         this.rage = 0;
+        this.armor = 12;
         this.supEv = [];
         this.invis = 0;
         flashS = Math.max(flashS, 4);
@@ -1054,11 +1086,19 @@
           SFX.sting();
           fx.push({ ty: "drain", x: me.foe.x, t: 0 });
           for (let i = 0; i < 8; i++) E(16 + i * 8, () => {
-            if (me.foe.hp > 1) {
-              me.foe.hp = Math.max(1, me.foe.hp - 3);
+            const f = me.foe;
+            if (battle.phase === "fight" && !f.defeated && f.hp > 0 && f.armor <= 0) {
+              f.hp = Math.max(0, f.hp - 3);
+              f.damageTaken = (f.damageTaken || 0) + 3;
+              f.flash = 4;
+              f.state = "hit";
+              f.st = 0;
+              f.atk = null;
+              f.spec2go = 0;
+              f.netT = 0;
               me.hp = Math.min(100, me.hp + 1.6);
-              me.foe.rage = Math.min(100, me.foe.rage + 3);
-              for (let j = 0; j < 3; j++) P(me.foe.x + rnd(-8, 8), me.foe.y - rnd(10, 50), (me.x - me.foe.x) * 0.05, rnd(-1, -0.2), "#7a3aa8", 34, 2, 0);
+              f.rage = Math.min(100, f.rage + 2.7);
+              for (let j = 0; j < 3; j++) P(f.x + rnd(-8, 8), f.y - rnd(10, 50), (me.x - f.x) * 0.05, rnd(-1, -0.2), "#7a3aa8", 34, 2, 0);
               SFX.hit();
             }
           });
@@ -1302,18 +1342,71 @@
     }
     function autoHit(a, dmg) {
       const f = a.foe;
-      if (f && Math.abs(f.x - a.x) < 48 && f.state !== "down") {
-        f.hp = Math.max(1, f.hp - dmg);
-        a.rage = Math.min(100, a.rage + 2);
-        blood(f.x, f.y - 40, 3);
-        for (let i = 0; i < 4; i++) P(f.x + rnd(-10, 10), f.y - rnd(20, 50), rnd(-2, 2), rnd(-2, 0), "#fff", 10, 2, 0);
+      if (!f || f.hidden || f.dodging || f.defeated) return;
+      if (!battle || battle.phase !== "fight") return;
+      if (f.state === "down" || f.state === "victim") return;
+      if (Math.abs(f.x - a.x) >= 48) return;
+      if (f.armor > 0) {
+        f.armor--;
+        f.flash = 4;
+        SFX.block();
+        return;
       }
+      if (f.state === "block") {
+        f.hp = Math.max(1, f.hp - 1);
+        f.damageTaken = (f.damageTaken || 0) + 1;
+        a.rage = Math.min(100, a.rage + 1);
+        f.rage = Math.min(100, f.rage + 1);
+        f.vx = a.face * 2;
+        f.hvx = 0;
+        SFX.block();
+        for (let i = 0; i < 4; i++) P(f.x + f.face * 8, f.y - f.def.h * 0.55, rnd(-1.5, 1.5), rnd(-2, 0), "#fff", 10, 2, 0);
+        return;
+      }
+      const d = dmg * a.def.dmg;
+      f.hp = Math.max(0, f.hp - d);
+      f.damageTaken = (f.damageTaken || 0) + d;
+      f.flash = 4;
+      f.state = "hit";
+      f.st = 0;
+      f.vx = 0;
+      f.hvx = 0;
+      f.atk = null;
+      f.spec2go = 0;
+      f.invis = 0;
+      f.netT = 0;
+      f.combo = 0;
+      if (f.frozen > 0) f.frozen = 0;
+      a.rage = Math.min(100, a.rage + 2);
+      f.rage = Math.min(100, f.rage + d * 0.9);
+      a.combo = (a.comboT !== void 0 && a.comboT < 60 ? a.combo : 0) + 1;
+      a.comboT = 0;
+      if (bstat) {
+        const k = a === battle.p1 ? "1" : "2";
+        bstat["h" + k]++;
+        bstat["d" + k] += d;
+        bstat["c" + k] = Math.max(bstat["c" + k], a.combo || 0);
+      }
+      blood(f.x, f.y - f.def.h * 0.5, Math.min(10, 3 + d), 1);
+      for (let i = 0; i < 4; i++) P(f.x + rnd(-10, 10), f.y - rnd(20, 50), rnd(-2, 2), rnd(-2, 0), "#fff", 10, 2, 0);
+      freeze = Math.max(freeze, 3);
+      if (f.hp <= 0) freeze = Math.max(freeze, 12);
+      SFX.hit();
     }
     function hitR(a, b) {
       return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
     }
     function resolveHit(att, def, dmg, opts) {
       opts = opts || {};
+      if (battle && ["finish", "fatal", "over", "ko"].includes(battle.phase)) return;
+      if (def.defeated) return;
+      if (def.armor > 0) {
+        def.armor--;
+        def.flash = 4;
+        SFX.block();
+        return;
+      }
+      if (def.state === "super" && def.st < 20) def.rage = Math.min(100, def.rage + 50);
       if (def.dodging) {
         for (let i = 0; i < 5; i++) P(def.x + rnd(-6, 6), def.y - rnd(8, 44), -att.face * rnd(0.6, 1.6), rnd(-1, -0.2), "#9a9080", 14, 2, 0.03);
         SFX.whiff();
@@ -1321,8 +1414,10 @@
       }
       if (def.state === "block") {
         def.hp = Math.max(1, def.hp - 1);
+        def.damageTaken = (def.damageTaken || 0) + 1;
         SFX.block();
-        att.rage = Math.min(100, att.rage + 2);
+        att.rage = Math.min(100, att.rage + 1);
+        def.rage = Math.min(100, def.rage + 1);
         def.vx = att.face * 2;
         def.hvx = 0;
         for (let i = 0; i < 4; i++) P(def.x + def.face * 8, def.y - def.def.h * 0.55, rnd(-1.5, 1.5), rnd(-2, 0), "#fff", 10, 2, 0);
@@ -1336,6 +1431,11 @@
       }
       def.hp = Math.max(0, def.hp - d);
       if (def.hp <= 0) freeze = Math.max(freeze, 12);
+      def.damageTaken = (def.damageTaken || 0) + d;
+      def.netT = 0;
+      def.spec2go = 0;
+      def.atk = null;
+      def.invis = 0;
       att.combo = (att.comboT !== void 0 && att.comboT < 60 ? att.combo : 0) + 1;
       att.comboT = 0;
       if (def.combo >= 3) SFX.cbreak();
@@ -1355,7 +1455,7 @@
       }
       blood(def.x, def.y - def.def.h * 0.55, Math.min(14, 3 + d), d > 10 ? 1.6 : 1);
       for (let i = 0; i < 6; i++) P(def.x - att.face * 8, def.y - def.def.h * 0.55, rnd(-2.5, 2.5), rnd(-2.5, 1), pick(["#fff", "#f8d060", "#f0a030"]), 10, rnd(1, 2), 0.05);
-      freeze = Math.min(6, 2 + d * 0.25);
+      freeze = def.hp <= 0 ? Math.max(freeze, 12) : Math.max(freeze, Math.min(6, 2 + d * 0.25));
       if (opts.launch) {
         def.vy = -8;
         def.vx = att.face * 3;
@@ -1388,6 +1488,10 @@
       }
     }
     function updProjs() {
+      if (battle && ["finish", "fatal", "over", "ko"].includes(battle.phase)) {
+        projs.length = 0;
+        return;
+      }
       if (projs.length > 60) projs.splice(0, projs.length - 60);
       for (let i = projs.length; i--; ) {
         const p = projs[i];
@@ -1523,6 +1627,18 @@
           g.fillRect(x - 3, y - 8, 6, 12);
           g.fillStyle = "#d84030";
           g.fillRect(x - 2, y - 8, 4, 3);
+        } else if (p.ty === "bomb") {
+          const a = Math.sin(p.l * 0.4) * 2;
+          g.fillStyle = "#2a2018";
+          g.beginPath();
+          g.arc(x, y, 5, 0, 7);
+          g.fill();
+          g.fillStyle = "#4a4038";
+          g.fillRect(x - 3, y - 3, 6, 2);
+          g.fillStyle = "#f0a030";
+          g.fillRect(x + 3, y - 6 + a, 2, 2);
+          g.fillStyle = "#f8d060";
+          g.fillRect(x + 4, y - 5 + a, 1, 1);
         } else if (p.ty === "shard") {
           g.fillStyle = p.c;
           g.beginPath();
@@ -1905,12 +2021,13 @@
       g.save();
       g.lineCap = "round";
       g.translate(Math.round(f.x - cam2), Math.round(f.y));
-      const shg = g.createRadialGradient(0, 2, 1, 0, 2, 15 * sc);
+      const shadowY = FL + GR - f.y;
+      const shg = g.createRadialGradient(0, shadowY, 1, 0, shadowY, 15 * sc);
       shg.addColorStop(0, "rgba(0,0,0,.45)");
       shg.addColorStop(1, "rgba(0,0,0,0)");
       g.fillStyle = shg;
       g.beginPath();
-      g.ellipse(0, 2, 15 * sc, 4.2, 0, 0, 7);
+      g.ellipse(0, shadowY, 15 * sc, 4.2, 0, 0, 7);
       g.fill();
       if (f.invis > 0) g.globalAlpha = 0.25;
       g.scale(f.face * sc, sc * f.squash);
@@ -1918,42 +2035,6 @@
       if (f.state === "super" || f.frozen > 0) g.translate(rnd(-1, 1), rnd(-1, 1));
       const p = pose(f);
       const suit = f.charred ? "#1c1712" : f.pale ? shade(d.suit, 0.5) : d.suit, skin = f.charred ? "#241c12" : f.pale ? "#d8ccc8" : d.skin, dk = shade(suit, 0.6), ac = f.charred ? "#4a4238" : d.acc;
-      const fanOut = f.fan && (f.state === "cast" || f.state === "super");
-      if (fanOut) {
-        const f0 = fa;
-        g.fillStyle = OUT;
-        g.beginPath();
-        g.moveTo(f0[0], f0[1]);
-        g.arc(f0[0], f0[1], 14, -1.2, 0.15);
-        g.closePath();
-        g.fill();
-        const fg = g.createRadialGradient(f0[0], f0[1], 2, f0[0], f0[1], 13);
-        fg.addColorStop(0, shade(suit, 0.6));
-        fg.addColorStop(1, "#8a1424");
-        g.fillStyle = fg;
-        g.beginPath();
-        g.moveTo(f0[0], f0[1]);
-        g.arc(f0[0], f0[1], 12, -1.1, 0.05);
-        g.closePath();
-        g.fill();
-        g.strokeStyle = mix(ac, "#ffffff", 0.45);
-        g.lineWidth = 0.7;
-        for (let i = 0; i < 4; i++) {
-          const aa = -1.05 + i * 0.31;
-          g.beginPath();
-          g.moveTo(f0[0], f0[1]);
-          g.lineTo(f0[0] + Math.cos(aa) * 12, f0[1] + Math.sin(aa) * 12);
-          g.stroke();
-        }
-        g.fillStyle = ac;
-        g.fillRect(f0[0] - 1.5, f0[1] - 1.5, 3, 3);
-        g.strokeStyle = "#3a2530";
-        g.lineWidth = 2;
-        g.beginPath();
-        g.moveTo(f0[0], f0[1]);
-        g.lineTo(f0[0] - 4, f0[1] + 4);
-        g.stroke();
-      }
       const hipY = -p.hip, shY = hipY - d.h * 0.3, shX = p.lean * 10;
       if (d.cape && !f.charred) {
         g.fillStyle = shade(suit, 0.4);
@@ -2041,6 +2122,42 @@
       boot(fl, shade(suit, 0.5));
       const fa = limb(2 + shX, shY + 2, p.armF[0], p.armF[1], d.h * 0.2, d.h * 0.18, 4, skin);
       fist(fa, skin);
+      const fanOut = d.fan && (f.state === "cast" || f.state === "super");
+      if (fanOut) {
+        const f0 = fa;
+        g.fillStyle = OUT;
+        g.beginPath();
+        g.moveTo(f0[0], f0[1]);
+        g.arc(f0[0], f0[1], 14, -1.2, 0.15);
+        g.closePath();
+        g.fill();
+        const fg = g.createRadialGradient(f0[0], f0[1], 2, f0[0], f0[1], 13);
+        fg.addColorStop(0, shade(suit, 0.6));
+        fg.addColorStop(1, "#8a1424");
+        g.fillStyle = fg;
+        g.beginPath();
+        g.moveTo(f0[0], f0[1]);
+        g.arc(f0[0], f0[1], 12, -1.1, 0.05);
+        g.closePath();
+        g.fill();
+        g.strokeStyle = mix(ac, "#ffffff", 0.45);
+        g.lineWidth = 0.7;
+        for (let i = 0; i < 4; i++) {
+          const aa = -1.05 + i * 0.31;
+          g.beginPath();
+          g.moveTo(f0[0], f0[1]);
+          g.lineTo(f0[0] + Math.cos(aa) * 12, f0[1] + Math.sin(aa) * 12);
+          g.stroke();
+        }
+        g.fillStyle = ac;
+        g.fillRect(f0[0] - 1.5, f0[1] - 1.5, 3, 3);
+        g.strokeStyle = "#3a2530";
+        g.lineWidth = 2;
+        g.beginPath();
+        g.moveTo(f0[0], f0[1]);
+        g.lineTo(f0[0] - 4, f0[1] + 4);
+        g.stroke();
+      }
       if (d.claws && (f.state === "atk" || f.state === "cast")) {
         g.fillStyle = ac;
         for (let i = -1; i <= 1; i++) {
@@ -2642,7 +2759,7 @@
       g.fillRect(x, y + h - 3, 3, 3);
       g.fillRect(x + w - 3, y + h - 3, 3, 3);
     }
-    const seqTxt = (s, p2) => s.split("").map((x) => (p2 ? { D: "\u2193", U: "\u2191", L: "\u2190", R: "\u2192", P: "I", K: "O" } : { D: "S", U: "W", L: "A", R: "D", P: "J", K: "K" })[x]).join(" ");
+    const seqTxt = (s, p2) => s.split("").map((x) => ({ D: "\u2193", U: "\u2191", L: "\u2190", R: "\u2192", P: p2 ? "I" : "J", K: p2 ? "O" : "K" })[x]).join(" ");
     const RANGED = [0, 2, 3, 6, 7, 8, 9, 10, 12];
     function aiUpd(f, foe, lvl) {
       const c = f.ctrl;
@@ -2797,19 +2914,24 @@
       w.state = "win";
       w.st = 0;
       w.atk = null;
+      if (battle.loser) battle.loser.defeated = 1;
       projs.length = 0;
-      announce = { txt: w.def.name + " \u041F\u041E\u0411\u0415\u0416\u0414\u0410\u0415\u0422", t: 0, col: "#e8c040" };
+      announce = { txt: w.def.name + " ?????????", t: 0, col: "#e8c040" };
       say(w.def.en + " wins");
       SFX.win();
     }
     function startFatal(w, l) {
+      projs.length = 0;
       battle.phase = "fatal";
       battle.phaseT = 0;
       w.state = "fatal";
       w.st = 0;
+      w.face = l.x < w.x ? -1 : 1;
       l.state = "victim";
       l.st = 0;
       l.vx = 0;
+      l.vy = 0;
+      l.defeated = 1;
       SFX.sting();
       say("Fatality");
     }
@@ -3043,11 +3165,6 @@
         b.timer = 0;
         b.phase = "ko";
         b.phaseT = 0;
-        if (b.round >= 3) {
-          const w = b.p1.hp > b.p2.hp ? b.p1 : b.p2.hp > b.p1.hp ? b.p2 : Math.random() < 0.5 ? b.p1 : b.p2;
-          roundWon(w);
-          return;
-        }
         announce = { txt: "\u041D\u0418\u0427\u042C\u042F", t: 0, col: "#e8c040" };
         say("Draw");
         return;
@@ -3067,17 +3184,28 @@
         f.updSuper();
       }
       if (b.phase === "fight") {
-        for (const f of [b.p1, b.p2]) {
-          if (f.hp <= 0 && f.state !== "victim") {
-            roundWon(f.foe);
-            break;
+        const dead = [b.p1, b.p2].filter((f) => f.hp <= 0 && f.state !== "victim");
+        if (dead.length >= 2) {
+          b.phase = "ko";
+          b.phaseT = 0;
+          projs.length = 0;
+          for (const f of dead) {
+            f.defeated = 1;
+            f.state = "down";
+            f.st = 0;
+            f.vx = 0;
+            f.vy = 0;
+            f.y = FL + GR;
           }
-        }
+          announce = { txt: "?????", t: 0, col: "#e8c040" };
+          say("Draw");
+        } else if (dead.length === 1) roundWon(dead[0].foe);
       }
     }
     function roundWon(w) {
       const b = battle;
       w.wins++;
+      projs.length = 0;
       if (w.wins >= 2) {
         b.loser = w.foe;
         b.winner = w;
@@ -3089,16 +3217,22 @@
         w.foe.state = "dizzy";
         w.foe.st = 0;
         w.foe.vx = 0;
+        w.foe.vy = 0;
+        w.foe.y = FL + GR;
         w.foe.atk = null;
+        w.foe.defeated = 1;
+        w.foe.netT = 0;
+        w.foe.frozen = 0;
         announce = { txt: "FINISH HIM!", t: 0, col: "#e02020", pulse: 1 };
         say("Finish him");
         const wx = w.x, wf = w.face;
         w.reset(wx, wf);
         w.hp = 100;
+        w.defeated = 0;
       } else {
         b.phase = "ko";
         b.phaseT = 0;
-        const fl = w.hp >= 100;
+        const fl = (w.damageTaken || 0) === 0;
         if (fl) SFX.coin();
         announce = { txt: fl ? "FLAWLESS VICTORY" : "K.O.", t: 0, col: fl ? "#e8e0c0" : "#e02020" };
         w.state = "win";
@@ -3107,6 +3241,12 @@
         w.foe.state = "down";
         w.foe.st = 0;
         w.foe.hp = 0;
+        w.foe.vx = 0;
+        w.foe.vy = 0;
+        w.foe.y = FL + GR;
+        w.foe.defeated = 1;
+        w.foe.netT = 0;
+        w.foe.frozen = 0;
         SFX.ko();
         say(fl ? "Excellent. Flawless victory" : "K O");
       }
@@ -3131,7 +3271,7 @@
           startFatal(w, l);
           return;
         }
-      } else if ((w.ctrl.pP || w.ctrl.pK) && w.ctrl.match(w.def.fat, 150)) {
+      } else if ((w.ctrl.pP || w.ctrl.pK) && w.ctrl.matchRel(w.def.fat, w.face, 150)) {
         startFatal(w, l);
         return;
       }
@@ -3517,8 +3657,9 @@
       g.font = '7px "Russo One"';
       g.fillStyle = "#c8a040";
       g.textAlign = "center";
-      g.fillText("\u0421\u041F\u0415\u0426 \u2014 \u043D\u0430\u043F\u0440\u0430\u0432\u043B\u0435\u043D\u0438\u044F + \u043A\u043D\u043E\u043F\u043A\u0430 \xB7 \u0421\u0423\u041F\u0415\u0420 \u2014 S,S+J \xB7 \u0424\u0410\u0422\u0410\u041B\u0418\u0422\u0418 \u2014 \u0432 \u043E\u043A\u043D\u0435 FINISH HIM", RW / 2, 224);
+      g.fillText("\u0421\u041F\u0415\u0426 \u2014 \u043D\u0430\u043F\u0440\u0430\u0432\u043B\u0435\u043D\u0438\u044F + \u043A\u043D\u043E\u043F\u043A\u0430 \xB7 \u0421\u0423\u041F\u0415\u0420 \u2014 S,S+J \xB7 \u0424\u0410\u0422\u0410\u041B\u0418\u0422\u0418 \u2014 \u0432 \u043E\u043A\u043D\u0435 FINISH HIM", RW / 2, 222);
       g.fillStyle = "#807850";
+      g.fillText("\u2190/\u2192 \u0432 \u0441\u043F\u0435\u0446/\u0444\u0430\u0442\u0430\u043B\u0438\u0442\u0438 \u2014 \u043D\u0430\u0437\u0430\u0434/\u0432\u043F\u0435\u0440\u0451\u0434 \u043E\u0442\u043D\u043E\u0441\u0438\u0442\u0435\u043B\u044C\u043D\u043E \u0432\u0437\u0433\u043B\u044F\u0434\u0430", RW / 2, 230);
       g.fillText("J / ESC \u2014 \u043D\u0430\u0437\u0430\u0434", RW / 2, 238);
     }
     function drawSelect() {
@@ -3917,8 +4058,14 @@
             b.phaseT++;
             updFs(1);
             if (b.phaseT > 140) {
-              b.round++;
-              startRound();
+              if (b.round >= 3) {
+                const w = b.p1.wins > b.p2.wins ? b.p1 : b.p2.wins > b.p1.wins ? b.p2 : b.p1.hp >= b.p2.hp ? b.p1 : b.p2;
+                if (w.wins < 1) w.wins = 1;
+                roundWon(w);
+              } else {
+                b.round++;
+                startRound();
+              }
             }
           } else if (b.phase === "finish") finishUpd();
           else if (b.phase === "fatal") battleUpd();
@@ -4149,6 +4296,10 @@
         get AU() {
           return AU;
         },
+        get keys() {
+          return keys;
+        },
+        autoHit,
         step,
         render,
         newBattle,
