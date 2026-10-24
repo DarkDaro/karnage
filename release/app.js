@@ -107,7 +107,7 @@
   CH[9].spec2N = "\u0422\u044F\u0436\u0451\u043B\u044B\u0439 \u0441\u043D\u0430\u0440\u044F\u0434";
   CH.push({ id: 10, name: "\u041A\u0410\u0420\u041C\u0418\u041D", en: "CARMINE", skin: "#e8d8d0", suit: "#6a1020", acc: "#d82040", hair: "#d8d0e0", gear: "corona", dress: 1, longhair: 1, fan: 1, h: 58, bulk: 0.9, spd: 2.2, jmp: 8.6, dmg: 0.95, specN: "\u041A\u0440\u043E\u0432\u0430\u0432\u044B\u0435 \u0438\u0433\u043B\u044B", spec: "RDP", sup: "\u0410\u043B\u044B\u0439 \u043F\u0438\u043E\u043D", fat: "RLDP", arena: 9 });
   CH.push({ id: 11, name: "\u0410\u042F\u041C\u042D", en: "AYAME", skin: "#e0c8b8", suit: "#1a1f33", acc: "#7ac8d8", hair: "#0a0d1a", gear: "tail", blade: 1, h: 57, bulk: 0.85, spd: 2.7, jmp: 9.2, dmg: 1, specN: "\u041F\u043E\u043B\u0443\u043C\u0435\u0441\u044F\u0446", spec: "DRP", sup: "\u0421\u0442\u043E \u0442\u0435\u043D\u0435\u0439", fat: "LDRP", arena: 4 });
-  CH.push({ id: 12, name: "\u0412\u0415\u0413\u0410", en: "VEGA", skin: "#c8a888", suit: "#241540", acc: "#b89aff", hair: "#e8e8ff", gear: "halo", bow: 1, h: 60, bulk: 0.95, spd: 2.3, jmp: 8.8, dmg: 1.05, specN: "\u0417\u0432\u0451\u0437\u0434\u043D\u0430\u044F \u043C\u0435\u0442\u043A\u0430", spec: "UDK", sup: "\u041D\u0435\u0431\u0435\u0441\u043D\u044B\u0439 \u043B\u043E\u0432\u0435\u0446", fat: "UDRP", arena: 1 });
+  CH.push({ id: 12, name: "\u0412\u0415\u0413\u0410", en: "VEGA", skin: "#c8a888", suit: "#241540", acc: "#b89aff", hair: "#e8e8ff", gear: "halo", bow: 1, ponytail: 1, skirt: 1, female: 1, h: 60, bulk: 0.95, spd: 2.3, jmp: 8.8, dmg: 1.05, specN: "\u0417\u0432\u0451\u0437\u0434\u043D\u0430\u044F \u043C\u0435\u0442\u043A\u0430", spec: "UDK", sup: "\u041D\u0435\u0431\u0435\u0441\u043D\u044B\u0439 \u043B\u043E\u0432\u0435\u0446", fat: "UDRP", arena: 1 });
   CH[10].spec2 = "RRK";
   CH[10].spec2N = "\u041A\u0440\u043E\u0432\u0430\u0432\u044B\u0435 \u0448\u0438\u043F\u044B";
   CH[11].spec2 = "RRP";
@@ -2201,8 +2201,9 @@
       boot(bl, shade(suit, 0.35));
       const ba = limb(-3 + shX * 0.5, shY, p.armB[0], p.armB[1], d.h * 0.2, d.h * 0.18, 4, dk);
       fist(ba, shade(skin, 0.7));
+      const tw = d.female ? 9 : 10;
       g.strokeStyle = OUT;
-      g.lineWidth = 13;
+      g.lineWidth = tw + 3;
       g.beginPath();
       g.moveTo(-1, hipY);
       g.lineTo(shX, shY + 2);
@@ -2212,18 +2213,35 @@
       tg.addColorStop(0.45, suit);
       tg.addColorStop(1, mix(suit, "#ffffff", 0.16));
       g.strokeStyle = tg;
-      g.lineWidth = 10;
+      g.lineWidth = tw;
       g.beginPath();
       g.moveTo(-1, hipY);
       g.lineTo(shX, shY + 2);
       g.stroke();
       if (!f.charred) {
-        g.fillStyle = shade(suit, 0.74);
-        g.fillRect(shX - 4, shY + 5, 4, 2);
-        g.fillRect(shX + 1, shY + 5, 4, 2);
-        g.fillStyle = shade(suit, 0.82);
-        g.fillRect(shX - 1, shY + 8, 2, 3);
-        g.fillRect(shX - 1, shY + 11, 2, 1);
+        if (d.female) {
+          g.fillStyle = shade(suit, 0.74);
+          g.beginPath();
+          g.ellipse(shX - 2, shY + 5, 3, 2, 0, 0, 7);
+          g.fill();
+          g.beginPath();
+          g.ellipse(shX + 2, shY + 5, 3, 2, 0, 0, 7);
+          g.fill();
+          g.fillStyle = mix(suit, "#ffffff", 0.16);
+          g.fillRect(shX - 1, shY + 4, 2, 1);
+          g.fillStyle = shade(suit, 0.62);
+          g.fillRect(shX - 5, shY + 10, 2, 5);
+          g.fillRect(shX + 3, shY + 10, 2, 5);
+          g.fillStyle = shade(suit, 0.86);
+          g.fillRect(shX - 3, shY + 10, 6, 1);
+        } else {
+          g.fillStyle = shade(suit, 0.74);
+          g.fillRect(shX - 4, shY + 5, 4, 2);
+          g.fillRect(shX + 1, shY + 5, 4, 2);
+          g.fillStyle = shade(suit, 0.82);
+          g.fillRect(shX - 1, shY + 8, 2, 3);
+          g.fillRect(shX - 1, shY + 11, 2, 1);
+        }
       }
       if (d.bulk > 1.12) {
         g.fillStyle = shade(suit, 0.75);
@@ -2239,9 +2257,9 @@
           g.fillRect(shX + 2, shY - 1, 6, 1);
         }
       }
-      g.fillStyle = shade(suit, 0.45);
+      g.fillStyle = d.female ? ac : shade(suit, 0.45);
       g.fillRect(-5, hipY - 3, 10, 4);
-      g.fillStyle = mix(ac, "#ffffff", 0.3);
+      g.fillStyle = d.female ? mix(ac, "#ffffff", 0.55) : mix(ac, "#ffffff", 0.3);
       g.fillRect(-1, hipY - 3, 2, 4);
       g.fillStyle = ac;
       g.fillRect(-4 + shX * 0.5, shY + 5, 7, 3);
@@ -2263,8 +2281,30 @@
         g.closePath();
         g.fill();
       }
-      g.fillStyle = ac;
-      g.fillRect(-9, hipY + d.h * 0.32, 20 + shX * 0.6, 1);
+      if (d.skirt && !f.charred) {
+        const sy = hipY - 1, by = hipY + d.h * 0.22;
+        const skg = g.createLinearGradient(0, sy, 0, by);
+        skg.addColorStop(0, shade(suit, 0.75));
+        skg.addColorStop(1, shade(suit, 0.45));
+        g.fillStyle = skg;
+        g.beginPath();
+        g.moveTo(-6, hipY);
+        g.lineTo(6 + shX * 0.4, hipY);
+        g.lineTo(11 + shX * 0.6, by);
+        g.lineTo(-9, by);
+        g.closePath();
+        g.fill();
+        g.fillStyle = mix(suit, "#ffffff", 0.12);
+        g.fillRect(5, hipY + 1, 3, by - hipY - 2);
+        g.fillStyle = ac;
+        g.fillRect(-9, by, 20 + shX * 0.6, 1);
+        g.fillStyle = shade(suit, 0.22);
+        g.fillRect(-1, hipY, 2, by - hipY);
+      }
+      if (!d.skirt) {
+        g.fillStyle = ac;
+        g.fillRect(-9, hipY + d.h * 0.32, 20 + shX * 0.6, 1);
+      }
       const fl = limb(1, hipY, p.legF[0], p.legF[1], d.h * 0.26, d.h * 0.24, 5, suit);
       boot(fl, shade(suit, 0.5));
       const fa = limb(2 + shX, shY + 2, p.armF[0], p.armF[1], d.h * 0.2, d.h * 0.18, 4, skin);
@@ -2423,10 +2463,19 @@
       g.fillRect(hx - 6, hy - 11, 13, 16);
       g.fillStyle = skin;
       g.fillRect(hx - 5, hy - 9, 11, 13);
-      g.fillStyle = shade(skin, 0.82);
-      g.fillRect(hx - 5, hy + 1, 11, 3);
+      if (d.female) {
+        g.fillStyle = shade(skin, 0.9);
+        g.fillRect(hx - 4, hy + 3, 9, 1);
+      } else {
+        g.fillStyle = shade(skin, 0.82);
+        g.fillRect(hx - 5, hy + 1, 11, 3);
+      }
       g.fillStyle = shade(skin, 0.7);
       g.fillRect(hx - 6, hy - 4, 2, 3);
+      if (d.female) {
+        g.fillStyle = ac;
+        g.fillRect(hx - 7, hy - 1, 1, 2);
+      }
       if (d.longhair && !f.charred && !f.pale) {
         g.fillStyle = OUT;
         g.fillRect(hx - 9, hy - 9, 4, 22);
@@ -2441,12 +2490,63 @@
         g.fillRect(hx - 8, hy + 6, 3, 4);
         g.fillRect(hx + 6, hy + 6, 3, 4);
       }
+      if (d.ponytail && !f.charred && !f.pale) {
+        const sw = Math.sin(f.animT * 0.08) * 2;
+        g.fillStyle = OUT;
+        g.beginPath();
+        g.moveTo(hx - 6, hy - 8);
+        g.quadraticCurveTo(hx - 11, hy - 10 + sw, hx - 13, hy - 2 + sw);
+        g.quadraticCurveTo(hx - 15, hy + 7 + sw, hx - 15, hy + 18 + sw);
+        g.lineTo(hx - 12, hy + 17 + sw);
+        g.quadraticCurveTo(hx - 11, hy + 7 + sw, hx - 10, hy + sw);
+        g.quadraticCurveTo(hx - 9, hy - 5 + sw, hx - 4, hy - 6);
+        g.closePath();
+        g.fill();
+        g.fillStyle = d.hair;
+        g.beginPath();
+        g.moveTo(hx - 5, hy - 7);
+        g.quadraticCurveTo(hx - 10, hy - 8 + sw, hx - 12, hy - 2 + sw);
+        g.quadraticCurveTo(hx - 13, hy + 7 + sw, hx - 13, hy + 16 + sw);
+        g.lineTo(hx - 12, hy + 15 + sw);
+        g.quadraticCurveTo(hx - 11, hy + 6 + sw, hx - 10, hy + sw);
+        g.quadraticCurveTo(hx - 9, hy - 4 + sw, hx - 4, hy - 5);
+        g.closePath();
+        g.fill();
+        g.strokeStyle = shade(d.hair, 0.78);
+        g.lineWidth = 0.8;
+        for (const q of [[-11, -2], [-12, 3], [-13, 8], [-13, 13]]) {
+          g.beginPath();
+          g.moveTo(hx + q[0] - 1, hy + q[1] + sw * 0.4);
+          g.lineTo(hx + q[0] + 1, hy + q[1] + 1 + sw * 0.4);
+          g.stroke();
+        }
+        g.strokeStyle = mix(d.hair, "#ffffff", 0.45);
+        g.lineWidth = 0.7;
+        g.beginPath();
+        g.moveTo(hx - 6, hy - 7);
+        g.quadraticCurveTo(hx - 11, hy - 9 + sw, hx - 13, hy - 2 + sw);
+        g.quadraticCurveTo(hx - 14, hy + 7 + sw, hx - 14, hy + 15 + sw);
+        g.stroke();
+        g.fillStyle = ac;
+        g.fillRect(hx - 8, hy - 9, 2, 5);
+        g.beginPath();
+        g.moveTo(hx - 8, hy - 7);
+        g.lineTo(hx - 12, hy - 5 + sw);
+        g.lineTo(hx - 9, hy - 3);
+        g.fill();
+        g.fillStyle = ac;
+        g.fillRect(hx - 14, hy + 16 + sw, 2, 2);
+      }
       const expr = f.state === "hit" || f.state === "victim" ? 1 : f.state === "dizzy" ? 2 : 0;
       if (expr === 0) {
         g.fillStyle = "#f0e8e0";
         g.fillRect(hx + 2, hy - 5, 3, 2);
         g.fillStyle = "#141414";
-        g.fillRect(hx + 3, hy - 5, 2, 2);
+        g.fillRect(d.female ? hx + 4 : hx + 3, hy - 5, d.female ? 1 : 2, 2);
+        if (d.female) {
+          g.fillStyle = "#141414";
+          g.fillRect(hx + 4, hy - 6, 1, 1);
+        }
       } else if (expr === 1) {
         g.fillStyle = "#141414";
         g.fillRect(hx + 2, hy - 4, 3, 1);
@@ -2456,7 +2556,13 @@
         g.fillRect(hx + 4, hy - 5, 1, 2);
       }
       g.fillStyle = shade(skin, 0.72);
-      g.fillRect(hx + 2, expr === 2 ? hy - 7 : hy - 6, 4, 1);
+      g.fillRect(hx + 2, expr === 2 || d.female ? hy - 7 : hy - 6, d.female ? 3 : 4, 1);
+      if (d.female) {
+        g.fillStyle = shade(skin, 0.6);
+        g.fillRect(hx - 1, hy - 5, 1, 2);
+        g.fillStyle = "#a85060";
+        g.fillRect(hx, hy - 1, 2, 1);
+      }
       drawGear(f, hx, hy);
       if (f.flash > 0) {
         g.globalAlpha = 0.12;
@@ -2623,14 +2729,29 @@
         g.restore();
         g.fillStyle = ac;
         g.fillRect(hx - 1, hy - 9, 2, 2);
-        g.fillStyle = "#141414";
-        g.fillRect(hx - 1, hy - 5, 3, 2);
-        g.fillStyle = shade(d.skin, 0.85);
-        g.fillRect(hx - 1, hy - 3, 3, 1);
+        if (!d.female) {
+          g.fillStyle = "#141414";
+          g.fillRect(hx - 1, hy - 5, 3, 2);
+          g.fillStyle = shade(d.skin, 0.85);
+          g.fillRect(hx - 1, hy - 3, 3, 1);
+        }
         g.fillStyle = d.hair;
         g.fillRect(hx - 6, hy - 11, 12, 5);
         g.fillStyle = mix(d.hair, "#ffffff", 0.3);
         g.fillRect(hx - 6, hy - 11, 12, 1);
+        if (d.female) {
+          g.fillStyle = shade(d.hair, 0.82);
+          g.beginPath();
+          g.moveTo(hx + 3, hy - 11);
+          g.lineTo(hx + 6, hy - 11);
+          g.lineTo(hx + 6, hy - 7);
+          g.lineTo(hx + 2, hy - 8);
+          g.fill();
+          g.fillStyle = mix(d.hair, "#ffffff", 0.45);
+          g.fillRect(hx + 4, hy - 10, 1, 2);
+          g.fillStyle = shade(d.hair, 0.8);
+          g.fillRect(hx - 1, hy - 11, 1, 3);
+        }
       } else if (d.gear === "tail") {
         g.fillStyle = d.hair;
         g.fillRect(hx - 6, hy - 11, 12, 5);
@@ -2752,18 +2873,67 @@
       g.fillRect(-4, 6, 8, 1);
       g.fillStyle = mix(d.acc, "#ffffff", 0.4);
       g.fillRect(-1, 9, 2, 2);
+      if (d.ponytail) {
+        const sw = Math.sin(FRAME * 0.06) * 1;
+        g.strokeStyle = OUT;
+        g.lineWidth = 3.5;
+        g.beginPath();
+        g.moveTo(-5, -9);
+        g.quadraticCurveTo(-10, -7 + sw, -11, 8 + sw);
+        g.stroke();
+        g.strokeStyle = d.hair;
+        g.lineWidth = 2;
+        g.beginPath();
+        g.moveTo(-5, -9);
+        g.quadraticCurveTo(-10, -7 + sw, -11, 8 + sw);
+        g.stroke();
+        g.strokeStyle = mix(d.hair, "#ffffff", 0.4);
+        g.lineWidth = 0.7;
+        g.beginPath();
+        g.moveTo(-6, -9);
+        g.quadraticCurveTo(-10, -7 + sw, -10, 7 + sw);
+        g.stroke();
+        g.fillStyle = d.acc;
+        g.fillRect(-7, -10, 2, 4);
+      }
+      if (d.longhair) {
+        g.fillStyle = OUT;
+        g.fillRect(-9, -11, 3, 17);
+        g.fillRect(6, -11, 3, 17);
+        g.fillStyle = d.hair;
+        g.fillRect(-8, -10, 2, 15);
+        g.fillRect(6, -10, 2, 15);
+        g.fillStyle = mix(d.hair, "#ffffff", 0.3);
+        g.fillRect(-8, -10, 2, 1);
+        g.fillRect(6, -10, 2, 1);
+      }
       g.fillStyle = OUT;
       g.fillRect(-6, -12, 12, 17);
       g.fillStyle = d.skin;
       g.fillRect(-5, -11, 10, 15);
-      g.fillStyle = shade(d.skin, 0.82);
-      g.fillRect(-5, -1, 10, 4);
+      if (d.female) {
+        g.fillStyle = shade(d.skin, 0.9);
+        g.fillRect(-4, 1, 9, 1);
+        g.fillStyle = d.acc;
+        g.fillRect(-7, -2, 1, 2);
+      } else {
+        g.fillStyle = shade(d.skin, 0.82);
+        g.fillRect(-5, -1, 10, 4);
+      }
       g.fillStyle = "#f0e8e0";
       g.fillRect(0, -7, 3, 2);
       g.fillStyle = "#141414";
-      g.fillRect(1, -7, 2, 2);
+      g.fillRect(d.female ? 2 : 1, -7, d.female ? 1 : 2, 2);
+      if (d.female) {
+        g.fillStyle = "#141414";
+        g.fillRect(2, -8, 1, 1);
+        g.fillStyle = shade(d.skin, 0.6);
+        g.fillRect(0, -5, 1, 1);
+        g.fillStyle = "#a85060";
+        g.fillRect(0, -2, 2, 1);
+      }
       g.fillStyle = shade(d.skin, 0.72);
-      g.fillRect(0, -8, 4, 1);
+      g.fillRect(0, d.female ? -9 : -8, 4, 1);
       drawGear({ def: d, animT: 0, charred: 0 }, 0, -3);
       g.restore();
     }

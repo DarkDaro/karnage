@@ -456,19 +456,20 @@ const hipY=-p.hip,shY=hipY-d.h*.3,shX=p.lean*10;
 if(d.cape&&!f.charred){g.fillStyle=shade(suit,.4);g.beginPath();g.moveTo(-2,shY);g.quadraticCurveTo(-14-Math.sin(f.animT*.1)*3,shY+16,-10,hipY+14);g.lineTo(-2,shY+6);g.fill();g.fillStyle=shade(suit,.58);g.beginPath();g.moveTo(-2,shY);g.quadraticCurveTo(-9-Math.sin(f.animT*.1)*2,shY+12,-6,hipY+10);g.lineTo(-2,shY+6);g.fill();}// 30.09: освещённая подкладка плаща
 const bl=limb(-1,hipY,p.legB[0],p.legB[1],d.h*.26,d.h*.24,5,dk);boot(bl,shade(suit,.35));
 const ba=limb(-3+shX*.5,shY,p.armB[0],p.armB[1],d.h*.2,d.h*.18,4,dk);fist(ba,shade(skin,.7));
-g.strokeStyle=OUT;g.lineWidth=13;g.beginPath();g.moveTo(-1,hipY);g.lineTo(shX,shY+2);g.stroke();
+const tw=d.female?9:10;g.strokeStyle=OUT;g.lineWidth=tw+3;g.beginPath();g.moveTo(-1,hipY);g.lineTo(shX,shY+2);g.stroke();
 const tg=g.createLinearGradient(-6,0,7,0);tg.addColorStop(0,shade(suit,.55));tg.addColorStop(.45,suit);tg.addColorStop(1,mix(suit,'#ffffff',.16));// 30.09: торс с боковым светом
-g.strokeStyle=tg;g.lineWidth=10;g.beginPath();g.moveTo(-1,hipY);g.lineTo(shX,shY+2);g.stroke();
-if(!f.charred){g.fillStyle=shade(suit,.74);g.fillRect(shX-4,shY+5,4,2);g.fillRect(shX+1,shY+5,4,2);g.fillStyle=shade(suit,.82);g.fillRect(shX-1,shY+8,2,3);g.fillRect(shX-1,shY+11,2,1);}// 30.09: грудные и пресс
+g.strokeStyle=tg;g.lineWidth=tw;g.beginPath();g.moveTo(-1,hipY);g.lineTo(shX,shY+2);g.stroke();
+if(!f.charred){if(d.female){g.fillStyle=shade(suit,.74);g.beginPath();g.ellipse(shX-2,shY+5,3,2,0,0,7);g.fill();g.beginPath();g.ellipse(shX+2,shY+5,3,2,0,0,7);g.fill();g.fillStyle=mix(suit,'#ffffff',.16);g.fillRect(shX-1,shY+4,2,1);g.fillStyle=shade(suit,.62);g.fillRect(shX-5,shY+10,2,5);g.fillRect(shX+3,shY+10,2,5);g.fillStyle=shade(suit,.86);g.fillRect(shX-3,shY+10,6,1);}else{g.fillStyle=shade(suit,.74);g.fillRect(shX-4,shY+5,4,2);g.fillRect(shX+1,shY+5,4,2);g.fillStyle=shade(suit,.82);g.fillRect(shX-1,shY+8,2,3);g.fillRect(shX-1,shY+11,2,1);}}// 30.09: грудные и пресс; 24.10: женский силуэт Веги
 if(d.bulk>1.12){g.fillStyle=shade(suit,.75);g.fillRect(shX-7,shY-1,6,6);g.fillRect(shX+2,shY-1,6,6);g.fillStyle=ac;g.fillRect(shX-7,shY+4,6,1);g.fillRect(shX+2,shY+4,6,1);const hi2=lite(ac,.35);if(hi2){g.fillStyle=hi2;g.fillRect(shX-7,shY-1,6,1);g.fillRect(shX+2,shY-1,6,1);}}// 08.09: наплечники + 30.09: блик
-g.fillStyle=shade(suit,.45);g.fillRect(-5,hipY-3,10,4);
-g.fillStyle=mix(ac,'#ffffff',.3);g.fillRect(-1,hipY-3,2,4);// 30.09: пряжка ремня
+g.fillStyle=d.female?ac:shade(suit,.45);g.fillRect(-5,hipY-3,10,4);
+g.fillStyle=d.female?mix(ac,'#ffffff',.55):mix(ac,'#ffffff',.3);g.fillRect(-1,hipY-3,2,4);// 30.09: пряжка ремня; 24.10: пояс Веги
 g.fillStyle=ac;g.fillRect(-4+shX*.5,shY+5,7,3);
 g.fillStyle=shade(ac,.6);g.fillRect(-4+shX*.5,shY+7,7,1);// 08.09: кант на нагруднике
 g.fillStyle=mix(ac,'#ffffff',.35);g.fillRect(-4+shX*.5,shY+5,7,1);// 30.09: блик нагрудника
 if(d.dress){const dg2=g.createLinearGradient(-8,hipY,10,hipY+d.h*.4);dg2.addColorStop(0,shade(suit,.7));dg2.addColorStop(.5,suit);dg2.addColorStop(1,shade(suit,.55));// 30.09: платье только у Кармин (d.dress) — раньше рисовалось всем
 g.fillStyle=dg2;g.beginPath();g.moveTo(-7,hipY+2);g.lineTo(7+shX*.5,hipY+2);g.lineTo(11+shX*.6,hipY+d.h*.36);g.lineTo(-9,hipY+d.h*.36);g.closePath();g.fill();}// 30.09: платье — расклешённая юбка с градиентом
-g.fillStyle=ac;g.fillRect(-9,hipY+d.h*.32,20+shX*.6,1);// алый кант подола
+if(d.skirt&&!f.charred){const sy=hipY-1,by=hipY+d.h*.22;const skg=g.createLinearGradient(0,sy,0,by);skg.addColorStop(0,shade(suit,.75));skg.addColorStop(1,shade(suit,.45));g.fillStyle=skg;g.beginPath();g.moveTo(-6,hipY);g.lineTo(6+shX*.4,hipY);g.lineTo(11+shX*.6,by);g.lineTo(-9,by);g.closePath();g.fill();g.fillStyle=mix(suit,'#ffffff',.12);g.fillRect(5,hipY+1,3,by-hipY-2);g.fillStyle=ac;g.fillRect(-9,by,20+shX*.6,1);g.fillStyle=shade(suit,.22);g.fillRect(-1,hipY,2,by-hipY);}// 24.10: боевая юбка Веги с боковым бликом
+if(!d.skirt){g.fillStyle=ac;g.fillRect(-9,hipY+d.h*.32,20+shX*.6,1);}// алый кант подола
 const fl=limb(1,hipY,p.legF[0],p.legF[1],d.h*.26,d.h*.24,5,suit);boot(fl,shade(suit,.5));
 const fa=limb(2+shX,shY+2,p.armF[0],p.armF[1],d.h*.2,d.h*.18,4,skin);fist(fa,skin);
 const fanOut=d.fan&&(f.state==='cast'||f.state==='super');// 30.09: веер Кармин
@@ -496,14 +497,17 @@ g.strokeStyle=OUT;g.lineWidth=3;g.beginPath();g.moveTo(b0[0]-6,b0[1]+2);g.lineTo
 const hx=shX+p.lean*6,hy=shY-8+p.head*8;
 g.fillStyle=OUT;g.fillRect(hx-6,hy-11,13,16);
 g.fillStyle=skin;g.fillRect(hx-5,hy-9,11,13);
-g.fillStyle=shade(skin,.82);g.fillRect(hx-5,hy+1,11,3);// тень челюсти
+if(d.female){g.fillStyle=shade(skin,.9);g.fillRect(hx-4,hy+3,9,1);}else{g.fillStyle=shade(skin,.82);g.fillRect(hx-5,hy+1,11,3);}// 24.10: без широкой тени челюсти у Веги
 g.fillStyle=shade(skin,.7);g.fillRect(hx-6,hy-4,2,3);// ухо
+if(d.female){g.fillStyle=ac;g.fillRect(hx-7,hy-1,1,2);}// 24.10: серьга Веги
 if(d.longhair&&!f.charred&&!f.pale){g.fillStyle=OUT;g.fillRect(hx-9,hy-9,4,22);g.fillRect(hx+6,hy-9,4,22);g.fillStyle=d.hair;g.fillRect(hx-8,hy-8,3,20);g.fillRect(hx+6,hy-8,3,20);g.fillStyle=mix(d.hair,'#ffffff',.3);g.fillRect(hx-8,hy-8,3,1);g.fillRect(hx+6,hy-8,3,1);g.fillStyle=shade(d.hair,.75);g.fillRect(hx-8,hy+6,3,4);g.fillRect(hx+6,hy+6,3,4);}// 30.09: длинные волосы до лопаток с бликом
+if(d.ponytail&&!f.charred&&!f.pale){const sw=Math.sin(f.animT*.08)*2;g.fillStyle=OUT;g.beginPath();g.moveTo(hx-6,hy-8);g.quadraticCurveTo(hx-11,hy-10+sw,hx-13,hy-2+sw);g.quadraticCurveTo(hx-15,hy+7+sw,hx-15,hy+18+sw);g.lineTo(hx-12,hy+17+sw);g.quadraticCurveTo(hx-11,hy+7+sw,hx-10,hy+sw);g.quadraticCurveTo(hx-9,hy-5+sw,hx-4,hy-6);g.closePath();g.fill();g.fillStyle=d.hair;g.beginPath();g.moveTo(hx-5,hy-7);g.quadraticCurveTo(hx-10,hy-8+sw,hx-12,hy-2+sw);g.quadraticCurveTo(hx-13,hy+7+sw,hx-13,hy+16+sw);g.lineTo(hx-12,hy+15+sw);g.quadraticCurveTo(hx-11,hy+6+sw,hx-10,hy+sw);g.quadraticCurveTo(hx-9,hy-4+sw,hx-4,hy-5);g.closePath();g.fill();g.strokeStyle=shade(d.hair,.78);g.lineWidth=.8;for(const q of[[-11,-2],[-12,3],[-13,8],[-13,13]]){g.beginPath();g.moveTo(hx+q[0]-1,hy+q[1]+sw*.4);g.lineTo(hx+q[0]+1,hy+q[1]+1+sw*.4);g.stroke();}g.strokeStyle=mix(d.hair,'#ffffff',.45);g.lineWidth=.7;g.beginPath();g.moveTo(hx-6,hy-7);g.quadraticCurveTo(hx-11,hy-9+sw,hx-13,hy-2+sw);g.quadraticCurveTo(hx-14,hy+7+sw,hx-14,hy+15+sw);g.stroke();g.fillStyle=ac;g.fillRect(hx-8,hy-9,2,5);g.beginPath();g.moveTo(hx-8,hy-7);g.lineTo(hx-12,hy-5+sw);g.lineTo(hx-9,hy-3);g.fill();g.fillStyle=ac;g.fillRect(hx-14,hy+16+sw,2,2);}// 24.10: длинный хвост с лентой и прядями
 const expr=(f.state==='hit'||f.state==='victim')?1:f.state==='dizzy'?2:0;// 30.09: выражение лица
-if(expr===0){g.fillStyle='#f0e8e0';g.fillRect(hx+2,hy-5,3,2);g.fillStyle='#141414';g.fillRect(hx+3,hy-5,2,2);}
+if(expr===0){g.fillStyle='#f0e8e0';g.fillRect(hx+2,hy-5,3,2);g.fillStyle='#141414';g.fillRect(d.female?hx+4:hx+3,hy-5,d.female?1:2,2);if(d.female){g.fillStyle='#141414';g.fillRect(hx+4,hy-6,1,1);}}
 else if(expr===1){g.fillStyle='#141414';g.fillRect(hx+2,hy-4,3,1);}// зажмурен
 else{g.fillStyle='#141414';g.fillRect(hx+2,hy-5,1,2);g.fillRect(hx+4,hy-5,1,2);}// крестит
-g.fillStyle=shade(skin,.72);g.fillRect(hx+2,expr===2?hy-7:hy-6,4,1);// бровь
+g.fillStyle=shade(skin,.72);g.fillRect(hx+2,expr===2||d.female?hy-7:hy-6,d.female?3:4,1);// бровь
+if(d.female){g.fillStyle=shade(skin,.6);g.fillRect(hx-1,hy-5,1,2);g.fillStyle='#a85060';g.fillRect(hx,hy-1,2,1);}// 24.10: нос и губы
 drawGear(f,hx,hy);
 if(f.flash>0){g.globalAlpha=.12;g.fillStyle='#fff';g.beginPath();g.ellipse(0,-d.h*.5,12,d.h*.42,0,0,7);g.fill();g.globalAlpha=1;}
 g.restore();
@@ -522,8 +526,9 @@ else if(d.gear==='halo'){const hb=Math.sin(f.animT*.07)*1.5;
 g.save();g.translate(hx+1,hy-17+hb);g.rotate(f.animT*.04);
 g.fillStyle=OUT;g.fillRect(-4.5,-4.5,9,9);g.fillStyle=ac;g.fillRect(-3.5,-3.5,7,7);g.fillStyle='#e8e8ff';g.fillRect(-1.5,-1.5,3,3);g.restore();
 g.fillStyle=ac;g.fillRect(hx-1,hy-9,2,2);
-g.fillStyle='#141414';g.fillRect(hx-1,hy-5,3,2);g.fillStyle=shade(d.skin,.85);g.fillRect(hx-1,hy-3,3,1);
+if(!d.female){g.fillStyle='#141414';g.fillRect(hx-1,hy-5,3,2);g.fillStyle=shade(d.skin,.85);g.fillRect(hx-1,hy-3,3,1);}
 g.fillStyle=d.hair;g.fillRect(hx-6,hy-11,12,5);g.fillStyle=mix(d.hair,'#ffffff',.3);g.fillRect(hx-6,hy-11,12,1);
+if(d.female){g.fillStyle=shade(d.hair,.82);g.beginPath();g.moveTo(hx+3,hy-11);g.lineTo(hx+6,hy-11);g.lineTo(hx+6,hy-7);g.lineTo(hx+2,hy-8);g.fill();g.fillStyle=mix(d.hair,'#ffffff',.45);g.fillRect(hx+4,hy-10,1,2);g.fillStyle=shade(d.hair,.8);g.fillRect(hx-1,hy-11,1,3);}
 }// 30.09: парящий нимб-звезда
 else if(d.gear==='tail'){g.fillStyle=d.hair;g.fillRect(hx-6,hy-11,12,5);g.fillRect(hx-7,hy-8,14,3);g.fillStyle=mix(d.hair,'#ffffff',.25);g.fillRect(hx-6,hy-11,12,1);const sw=Math.sin(f.animT*.12)*3;g.strokeStyle=OUT;g.lineWidth=5;g.beginPath();g.moveTo(hx-6,hy-9);g.quadraticCurveTo(hx-14,hy-6+sw*.4,hx-17,hy+2+sw);g.stroke();g.strokeStyle=d.hair;g.lineWidth=3.5;g.beginPath();g.moveTo(hx-6,hy-9);g.quadraticCurveTo(hx-14,hy-6+sw*.4,hx-17,hy+2+sw);g.stroke();g.fillStyle=ac;g.fillRect(hx-8,hy-10,2,6);g.fillStyle='#141414';g.fillRect(hx-1,hy-5,3,2);g.fillStyle=shade(d.skin,.85);g.fillRect(hx-1,hy-3,3,1);}// 30.09: хвост синоби с качанием и алой подвязкой
 else if(d.gear==='corona'){g.fillStyle=OUT;g.fillRect(hx-7,hy-11,14,4);g.fillStyle=ac;g.fillRect(hx-6,hy-10,12,2);for(let i=0;i<3;i++){g.beginPath();g.moveTo(hx-5+i*5,hy-10);g.lineTo(hx-2.5+i*5,hy-15);g.lineTo(hx+i*5,hy-10);g.fill();}g.fillStyle=mix(ac,'#ffffff',.45);g.fillRect(hx-6,hy-10,12,1);g.fillStyle='#f0d8d0';g.fillRect(hx-1,hy-11,2,1);g.fillStyle='#141414';g.fillRect(hx-1,hy-5,3,2);g.fillStyle=shade(d.skin,.75);g.fillRect(hx-6,hy-2,2,4);}// 30.09: корона Кармин + родинка
@@ -540,10 +545,13 @@ const tg2=g.createLinearGradient(-8,0,8,0);tg2.addColorStop(0,shade(d.suit,.55))
 g.fillStyle=tg2;g.beginPath();g.moveTo(-10,15);g.lineTo(-7,2);g.lineTo(7,2);g.lineTo(10,15);g.closePath();g.fill();// торс с светом
 g.fillStyle=d.acc;g.fillRect(-4,5,8,2);g.fillStyle=shade(d.acc,.6);g.fillRect(-4,6,8,1);// воротник
 g.fillStyle=mix(d.acc,'#ffffff',.4);g.fillRect(-1,9,2,2);// эмблема
+if(d.ponytail){const sw=Math.sin(FRAME*.06)*1;g.strokeStyle=OUT;g.lineWidth=3.5;g.beginPath();g.moveTo(-5,-9);g.quadraticCurveTo(-10,-7+sw,-11,8+sw);g.stroke();g.strokeStyle=d.hair;g.lineWidth=2;g.beginPath();g.moveTo(-5,-9);g.quadraticCurveTo(-10,-7+sw,-11,8+sw);g.stroke();g.strokeStyle=mix(d.hair,'#ffffff',.4);g.lineWidth=.7;g.beginPath();g.moveTo(-6,-9);g.quadraticCurveTo(-10,-7+sw,-10,7+sw);g.stroke();g.fillStyle=d.acc;g.fillRect(-7,-10,2,4);}// 24.10: хвост в портрете
+if(d.longhair){g.fillStyle=OUT;g.fillRect(-9,-11,3,17);g.fillRect(6,-11,3,17);g.fillStyle=d.hair;g.fillRect(-8,-10,2,15);g.fillRect(6,-10,2,15);g.fillStyle=mix(d.hair,'#ffffff',.3);g.fillRect(-8,-10,2,1);g.fillRect(6,-10,2,1);}// 24.10: длинные волосы в портрете
 g.fillStyle=OUT;g.fillRect(-6,-12,12,17);g.fillStyle=d.skin;g.fillRect(-5,-11,10,15);
-g.fillStyle=shade(d.skin,.82);g.fillRect(-5,-1,10,4);// челюсть
-g.fillStyle='#f0e8e0';g.fillRect(0,-7,3,2);g.fillStyle='#141414';g.fillRect(1,-7,2,2);// глаз
-g.fillStyle=shade(d.skin,.72);g.fillRect(0,-8,4,1);// бровь
+if(d.female){g.fillStyle=shade(d.skin,.9);g.fillRect(-4,1,9,1);g.fillStyle=d.acc;g.fillRect(-7,-2,1,2);}else{g.fillStyle=shade(d.skin,.82);g.fillRect(-5,-1,10,4);}// 24.10: у Веги мягкая линия подбородка и серьга
+g.fillStyle='#f0e8e0';g.fillRect(0,-7,3,2);g.fillStyle='#141414';g.fillRect(d.female?2:1,-7,d.female?1:2,2);// глаз
+if(d.female){g.fillStyle='#141414';g.fillRect(2,-8,1,1);g.fillStyle=shade(d.skin,.6);g.fillRect(0,-5,1,1);g.fillStyle='#a85060';g.fillRect(0,-2,2,1);}// 24.10: ресницы, нос и губы
+g.fillStyle=shade(d.skin,.72);g.fillRect(0,d.female?-9:-8,4,1);// бровь
 drawGear({def:d,animT:0,charred:0},0,-3);g.restore();}
 const FAKES=CH.map(d=>({def:d,x:0,y:FL+GR,face:1,animT:0,state:'idle',st:0,atk:null,tilt:0,squash:1,scale:1,invis:0,frozen:0,netT:0,charred:0,hidden:0,flash:0,hp:100}));
 function drawFake(i,px,py,sc,face){const fk=FAKES[i];fk.animT=FRAME;fk.face=face;g.save();g.translate(px,py);g.scale(sc,sc);g.translate(-fk.x,-fk.y);drawF(fk,0);g.restore();}

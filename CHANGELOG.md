@@ -27,6 +27,7 @@
 - Технический проход: announce/wipe, drawFx, drawTitle, rgb-цвета, jkick, blockstun, wakeup, P2-выбор, пауза при blur.
 - Добавлены пропуск фаталити/победы, таймер FINISH HIM и low/high-блок.
 - Добавлены настройки в главном меню: звук, голос, громкость, CRT, кровь, тряска и reduce motion; выбор сохраняется.
+- Доработан дизайн Веги: женский силуэт, длинный хвост с лентой, серьга, губы, ресницы и боевая юбка.
 - Добавлен `docs/HANDOFF.md` для старта нового чата.
 - Снимок: `archive/2026-10-24-handoff`, `archive/2026-10-24-final-tails`.
 - GitHub Pages: https://darkdaro.github.io/karnage/ — страница запущена и проверена.
