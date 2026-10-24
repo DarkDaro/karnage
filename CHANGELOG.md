@@ -25,5 +25,6 @@
 - Снимок: `archive/2026-10-24-fx-pilot`.
 - На время разработки звук по умолчанию выключен; `?sound=1` включает.
 - Технический проход: announce/wipe, drawFx, drawTitle, rgb-цвета, jkick, blockstun, wakeup, P2-выбор, пауза при blur.
+- Добавлены пропуск фаталити/победы, таймер FINISH HIM и low/high-блок.
 - Добавлен `docs/HANDOFF.md` для старта нового чата.
-- Снимок: `archive/2026-10-24-handoff`.
+- Снимок: `archive/2026-10-24-handoff`, `archive/2026-10-24-final-tails`.

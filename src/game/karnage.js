@@ -613,7 +613,7 @@ function toLobby(gm){GAME=gm;cam=0;parts=[];decals=[];projs=[];fx=[];announce=nu
 function newBattle(i1,c1,i2,c2,arena){battle={p1:new F(CH[i1],c1),p2:new F(CH[i2],c2),round:1,phase:'intro',phaseT:0,timer:60,arena};
 battle.p1.foe=battle.p2;battle.p2.foe=battle.p1;decals=[];projs=[];parts=[];fx=[];bstat={h1:0,d1:0,c1:0,h2:0,d2:0,c2:0};// 08.09: сброс статистики
 startRound();GAME='fight';}// 08.09: newBattle теперь расставляет бойцов через startRound — раньше оба спавнились в одной точке x=200
-function startRound(){const b=battle;b.p1.reset(180,1);b.p2.reset(AW-180,-1);b.phase='intro';b.phaseT=0;b.timer=60;// 08.09: бойцы по краям видимой области (180/580, дистанция 400) — раньше кучковались у центра
+function startRound(){const b=battle;freeze=0;shake=0;flashS=0;b.p1.reset(180,1);b.p2.reset(AW-180,-1);b.phase='intro';b.phaseT=0;b.timer=60;// 08.09: бойцы по краям видимой области (180/580, дистанция 400) — раньше кучковались у центра
 b.p1.rage=Math.floor(b.p1.rage*.5);b.p2.rage=Math.floor(b.p2.rage*.5);// 08.09: ярость переносится наполовину — без мгновенного супера
 decals=[];projs=[];fx=[];// 08.09: кровь и снаряды копились между раундами
 wipe=24;// 30.09: шторки раунда
@@ -713,6 +713,7 @@ battle.mode='arcade';battle.p2.ctrl.ai=true;battle.aiLvl=Math.min(7,lStep+(lStep
 function pauseItems(){return['ПРОДОЛЖИТЬ','ЗВУК: '+(AU.on?'ВКЛ':'ВЫКЛ'),'ГОЛОС ДИКТОРА: '+(AU.voice?'ВКЛ':'ВЫКЛ'),'ГРОМКОСТЬ: '+AU.vol+'%','В МЕНЮ'];}// 08.09: +громкость
 function onKey(k){
 if(k==='KeyM'){AU.on=!AU.on;if(!AU.on){try{speechSynthesis.cancel();}catch(e){}}else SFX.menu();saveSet();return;}// 08.09: +сохранение настройки
+if(GAME==='fight'&&!paused&&battle&&(k==='KeyJ'||k==='Enter'||k==='Space')){if(battle.phase==='fatal'&&battle.phaseT>30){endBattle(battle.winner);return;}if(battle.phase==='over'&&battle.phaseT>30){afterBattle();return;}}
 if(GAME==='fight'&&!paused&&k==='Escape'){paused=true;pauseIdx=0;SFX.menu();return;}// 08.09: пауза не активировалась — Escape не ставил paused
 if(GAME==='title'){toLobby('menu');SFX.sel();say('Karnage');return;}
 if(GAME==='fight'&&paused){
@@ -971,6 +972,8 @@ if(flashS>0){g.fillStyle='rgba(255,255,255,'+(flashS/10)+')';g.fillRect(0,0,RW,R
 drawHUD(b);
 if(wipe>0){const wh=RH*(wipe/24);g.fillStyle='#000';g.fillRect(0,0,RW,wh/2);g.fillRect(0,RH-wh/2,RW,wh/2);}// 30.09: раскрывающиеся шторки
 for(const f of[b.p1,b.p2])if(f.combo>=2&&f.comboT<50){const sc2=1+.25*Math.max(0,1-f.comboT/8);g.save();g.translate(f===b.p1?70:RW-70,80);g.scale(sc2,sc2);g.font='12px "Russo One"';g.textAlign='center';g.fillStyle=f.combo>=5?'#e02020':f.combo>=3?'#f08020':'#e8c040';g.fillText('КОМБО x'+f.combo,0,0);g.restore();}// 08.09: комбо-счётчик — цвет растёт с серией
+if(b.phase==='finish'){const left=Math.max(0,1-b.phaseT/430);g.fillStyle='rgba(0,0,0,.6)';g.fillRect(RW/2-80,220,160,5);g.fillStyle=left>.35?'#c8a040':'#e04020';g.fillRect(RW/2-80,220,160*left,5);g.strokeStyle='#c8a040';g.lineWidth=1;g.strokeRect(RW/2-80.5,219.5,161,6);}
+if((b.phase==='fatal'||b.phase==='over')&&b.phaseT>30){g.font='8px "Russo One"';g.fillStyle='#e8e0c0';g.textAlign='center';g.fillText('J — ПРОПУСТИТЬ',RW/2,232);}
 if(b.phase==='finish'&&!b.winner.ctrl.ai){g.font='10px "Russo One"';g.fillStyle=blink()?'#e02020':'#e8c040';g.textAlign='center';
 g.fillText('ФАТАЛИТИ: '+seqTxt(b.winner.def.fat,b.winner===b.p2),RW/2,232);}// 08.09: подсказка крупнее и мигает
 if(announce&&announce.t<110){const t=announce.t;const sc=t<10?3-t*.2:1;
@@ -998,6 +1001,7 @@ if (new URLSearchParams(location.search).has('debug')) {
     get keys() { return keys; },
     get fxAssets() { return FX; },
     autoHit,
+    onKey,
     step,
     render,
     newBattle,

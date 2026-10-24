@@ -253,6 +253,56 @@ test('three drawn rounds end the match without round four', async () => {
   assert.equal(result.wins, 2);
 });
 
+test('low and overhead attacks respect block height', async () => {
+  const result = await page.evaluate(() => {
+    const K = window.KARNAGE;
+    K.setDebug({ GAME: 'fight', paused: false });
+    K.newBattle(0, new K.Ctrl(K.KM1), 1, new K.Ctrl(K.KM2), 9);
+    const battle = K.battle;
+    battle.mode = '2p';
+    battle.phase = 'fight';
+    battle.phaseT = 200;
+    const p1 = battle.p1;
+    const p2 = battle.p2;
+    const hit = (opts, low) => {
+      p2.hp = 100;
+      p2.state = 'block';
+      p2.blockLow = low;
+      p2.invuln = 0;
+      K.resolveHit(p1, p2, 10, opts);
+      return { hp: p2.hp, state: p2.state };
+    };
+    return {
+      standingLow: hit({ low: 1 }, 0),
+      crouchLow: hit({ low: 1 }, 1),
+      crouchOverhead: hit({ overhead: 1 }, 1)
+    };
+  });
+  assert.ok(result.standingLow.hp < 100);
+  assert.deepEqual(result.crouchLow, { hp: 99, state: 'block' });
+  assert.ok(result.crouchOverhead.hp < 100);
+});
+
+test('fatal cutscene can be skipped', async () => {
+  const result = await page.evaluate(() => {
+    const K = window.KARNAGE;
+    K.setDebug({ GAME: 'fight', paused: false });
+    K.newBattle(0, new K.Ctrl(K.KM1), 1, new K.Ctrl(K.KM2), 9);
+    const battle = K.battle;
+    battle.mode = '2p';
+    battle.phase = 'fight';
+    battle.phaseT = 200;
+    battle.p1.wins = 1;
+    battle.p2.hp = 0;
+    K.step();
+    K.startFatal(battle.p1, battle.p2);
+    for (let i = 0; i < 40; i += 1) K.step();
+    K.onKey('KeyJ');
+    return { phase: battle.phase, winner: battle.winner?.def.id };
+  });
+  assert.deepEqual(result, { phase: 'over', winner: 0 });
+});
+
 test('round curtain waits for the fight screen', async () => {
   const result = await page.evaluate(() => {
     const K = window.KARNAGE;

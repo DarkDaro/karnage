@@ -1,0 +1,47 @@
+{
+  "hitLight": {
+    "image": "hit-light.png",
+    "frameWidth": 48,
+    "frameHeight": 48,
+    "frames": 8,
+    "fps": 30,
+    "loop": false,
+    "anchor": [
+      24,
+      24
+    ],
+    "blend": "lighter",
+    "scale": 1,
+    "alpha": 0.9
+  },
+  "hitHeavy": {
+    "image": "hit-heavy.png",
+    "frameWidth": 48,
+    "frameHeight": 48,
+    "frames": 9,
+    "fps": 22,
+    "loop": false,
+    "anchor": [
+      24,
+      24
+    ],
+    "blend": "lighter",
+    "scale": 1.25,
+    "alpha": 0.75
+  },
+  "dust": {
+    "image": "dust.png",
+    "frameWidth": 32,
+    "frameHeight": 32,
+    "frames": 9,
+    "fps": 15,
+    "loop": false,
+    "anchor": [
+      16,
+      30
+    ],
+    "blend": "source-over",
+    "scale": 0.8,
+    "alpha": 0.45
+  }
+}

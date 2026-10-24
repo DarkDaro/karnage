@@ -4,8 +4,9 @@
 Проект: `C:\OpenCode\Game\karnage-game`.
 Репозиторий: `https://github.com/DarkDaro/karnage.git`.
 Ветка: `main`.
-Последний коммит: `5cfc21b`.
-В рабочем дереве есть незакоммиченные изменения текущего технического прохода.
+Последний коммит: `45f9e27` (ahead of origin/main на 1).
+В рабочем дереве есть незакоммиченные изменения финального технического прохода:
+skip cutscene, FINISH HIM timer, low/high block и обновлённые документы.
 
 ## С чего начать в новом чате
 
@@ -27,7 +28,7 @@
 - Процедурные бойцы; спрайты Аямэ не подключены.
 - CC0-эффекты: `hitLight`, `hitHeavy`, `dust`.
 - Звук по умолчанию выключен; `?sound=1` включает.
-- Тесты: 22 сценария (unit + Playwright).
+- Тесты: 24 сценария (unit + Playwright).
 - `npm run check`: синтаксис, ESLint, UTF-8/BOM, ростер, checksums архивов.
 
 ## Текущий технический проход
@@ -47,6 +48,7 @@
 - `shade`/`mix` понимают `rgb(...)`;
 - `jkick` попадает на высоте;
 - blockstun 6 кадров, wakeup-неуязвимость 8 кадров;
+- low/high-блок, пропуск фаталити/победы и таймер FINISH HIM;
 - P2 в выборе получает свои подписи, панель и нормальные шкалы;
 - пауза при `blur` и `visibilitychange`;
 - звук по умолчанию выключен на время разработки.
@@ -74,15 +76,14 @@ npm run assets:build
 
 Приоритет:
 
-1. Пропуск фаталити/победного экрана и таймер окна `FINISH HIM`.
-2. Портреты: рога Базальта, нимб Веги, корона Кармин.
-3. Low/high-блок, damage scaling, броски, special cancel.
-4. Настройки: музыка/SFX/голос, CRT, кровь, тряска, reduce motion.
-5. Touch и геймпад.
-6. Аркада: сохранение прогресса, дедупликация рекордов, финальный босс.
-7. Stage-specific декор и кэш портретов/градиентов.
-8. Разбор `src/game/karnage.js` на модули `game/render/input/audio/screens`.
-9. После разборки убрать `default`-заглушки, маскирующие отсутствие ветки персонажа.
+1. Damage scaling, броски, special cancel.
+2. Настройки: музыка/SFX/голос, CRT, кровь, тряска, reduce motion.
+3. Touch и геймпад.
+4. Портреты: рога Базальта, нимб Веги, корона Кармин.
+5. Аркада: сохранение прогресса, дедупликация рекордов, финальный босс.
+6. Stage-specific декор и кэш портретов/градиентов.
+7. Разбор `src/game/karnage.js` на модули `game/render/input/audio/screens`.
+8. После разборки убрать `default`-заглушки, маскирующие отсутствие ветки персонажа.
 
 ## Известные ограничения
 
@@ -116,21 +117,49 @@ npm run assets:build
 - `src/assets/fx.js` — загрузчик.
 - `tools/assets_import.py` — импорт, альфа, палитра, упаковка.
 - `docs/ASSETS.md` — бриф и следующие слоты.
-- Снимки: `archive/2026-10-24-fx-pilot`, `archive/2026-10-24-handoff`.
+- Снимки: `archive/2026-10-24-fx-pilot`, `archive/2026-10-24-handoff`, `archive/2026-10-24-final-tails`.
 
 ## Незакоммиченное
 
-В рабочем дереве: технические правки, FX-пилот, `docs/ASSETS.md`, `docs/HANDOFF.md`, `assets/vendor`, `assets/fx`, `src/assets`, `tests/e2e/fx.test.mjs`, `tools/assets_import.py`.
+В рабочем дереве: skip cutscene, FINISH HIM timer, low/high block, обновлённые
+`README.md`, `DEVNOTES.md`, `docs/STATUS.md`, `docs/HANDOFF.md`,
+`docs/TESTING.md`, `CHANGELOG.md`, `release/app.js`, `src/game/karnage.js`,
+`tests/e2e/regressions.test.mjs` и новый снимок `archive/2026-10-24-final-tails`.
 
 Перед новым чатом:
 
 ```bash
 git add -A
-git commit -m "feat: fx pilot and technical cleanup"
+git commit -m "feat: finish technical tails"
 git push
 ```
 
 Если коммит уже сделан — проверить `git status`; дерево должно быть чистым.
+
+## Перед коммитом
+
+Проверить по порядку:
+
+1. `git status --short` — нет случайных файлов, `node_modules` и `test-results` не в индексе.
+2. `npm run assets:build` — если менялись `assets/vendor` или `assets/fx`.
+3. `npm run build` — обновить `release/app.js` и `release/assets/fx`.
+4. `npm test` — 24/24.
+5. `npm run check` — ESLint и audit без ошибок.
+6. Открыть `index.html` двойным кликом: титул, меню, бой, эффект удара.
+7. Проверить `release/index.html` отдельно, как переносимую папку.
+8. Проверить, что `archive/2026-10-24-final-tails` попал в коммит, а `SHA256SUMS.txt` сходится.
+9. Убедиться, что в репозитории нет BOM, `AGENTS.md` и служебных заметок.
+10. Только после этого коммитить и пушить.
+
+Важно:
+
+- `release/` генерируется, но коммитится как рабочая сборка.
+- `assets/vendor/*/pack.zip` намеренно в git; `assets/vendor/*/extracted/` игнорируется.
+- `assets/fx/fx.json` и `src/assets/fx-manifest.js` должны быть синхронны; их пересобирает `npm run assets:build`.
+- Звук по умолчанию выключен; `?sound=1` включает.
+- `index.html` — готовый запуск, `dev.html` — только через `npm run dev`.
+- GitHub About через `gh` не обновлялся: `gh` не установлен. Описание и темы можно вставить вручную.
+- Текущий `HEAD` — `45f9e27`, ветка `main` ahead of `origin/main` на 1.
 
 ## Быстрый контекст
 

@@ -805,7 +805,7 @@
         else g.fillRect(p.x - cam2 - p.s / 2, p.y - p.s / 2, p.s, p.s);
       }
     }
-    const ATK = { punch: { d: 6, wd: 5, ac: 3, rc: 8, rng: 28, hh: 0.72 }, kick: { d: 9, wd: 7, ac: 4, rc: 11, rng: 36, hh: 0.6 }, upper: { d: 15, wd: 6, ac: 4, rc: 15, rng: 24, hh: 0.5, launch: 1 }, sweep: { d: 10, wd: 6, ac: 3, rc: 13, rng: 38, hh: 0.12, low: 1 }, jkick: { d: 10, wd: 4, ac: 8, rc: 20, rng: 34, hh: 0.4 }, rh: { d: 12, wd: 8, ac: 4, rc: 15, rng: 40, hh: 0.55, knock: 1 } };
+    const ATK = { punch: { d: 6, wd: 5, ac: 3, rc: 8, rng: 28, hh: 0.72 }, kick: { d: 9, wd: 7, ac: 4, rc: 11, rng: 36, hh: 0.6 }, upper: { d: 15, wd: 6, ac: 4, rc: 15, rng: 24, hh: 0.5, launch: 1 }, sweep: { d: 10, wd: 6, ac: 3, rc: 13, rng: 38, hh: 0.12, low: 1 }, jkick: { d: 10, wd: 4, ac: 8, rc: 20, rng: 34, hh: 0.4, overhead: 1 }, rh: { d: 12, wd: 8, ac: 4, rc: 15, rng: 40, hh: 0.55, knock: 1 } };
     const ZEROC = { l: 0, r: 0, u: 0, d: 0, P: 0, K: 0, B: 0, pP: 0, pK: 0, pl: 0, pr: 0, pu: 0, pd: 0 };
     class F {
       constructor(def, ctrl) {
@@ -858,6 +858,7 @@
         this.damageTaken = 0;
         this.armor = 0;
         this.blockStun = 0;
+        this.blockLow = 0;
         this.ctrl.clear();
       }
       get onGround() {
@@ -959,6 +960,7 @@
           else if (this.jbuf > 0) this.jbuf--;
           if (this.onGround && c.B && ["idle", "walk", "crouch"].includes(this.state)) this.state = "block";
           else if (this.state === "block" && !c.B) this.state = c.d ? "crouch" : "idle";
+          this.blockLow = this.state === "block" ? !!c.d : 0;
           if (!stunned && ["idle", "walk", "crouch", "block"].includes(this.state) && this.onGround && (c.pP || c.pK)) {
             const btn = c.pP ? "P" : "K";
             if (this.rage >= 100 && this.ctrl.match("DDP", 60)) this.startSuper();
@@ -1049,7 +1051,7 @@
             const hb = this.atkBox();
             if (hb && hitR(hb, foe.box)) {
               this.atk.hit = 1;
-              resolveHit(this, foe, A.d, { launch: A.launch });
+              resolveHit(this, foe, A.d, { launch: A.launch, low: A.low, overhead: A.overhead });
             }
           }
           if (this.st === A.wd + A.ac && !this.atk.hit) SFX.whiff();
@@ -1521,7 +1523,7 @@
         SFX.whiff();
         return;
       }
-      if (def.state === "block") {
+      if (def.state === "block" && !(opts.low && !def.blockLow || opts.overhead && def.blockLow)) {
         def.hp = Math.max(1, def.hp - 1);
         def.blockStun = 6;
         def.damageTaken = (def.damageTaken || 0) + 1;
@@ -3018,6 +3020,9 @@
     }
     function startRound() {
       const b = battle;
+      freeze = 0;
+      shake = 0;
+      flashS = 0;
       b.p1.reset(180, 1);
       b.p2.reset(AW - 180, -1);
       b.phase = "intro";
@@ -3463,6 +3468,16 @@
         } else SFX.menu();
         saveSet();
         return;
+      }
+      if (GAME === "fight" && !paused && battle && (k === "KeyJ" || k === "Enter" || k === "Space")) {
+        if (battle.phase === "fatal" && battle.phaseT > 30) {
+          endBattle(battle.winner);
+          return;
+        }
+        if (battle.phase === "over" && battle.phaseT > 30) {
+          afterBattle();
+          return;
+        }
       }
       if (GAME === "fight" && !paused && k === "Escape") {
         paused = true;
@@ -4369,6 +4384,22 @@
         g.fillText("\u041A\u041E\u041C\u0411\u041E x" + f.combo, 0, 0);
         g.restore();
       }
+      if (b.phase === "finish") {
+        const left = Math.max(0, 1 - b.phaseT / 430);
+        g.fillStyle = "rgba(0,0,0,.6)";
+        g.fillRect(RW / 2 - 80, 220, 160, 5);
+        g.fillStyle = left > 0.35 ? "#c8a040" : "#e04020";
+        g.fillRect(RW / 2 - 80, 220, 160 * left, 5);
+        g.strokeStyle = "#c8a040";
+        g.lineWidth = 1;
+        g.strokeRect(RW / 2 - 80.5, 219.5, 161, 6);
+      }
+      if ((b.phase === "fatal" || b.phase === "over") && b.phaseT > 30) {
+        g.font = '8px "Russo One"';
+        g.fillStyle = "#e8e0c0";
+        g.textAlign = "center";
+        g.fillText("J \u2014 \u041F\u0420\u041E\u041F\u0423\u0421\u0422\u0418\u0422\u042C", RW / 2, 232);
+      }
       if (b.phase === "finish" && !b.winner.ctrl.ai) {
         g.font = '10px "Russo One"';
         g.fillStyle = blink() ? "#e02020" : "#e8c040";
@@ -4438,6 +4469,7 @@
           return FX;
         },
         autoHit,
+        onKey,
         step,
         render,
         newBattle,

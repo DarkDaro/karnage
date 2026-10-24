@@ -44,3 +44,11 @@
 
 Причина: handoff-снимок перед новым чатом: FX-пилот, mute по умолчанию,
 blockstun/wakeup, announce/wipe, drawFx, P2-выбор и пауза при blur.
+
+## 2026-10-24-final-tails
+
+- `release/` — рабочая папка запуска после закрытия технических хвостов.
+- `SHA256SUMS.txt` — контрольные суммы release.
+
+Причина: зафиксировать skip cutscene, FINISH HIM timer, low/high block,
+blockstun, wakeup, P2 select and FX pilot.
