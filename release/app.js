@@ -507,6 +507,24 @@
   CH[11].spec2N = "\u0421\u043A\u0432\u043E\u0437\u044C \u0442\u0435\u043D\u044C";
   CH[12].spec2 = "RUK";
   CH[12].spec2N = "\u041F\u0440\u044B\u0436\u043E\u043A \u0441\u043A\u0432\u043E\u0437\u044C \u0437\u0432\u0451\u0437\u0434\u044B";
+  var BOSS = {
+    ...CH[9],
+    boss: true,
+    name: "\u041A\u0410\u0419\u0417\u0415\u0420-\u041F\u0420\u0410\u0419\u041C",
+    en: "PRIME KAISER",
+    skin: "#e0b484",
+    suit: "#181820",
+    acc: "#f0c850",
+    hair: "#e8e0c8",
+    gear: "corona",
+    cape: 1,
+    h: 72,
+    bulk: 1.28,
+    spd: 2.05,
+    jmp: 8.2,
+    dmg: 1.28,
+    arena: 8
+  };
 
   // src/data/arenas.js
   var AR = [
@@ -1909,24 +1927,73 @@
       } catch (e) {
       }
     };
-    const TOP = () => {
+    const topRaw = () => {
       try {
         const raw = JSON.parse(localStorage.karnageTop || "[]");
         if (!Array.isArray(raw)) return [];
-        return raw.filter((e) => e && Number.isInteger(e.id) && e.id >= 0 && e.id < CH.length && Number.isFinite(e.step) && e.step >= 0).slice(0, 5);
+        return raw.filter((e) => e && Number.isInteger(e.id) && e.id >= 0 && e.id < CH.length && Number.isFinite(e.step) && e.step >= 0);
       } catch (e) {
         return [];
       }
     };
+    const topBest = () => {
+      const best = /* @__PURE__ */ new Map();
+      for (const e of topRaw()) {
+        const cur = best.get(e.id);
+        if (!cur || e.step > cur.step) best.set(e.id, { id: e.id, step: e.step });
+      }
+      return [...best.values()].sort((a, b) => b.step - a.step || a.id - b.id);
+    };
+    const TOP = () => topBest().slice(0, 5);
     const addTop = (id, step2) => {
       try {
-        const tp = TOP();
-        tp.push({ id, step: step2 });
-        tp.sort((a, b) => b.step - a.step);
-        localStorage.karnageTop = JSON.stringify(tp.slice(0, 5));
+        if (!Number.isInteger(id) || id < 0 || id >= CH.length || !Number.isFinite(step2) || step2 < 0) return;
+        const best = /* @__PURE__ */ new Map();
+        for (const e of topRaw()) {
+          const cur2 = best.get(e.id);
+          if (!cur2 || e.step > cur2.step) best.set(e.id, { id: e.id, step: e.step });
+        }
+        const cur = best.get(id);
+        if (!cur || step2 > cur.step) best.set(id, { id, step: step2 });
+        localStorage.karnageTop = JSON.stringify([...best.values()].sort((a, b) => b.step - a.step || a.id - b.id).slice(0, 5));
       } catch (e) {
       }
     };
+    const ARC_KEY = "karnageArcRun", ARC_VERSION = 1, ARC_TOTAL = CH.length - 1;
+    function validArcRun(run) {
+      if (!run || run.v !== ARC_VERSION) return false;
+      if (!Number.isInteger(run.c1) || run.c1 < 0 || run.c1 >= CH.length) return false;
+      if (!Array.isArray(run.ladder) || run.ladder.length !== CH.length - 2) return false;
+      if (!run.ladder.every((id) => Number.isInteger(id) && id >= 0 && id < CH.length && id !== run.c1 && id !== BOSS.id)) return false;
+      if (new Set(run.ladder).size !== run.ladder.length) return false;
+      if (!Number.isInteger(run.step) || run.step < 0 || run.step >= ARC_TOTAL) return false;
+      return true;
+    }
+    function loadArcRun() {
+      try {
+        const run = JSON.parse(localStorage[ARC_KEY] || "null");
+        return validArcRun(run) ? run : null;
+      } catch (e) {
+        return null;
+      }
+    }
+    function saveArcRun() {
+      try {
+        if (!Number.isInteger(S.arcP1) || !S.ladder.length || !Number.isInteger(S.lStep)) return;
+        const run = { v: ARC_VERSION, c1: S.arcP1, ladder: S.ladder.slice(), step: S.lStep };
+        if (validArcRun(run)) localStorage[ARC_KEY] = JSON.stringify(run);
+      } catch (e) {
+      }
+    }
+    function clearArcRun() {
+      try {
+        localStorage.removeItem(ARC_KEY);
+      } catch (e) {
+      }
+    }
+    function arcTotal() {
+      return S.ladder.length ? S.ladder.length + 1 : ARC_TOTAL;
+    }
     function initA() {
       if (AU.ctx) return;
       try {
@@ -3133,6 +3200,19 @@
       g.beginPath();
       g.ellipse(0, shadowY, 15 * sc, 4.2, 0, 0, 7);
       g.fill();
+      if (d.boss) {
+        g.save();
+        g.globalCompositeOperation = "lighter";
+        const ay = -d.h * 0.55, ar = d.h * 0.9, ag = g.createRadialGradient(0, ay, 2, 0, ay, ar);
+        ag.addColorStop(0, "rgba(240,200,80,.24)");
+        ag.addColorStop(0.55, "rgba(180,60,20,.1)");
+        ag.addColorStop(1, "rgba(0,0,0,0)");
+        g.fillStyle = ag;
+        g.beginPath();
+        g.arc(0, ay, ar, 0, 7);
+        g.fill();
+        g.restore();
+      }
       if (f.invis > 0) g.globalAlpha = 0.25;
       g.scale(f.face * sc, sc * f.squash);
       g.rotate(f.tilt * f.face);
@@ -3900,7 +3980,7 @@
     }
     const FAKES = CH.map((d) => ({ def: d, x: 0, y: FL + GR, face: 1, animT: 0, state: "idle", st: 0, atk: null, tilt: 0, squash: 1, scale: 1, invis: 0, frozen: 0, netT: 0, charred: 0, hidden: 0, flash: 0, hp: 100 }));
     function drawFake(i, px, py, sc, face) {
-      const fk = FAKES[i];
+      const fk = typeof i === "object" ? Object.assign({}, FAKES[i.id] || FAKES[0], { def: i }) : FAKES[i];
       fk.animT = S.FRAME;
       fk.face = face;
       g.save();
@@ -4171,13 +4251,36 @@
     function toLobby(gm) {
       setScreen(S, gm);
     }
-    function newBattle(i1, c1, i2, c2, arena) {
-      S.battle = { p1: new F(CH[i1], c1), p2: new F(CH[i2], c2), round: 1, phase: "intro", phaseT: 0, timer: 60, arena };
+    function newBattleDefs(d1, c1, d2, c2, arena) {
+      S.battle = { p1: new F(d1, c1), p2: new F(d2, c2), round: 1, phase: "intro", phaseT: 0, timer: 60, arena };
       S.battle.p1.foe = S.battle.p2;
       S.battle.p2.foe = S.battle.p1;
       beginBattle(S, S.battle, { h1: 0, d1: 0, c1: 0, h2: 0, d2: 0, c2: 0 });
       startRound();
       S.GAME = "fight";
+    }
+    function newBattle(i1, c1, i2, c2, arena) {
+      newBattleDefs(typeof i1 === "object" ? i1 : CH[i1], c1, typeof i2 === "object" ? i2 : CH[i2], c2, arena);
+    }
+    function arcOpponent(step2) {
+      if (step2 < S.ladder.length) {
+        const id = S.ladder[step2];
+        return { def: CH[id], arena: CH[id].arena };
+      }
+      return { def: BOSS, arena: BOSS.arena };
+    }
+    function arcFight() {
+      if (!S.ladder.length) return;
+      const o = arcOpponent(S.lStep);
+      newBattleDefs(CH[S.arcP1], new Ctrl(KM12), o.def, new Ctrl(KM22), o.arena);
+      S.battle.mode = "arcade";
+      S.battle.p2.ctrl.ai = true;
+      S.battle.aiLvl = S.lStep >= S.ladder.length ? 7 : Math.min(7, S.lStep);
+      S.GAME = "vs";
+      S.vsT = 0;
+      S.vsEscT = 0;
+      saveArcRun();
+      if (S.lStep >= S.ladder.length) say("Final boss");
     }
     function startRound() {
       const b = S.battle;
@@ -4569,7 +4672,8 @@
       const b = S.battle;
       if (b.mode === "arcade" && b.winner === b.p1) {
         S.lStep++;
-        if (S.lStep >= S.ladder.length) {
+        if (S.lStep >= arcTotal()) {
+          clearArcRun();
           try {
             const rec = +(localStorage.karnageArc || 0);
             if (S.lStep > rec) localStorage.karnageArc = S.lStep;
@@ -4579,15 +4683,9 @@
           toLobby("ending");
           return;
         }
-        const idx = S.ladder[S.lStep];
-        newBattle(b.p1.def.id, new Ctrl(KM12), idx, new Ctrl(KM22), CH[idx].arena);
-        S.battle.mode = "arcade";
-        S.battle.p2.ctrl.ai = true;
-        S.battle.aiLvl = Math.min(7, S.lStep + (S.lStep === S.ladder.length - 1 ? 2 : 0));
-        S.GAME = "vs";
-        S.vsT = 0;
-        if (S.lStep === S.ladder.length - 1) say("Final boss");
+        arcFight();
       } else if (b.mode === "arcade") {
+        saveArcRun();
         toLobby("continue");
         S.contT = 600;
         say("Continue?");
@@ -4600,14 +4698,24 @@
       } else toLobby(S.lastSel ? "rematch" : "menu");
     }
     function resumeArc() {
-      const idx = S.ladder[S.lStep];
-      newBattle(S.arcP1, new Ctrl(KM12), idx, new Ctrl(KM22), CH[idx].arena);
-      S.battle.mode = "arcade";
-      S.battle.p2.ctrl.ai = true;
-      S.battle.aiLvl = Math.min(7, S.lStep + (S.lStep === S.ladder.length - 1 ? 2 : 0));
-      S.GAME = "vs";
-      S.vsT = 0;
       SFX.coin();
+      arcFight();
+    }
+    function resumeSavedArcade() {
+      const run = loadArcRun();
+      if (!run) return false;
+      S.arcP1 = run.c1;
+      S.ladder = run.ladder.slice();
+      S.lStep = run.step;
+      SFX.vsroar();
+      arcFight();
+      return true;
+    }
+    function menuItems() {
+      const saved = !!loadArcRun(), items = [];
+      if (saved) items.push({ id: "resume", label: "\u041F\u0420\u041E\u0414\u041E\u041B\u0416\u0418\u0422\u042C \u0410\u0420\u041A\u0410\u0414\u0423" });
+      items.push({ id: "arcade", label: saved ? "\u041D\u041E\u0412\u0410\u042F \u0410\u0420\u041A\u0410\u0414\u0410" : "\u0410\u0420\u041A\u0410\u0414\u0410" }, { id: "cpu", label: "\u0411\u041E\u0419 \u041F\u0420\u041E\u0422\u0418\u0412 CPU" }, { id: "2p", label: "\u0411\u041E\u0419 \u041D\u0410 \u0414\u0412\u041E\u0418\u0425" }, { id: "settings", label: "\u041D\u0410\u0421\u0422\u0420\u041E\u0419\u041A\u0418" }, { id: "controls", label: "\u0423\u041F\u0420\u0410\u0412\u041B\u0415\u041D\u0418\u0415" }, { id: "top", label: "\u0417\u0410\u041B \u0421\u041B\u0410\u0412\u042B" });
+      return items;
     }
     function pauseItems() {
       return ["\u041F\u0420\u041E\u0414\u041E\u041B\u0416\u0418\u0422\u042C", "\u0417\u0412\u0423\u041A: " + (AU.on ? "\u0412\u041A\u041B" : "\u0412\u042B\u041A\u041B"), "\u0413\u041E\u041B\u041E\u0421 \u0414\u0418\u041A\u0422\u041E\u0420\u0410: " + (AU.voice ? "\u0412\u041A\u041B" : "\u0412\u042B\u041A\u041B"), "\u0413\u0420\u041E\u041C\u041A\u041E\u0421\u0422\u042C: " + AU.vol + "%", "\u0412 \u041C\u0415\u041D\u042E"];
@@ -4755,32 +4863,39 @@
         return;
       }
       if (S.GAME === "menu") {
+        const items = menuItems(), n = items.length;
+        S.menuIdx = clamp2(S.menuIdx, 0, n - 1);
         if (k === "KeyW" || k === "ArrowUp") {
-          S.menuIdx = (S.menuIdx + 5) % 6;
+          S.menuIdx = (S.menuIdx + n - 1) % n;
           SFX.menu();
         }
         if (k === "KeyS" || k === "ArrowDown") {
-          S.menuIdx = (S.menuIdx + 1) % 6;
+          S.menuIdx = (S.menuIdx + 1) % n;
           SFX.menu();
         }
         if (k === "KeyJ" || k === "Enter" || k === "Space") {
           SFX.sel();
-          if (S.menuIdx === 0) {
+          const item = items[S.menuIdx];
+          if (item.id === "resume") {
+            resumeSavedArcade();
+            return;
+          }
+          if (item.id === "arcade") {
             S.GAME = "select";
             S.sel = createSelection("arcade");
             say("Choose your fighter");
-          } else if (S.menuIdx === 1) {
+          } else if (item.id === "cpu") {
             S.GAME = "select";
             S.sel = createSelection("cpu");
             say("Choose your fighter");
-          } else if (S.menuIdx === 2) {
+          } else if (item.id === "2p") {
             S.GAME = "select";
             S.sel = createSelection("2p");
             say("Choose your fighters");
-          } else if (S.menuIdx === 3) {
+          } else if (item.id === "settings") {
             S.settingsIdx = 0;
             S.GAME = "settings";
-          } else if (S.menuIdx === 4) S.GAME = "controls";
+          } else if (item.id === "controls") S.GAME = "controls";
           else S.GAME = "top";
         }
         return;
@@ -4838,6 +4953,10 @@
       }
       if (S.GAME === "continue") {
         if (k === "KeyJ" || k === "Enter" || k === "Space") resumeArc();
+        else if (k === "Escape") {
+          toLobby("menu");
+          SFX.menu();
+        }
         return;
       }
       if (S.GAME === "rematch") {
@@ -4870,22 +4989,18 @@
       }
     }
     function startLadder(c1) {
+      clearArcRun();
       S.arcP1 = c1;
       S.ladder = [];
-      for (let i = 0; i < CH.length; i++) if (i !== c1) S.ladder.push(i);
+      for (let i = 0; i < CH.length; i++) if (i !== c1 && i !== BOSS.id) S.ladder.push(i);
       for (let i = S.ladder.length - 1; i > 0; i--) {
         const j = Math.random() * (i + 1) | 0;
         [S.ladder[i], S.ladder[j]] = [S.ladder[j], S.ladder[i]];
       }
+      S.ladder = S.ladder.slice(0, CH.length - 2);
       S.lStep = 0;
       SFX.vsroar();
-      const idx = S.ladder[0];
-      newBattle(c1, new Ctrl(KM12), idx, new Ctrl(KM22), CH[idx].arena);
-      S.battle.mode = "arcade";
-      S.battle.p2.ctrl.ai = true;
-      S.battle.aiLvl = 0;
-      S.GAME = "vs";
-      S.vsT = 0;
+      arcFight();
     }
     function startSel() {
       const s = S.sel;
@@ -5048,7 +5163,7 @@
       g.fillText("\u0412\u042B\u0411\u041E\u0420 \u0411\u041E\u0419\u0426\u0410", RW / 2, 16);
       g.font = '7px "Russo One"';
       g.fillStyle = "#807850";
-      const hdr = s.mode === "arcade" ? "\u0412\u042B\u0411\u0415\u0420\u0418 \u0421\u0412\u041E\u0415\u0413\u041E \u0411\u041E\u0419\u0426\u0410 \u2014 " + (CH.length - 1) + " \u041F\u0420\u041E\u0422\u0418\u0412\u041D\u0418\u041A\u041E\u0412 \u0412\u041F\u0415\u0420\u0415\u0414\u0418" : s.ph === 2 ? "\u041D\u0410\u0421\u0422\u0420\u041E\u0419\u041A\u0410 \u0411\u041E\u042F" : s.mode === "cpu" ? s.ph === 0 ? "\u0412\u042B\u0411\u0415\u0420\u0418 \u0421\u0412\u041E\u0415\u0413\u041E \u0411\u041E\u0419\u0426\u0410" : "\u0412\u042B\u0411\u0415\u0420\u0418 \u0421\u041E\u041F\u0415\u0420\u041D\u0418\u041A\u0410" : "P1: WASD + J    P2: \u0421\u0422\u0420\u0415\u041B\u041A\u0418 + I";
+      const hdr = s.mode === "arcade" ? loadArcRun() ? "\u041D\u041E\u0412\u0410\u042F \u0410\u0420\u041A\u0410\u0414\u0410 \u0417\u0410\u041C\u0415\u041D\u0418\u0422 \u0421\u041E\u0425\u0420\u0410\u041D\u0401\u041D\u041D\u0423\u042E" : "\u0412\u042B\u0411\u0415\u0420\u0418 \u0411\u041E\u0419\u0426\u0410 \u2014 " + ARC_TOTAL + " \u0411\u041E\u0401\u0412, \u0424\u0418\u041D\u0410\u041B\u042C\u041D\u042B\u0419 \u0411\u041E\u0421\u0421" : s.ph === 2 ? "\u041D\u0410\u0421\u0422\u0420\u041E\u0419\u041A\u0410 \u0411\u041E\u042F" : s.mode === "cpu" ? s.ph === 0 ? "\u0412\u042B\u0411\u0415\u0420\u0418 \u0421\u0412\u041E\u0415\u0413\u041E \u0411\u041E\u0419\u0426\u0410" : "\u0412\u042B\u0411\u0415\u0420\u0418 \u0421\u041E\u041F\u0415\u0420\u041D\u0418\u041A\u0410" : "P1: WASD + J    P2: \u0421\u0422\u0420\u0415\u041B\u041A\u0418 + I";
       g.fillText(hdr, RW / 2, 27);
       for (let i = 0; i < CH.length; i++) {
         const x = 12 + i % 5 * 37, y = 36 + (i / 5 | 0) * 46;
@@ -5154,16 +5269,17 @@
       g.lineTo(RW * 0.38, RH);
       g.fill();
       if (S.battle.mode === "arcade") {
+        const total = arcTotal(), boss = S.lStep >= S.ladder.length;
         panel(152, 10, 120, 16);
         g.font = '8px "Russo One"';
         g.textAlign = "center";
-        g.fillStyle = S.lStep === S.ladder.length - 1 ? blink() ? "#e02020" : "#e8c040" : "#e8c040";
-        g.fillText(S.lStep === S.ladder.length - 1 ? "\u0424\u0418\u041D\u0410\u041B\u042C\u041D\u042B\u0419 \u0411\u041E\u0421\u0421" : "\u0421\u0422\u0423\u041F\u0415\u041D\u042C " + (S.lStep + 1) + " \u0418\u0417 " + S.ladder.length, RW / 2, 21);
+        g.fillStyle = boss ? blink() ? "#e02020" : "#e8c040" : "#e8c040";
+        g.fillText(boss ? "\u0424\u0418\u041D\u0410\u041B\u042C\u041D\u042B\u0419 \u0411\u041E\u0421\u0421" : "\u0421\u0422\u0423\u041F\u0415\u041D\u042C " + (S.lStep + 1) + " \u0418\u0417 " + total, RW / 2, 21);
       }
       panel(10, 30, 150, 120);
       panel(RW - 160, 30, 150, 120);
-      drawFake(S.battle.p1.def.id, 85, 144, 1.5, 1);
-      drawFake(S.battle.p2.def.id, RW - 85, 144, 1.5, -1);
+      drawFake(S.battle.p1.def, 85, 144, 1.5, 1);
+      drawFake(S.battle.p2.def, RW - 85, 144, S.battle.p2.def.boss ? 1.05 : 1.5, -1);
       g.font = '11px "Russo One"';
       g.textAlign = "center";
       g.fillStyle = "#e02020";
@@ -5208,6 +5324,9 @@
       g.font = '16px "Russo One"';
       g.fillStyle = "#e8e0c0";
       g.fillText(d.name, RW / 2, 146);
+      g.font = '8px "Russo One"';
+      g.fillStyle = "#c8a040";
+      g.fillText("\u0424\u0418\u041D\u0410\u041B\u042C\u041D\u042B\u0419 \u0411\u041E\u0421\u0421 " + BOSS.name + " \u041F\u041E\u0412\u0415\u0420\u0416\u0415\u041D", RW / 2, 166);
       if (blink()) {
         g.fillStyle = "#807850";
         g.font = '8px "Russo One"';
@@ -5237,7 +5356,7 @@
         g.fillText(CH[e.id].name, 152, y);
         g.textAlign = "right";
         g.fillStyle = "#c8a040";
-        g.fillText(e.step + " / " + (CH.length - 1), 300, y);
+        g.fillText(e.step + " / " + ARC_TOTAL, 300, y);
       });
       if (blink()) {
         g.font = '8px "Russo One"';
@@ -5281,7 +5400,7 @@
         g.font = '10px "Russo One"';
         g.fillStyle = "#e8e0c0";
         g.textAlign = "center";
-        g.fillText("J \u2014 \u0414\u0410", RW / 2, 206);
+        g.fillText("J \u2014 \u0414\u0410 \xB7 ESC \u2014 \u0412 \u041C\u0415\u041D\u042E", RW / 2, 206);
       }
     }
     const SK = ["....SSSSSSSS....", "..SSSSSSSSSSSS..", ".SSSSSSSSSSSSSS.", ".SSSSSSSSSSSSSS.", "SSSSSSSSSSSSSSS", "SSSSSSSSSSSSSSSS", "SSSSSSSSSSSSSSSS", "SSEESSSSSSEESSSS", "SSEESSSSSSEESSSS", "SSSSSSSSSSSSSSSS", ".SSSSSDDDSSSSSS.", "..SSDDDDDDDSS...", "...TDTDTDTDT....", "....SSSSSSSS...."];
@@ -5318,7 +5437,7 @@
         if (tp.length) {
           g.font = '9px "Russo One"';
           g.fillStyle = "#c8a040";
-          g.fillText("\u0420\u0415\u041A\u041E\u0420\u0414: " + CH[tp[0].id].name + " \u2014 " + tp[0].step + " / " + (CH.length - 1), RW / 2, 200);
+          g.fillText("\u0420\u0415\u041A\u041E\u0420\u0414: " + CH[tp[0].id].name + " \u2014 " + tp[0].step + " / " + ARC_TOTAL, RW / 2, 200);
         }
       } catch (e) {
       }
@@ -5342,9 +5461,10 @@
       g.fillRect(RW / 2 - 90, 20, 180, 30);
       g.globalAlpha = 1;
       panel(36, 62, 196, 140);
-      const items = ["\u0410\u0420\u041A\u0410\u0414\u0410", "\u0411\u041E\u0419 \u041F\u0420\u041E\u0422\u0418\u0412 CPU", "\u0411\u041E\u0419 \u041D\u0410 \u0414\u0412\u041E\u0418\u0425", "\u041D\u0410\u0421\u0422\u0420\u041E\u0419\u041A\u0418", "\u0423\u041F\u0420\u0410\u0412\u041B\u0415\u041D\u0418\u0415", "\u0417\u0410\u041B \u0421\u041B\u0410\u0412\u042B"];
+      const items = menuItems().map((it) => it.label), gap = items.length > 6 ? 17 : 19;
+      S.menuIdx = clamp2(S.menuIdx, 0, items.length - 1);
       items.forEach((it, i) => {
-        const y = 82 + i * 19, on = i === S.menuIdx;
+        const y = 82 + i * gap, on = i === S.menuIdx;
         if (on) {
           g.fillStyle = "rgba(224,32,32,.08)";
           g.fillRect(56, y - 13, 156, 18);
@@ -5561,7 +5681,10 @@
       }
       if (S.GAME === "continue") {
         S.contT--;
-        if (S.contT <= 0) toLobby("gameover");
+        if (S.contT <= 0) {
+          clearArcRun();
+          toLobby("gameover");
+        }
       }
       if (S.GAME === "fight") {
         if (S.announce) S.announce.t++;
@@ -5810,6 +5933,27 @@
         get settingsIdx() {
           return S.settingsIdx;
         },
+        get ladder() {
+          return S.ladder;
+        },
+        get lStep() {
+          return S.lStep;
+        },
+        get arcP1() {
+          return S.arcP1;
+        },
+        get arcTotal() {
+          return arcTotal();
+        },
+        BOSS,
+        TOP,
+        addTop,
+        loadArcRun,
+        saveArcRun,
+        clearArcRun,
+        resumeSavedArcade,
+        startLadder,
+        arcFight,
         autoHit,
         onKey,
         smoke,
@@ -5842,6 +5986,8 @@
           if ("lastSel" in values) S.lastSel = values.lastSel;
           if ("contT" in values) S.contT = values.contT;
           if ("arcP1" in values) S.arcP1 = values.arcP1;
+          if ("ladder" in values) S.ladder = values.ladder;
+          if ("lStep" in values) S.lStep = values.lStep;
           if ("sel" in values) S.sel = values.sel;
         },
         snapshot() {

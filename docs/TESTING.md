@@ -12,9 +12,10 @@ npm run audit:fix-bom удалить UTF-8 BOM из текстовых файл�
 npm run assets:build  пересобрать FX-атласы из assets/vendor
 ```
 
-Сейчас `npm test` — 33 сценария: 4 unit и 29 Playwright.
+Сейчас `npm test` — 37 сценариев: 4 unit и 33 Playwright.
 Тесты FX проверяют загрузку атласов, sprite-эффекты удара и приземления.
 Тесты боя проверяют low/high-блок, damage scaling, броски, special cancel и пропуск фаталити.
+Тесты аркады проверяют сохранение и продолжение после reload, финального босса, завершение забега и дедупликацию зала славы.
 Тесты настроек проверяют вход из меню, сохранение переключателей и загрузку после reload.
 Мобильные тесты проверяют touch-контролы и навигацию по меню.
 `release/` тестируется отдельно с диска через `file://`.
@@ -26,6 +27,7 @@ npm run assets:build  пересобрать FX-атласы из assets/vendor
 
 - `step()` / `render()` — ручной кадр;
 - `newBattle(...)`, `startRound()`, `startFatal(...)`;
+- `startLadder(id)`, `resumeSavedArcade()`, `loadArcRun()`, `TOP()` — аркада;
 - `setSeed(number)` — подменить `Math.random`;
 - `snapshot()` — состояние без ссылок на объекты.
 
@@ -44,6 +46,7 @@ npm run assets:build  пересобрать FX-атласы из assets/vendor
 - двойной KO, лимит раундов, announce/wipe, render без мутаций;
 - FX-атласы и sprite-эффекты;
 - битый localStorage;
+- сохранение аркады, продолжение, финальный босс и дедупликация `TOP`;
 - мобильный viewport и touch (после этапа UI);
 - parity: старый baseline и новая сборка дают одинаковое состояние на
   одинаковом seed и одинаковых вводах.

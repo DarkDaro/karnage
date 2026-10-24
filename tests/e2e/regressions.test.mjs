@@ -356,6 +356,145 @@ test('bad leaderboard storage does not break the screen', async () => {
   assert.equal(result.ok, true);
 });
 
+test('arcade leaderboard keeps one best entry per fighter', async () => {
+  const result = await page.evaluate(() => {
+    const K = window.KARNAGE;
+    localStorage.karnageTop = JSON.stringify([
+      { id: 0, step: 2 },
+      { id: 0, step: 5 },
+      { id: 1, step: 3 },
+      { id: 0, step: 5 }
+    ]);
+    const top = K.TOP();
+    K.addTop(0, 4);
+    const lower = K.TOP();
+    K.addTop(2, 7);
+    const added = K.TOP();
+    localStorage.removeItem('karnageTop');
+    return { top, lower, added };
+  });
+  assert.deepEqual(result.top, [
+    { id: 0, step: 5 },
+    { id: 1, step: 3 }
+  ]);
+  assert.deepEqual(result.lower, result.top);
+  assert.deepEqual(result.added, [
+    { id: 2, step: 7 },
+    { id: 0, step: 5 },
+    { id: 1, step: 3 }
+  ]);
+});
+
+test('arcade saves progress, resumes and ends with final boss', async () => {
+  await page.evaluate(() => {
+    const K = window.KARNAGE;
+    localStorage.clear();
+    K.startLadder(0);
+    K.setDebug({ GAME: 'fight', paused: false });
+    const battle = K.battle;
+    battle.mode = 'arcade';
+    battle.phase = 'over';
+    battle.phaseT = 200;
+    battle.winner = battle.p1;
+    K.step();
+  });
+  const saved = await page.evaluate(() => window.KARNAGE.loadArcRun());
+  assert.equal(saved.c1, 0);
+  assert.equal(saved.step, 1);
+  assert.equal(saved.ladder.length, 11);
+
+  await page.reload({ waitUntil: 'load' });
+  await page.waitForFunction(() => Boolean(window.KARNAGE));
+  const resumed = await page.evaluate(() => {
+    const K = window.KARNAGE;
+    const run = K.loadArcRun();
+    const ok = K.resumeSavedArcade();
+    return { run, ok, game: K.GAME, step: K.lStep, opponent: K.battle.p2.def.name };
+  });
+  assert.equal(resumed.ok, true);
+  assert.equal(resumed.game, 'vs');
+  assert.equal(resumed.step, 1);
+  assert.equal(resumed.run.step, 1);
+
+  const boss = await page.evaluate(() => {
+    const K = window.KARNAGE;
+    const win = () => {
+      K.setDebug({ GAME: 'fight', paused: false });
+      const battle = K.battle;
+      battle.mode = 'arcade';
+      battle.phase = 'over';
+      battle.phaseT = 200;
+      battle.winner = battle.p1;
+      K.step();
+    };
+    for (let i = 0; i < 10; i += 1) win();
+    return {
+      step: K.lStep,
+      game: K.GAME,
+      boss: K.battle.p2.def.boss === true,
+      name: K.battle.p2.def.name,
+      ai: K.battle.aiLvl,
+      total: K.arcTotal,
+      savedStep: K.loadArcRun()?.step
+    };
+  });
+  assert.deepEqual(boss, {
+    step: 11,
+    game: 'vs',
+    boss: true,
+    name: 'КАЙЗЕР-ПРАЙМ',
+    ai: 7,
+    total: 12,
+    savedStep: 11
+  });
+
+  const finish = await page.evaluate(() => {
+    const K = window.KARNAGE;
+    K.setDebug({ GAME: 'fight', paused: false });
+    const battle = K.battle;
+    battle.mode = 'arcade';
+    battle.phase = 'over';
+    battle.phaseT = 200;
+    battle.winner = battle.p1;
+    K.step();
+    const out = {
+      game: K.GAME,
+      saved: K.loadArcRun(),
+      top: K.TOP(),
+      arc: localStorage.karnageArc
+    };
+    localStorage.removeItem('karnageTop');
+    localStorage.removeItem('karnageArc');
+    localStorage.removeItem('karnageArcRun');
+    return out;
+  });
+  assert.equal(finish.game, 'ending');
+  assert.equal(finish.saved, null);
+  assert.deepEqual(finish.top, [{ id: 0, step: 12 }]);
+  assert.equal(finish.arc, '12');
+});
+
+test('main menu offers continue for a saved arcade run', async () => {
+  const result = await page.evaluate(() => {
+    const K = window.KARNAGE;
+    localStorage.clear();
+    K.startLadder(0);
+    K.toLobby('menu');
+    K.onKey('Enter');
+    const out = {
+      game: K.GAME,
+      step: K.lStep,
+      player: K.battle.p1.def.id,
+      saved: K.loadArcRun()?.step
+    };
+    localStorage.removeItem('karnageArcRun');
+    localStorage.removeItem('karnageTop');
+    localStorage.removeItem('karnageArc');
+    return out;
+  });
+  assert.deepEqual(result, { game: 'vs', step: 0, player: 0, saved: 0 });
+});
+
 test('interrupted special does not leak spec2go', async () => {
   const result = await page.evaluate(() => {
     const K = window.KARNAGE;
@@ -381,6 +520,7 @@ test('interrupted special does not leak spec2go', async () => {
 test('settings open from the main menu and persist video toggles', async () => {
   const result = await page.evaluate(() => {
     const K = window.KARNAGE;
+    localStorage.removeItem('karnageArcRun');
     K.toLobby('menu');
     K.onKey('ArrowDown');
     K.onKey('ArrowDown');
