@@ -4,9 +4,9 @@
 Проект: `C:\OpenCode\Game\karnage-game`.
 Репозиторий: `https://github.com/DarkDaro/karnage.git`.
 Ветка: `main`.
-Последний коммит: `45f9e27` (ahead of origin/main на 1).
-В рабочем дереве есть незакоммиченные изменения финального технического прохода:
-skip cutscene, FINISH HIM timer, low/high block и обновлённые документы.
+Последний коммит: `f6e2469` — «документация и асеты».
+`origin/main` совпадает с локальной веткой, рабочее дерево чистое.
+Финальный технический проход и handoff уже в коммите.
 
 ## С чего начать в новом чате
 
@@ -119,22 +119,14 @@ npm run assets:build
 - `docs/ASSETS.md` — бриф и следующие слоты.
 - Снимки: `archive/2026-10-24-fx-pilot`, `archive/2026-10-24-handoff`, `archive/2026-10-24-final-tails`.
 
-## Незакоммиченное
+## Состояние git
 
-В рабочем дереве: skip cutscene, FINISH HIM timer, low/high block, обновлённые
-`README.md`, `DEVNOTES.md`, `docs/STATUS.md`, `docs/HANDOFF.md`,
-`docs/TESTING.md`, `CHANGELOG.md`, `release/app.js`, `src/game/karnage.js`,
-`tests/e2e/regressions.test.mjs` и новый снимок `archive/2026-10-24-final-tails`.
+- `HEAD` = `f6e2469`.
+- `origin/main` = `f6e2469`.
+- Рабочее дерево чистое.
+- Финальный снимок: `archive/2026-10-24-final-tails`.
 
-Перед новым чатом:
-
-```bash
-git add -A
-git commit -m "feat: finish technical tails"
-git push
-```
-
-Если коммит уже сделан — проверить `git status`; дерево должно быть чистым.
+Новый коммит нужен только после следующих правок. Перед ним — чек-лист ниже.
 
 ## Перед коммитом
 
@@ -159,7 +151,7 @@ git push
 - Звук по умолчанию выключен; `?sound=1` включает.
 - `index.html` — готовый запуск, `dev.html` — только через `npm run dev`.
 - GitHub About через `gh` не обновлялся: `gh` не установлен. Описание и темы можно вставить вручную.
-- Текущий `HEAD` — `45f9e27`, ветка `main` ahead of `origin/main` на 1.
+- Текущий `HEAD` — `f6e2469`; `origin/main` совпадает, дерево чистое.
 
 ## Быстрый контекст
 
