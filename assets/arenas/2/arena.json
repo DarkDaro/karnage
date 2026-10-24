@@ -1,0 +1,68 @@
+{
+  "name": "ГРОЗОВОЙ ГОРОД",
+  "width": 848,
+  "floor": 206,
+  "bg": "far.png",
+  "props": "props.png",
+  "layers": [
+    {
+      "file": "far.png",
+      "scroll": 0.12,
+      "y": 0
+    },
+    {
+      "file": "mid.png",
+      "scroll": 0.38,
+      "y": 0
+    },
+    {
+      "file": "props.png",
+      "scroll": 0.82,
+      "y": 0
+    },
+    {
+      "file": "fg.png",
+      "scroll": 1.15,
+      "y": 0,
+      "foreground": true
+    }
+  ],
+  "ambient": [
+    {
+      "type": "rain",
+      "every": 1,
+      "wind": -0.8
+    },
+    {
+      "type": "motes",
+      "every": 30,
+      "color": "rgba(160,190,210,.12)"
+    }
+  ],
+  "lights": [
+    {
+      "x": 160,
+      "y": 88,
+      "radius": 42,
+      "color": "#f05030",
+      "alpha": 0.2
+    },
+    {
+      "x": 560,
+      "y": 98,
+      "radius": 54,
+      "color": "#50c8d0",
+      "alpha": 0.16
+    },
+    {
+      "x": 120,
+      "y": 162,
+      "radius": 54,
+      "color": "#e8c060",
+      "alpha": 0.14
+    }
+  ],
+  "fog": false,
+  "wet": true,
+  "source": "Superpowers storm bridge + night city; custom rooftop units and cables"
+}

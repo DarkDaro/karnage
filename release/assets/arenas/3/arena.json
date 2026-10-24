@@ -1,0 +1,62 @@
+{
+  "name": "КАМЕННОЛОМНЯ",
+  "width": 848,
+  "floor": 206,
+  "bg": "far.png",
+  "props": "props.png",
+  "layers": [
+    {
+      "file": "far.png",
+      "scroll": 0.12,
+      "y": 0
+    },
+    {
+      "file": "mid.png",
+      "scroll": 0.38,
+      "y": 0
+    },
+    {
+      "file": "props.png",
+      "scroll": 0.82,
+      "y": 0
+    },
+    {
+      "file": "fg.png",
+      "scroll": 1.15,
+      "y": 0,
+      "foreground": true
+    }
+  ],
+  "ambient": [
+    {
+      "type": "sand",
+      "every": 7,
+      "color": "rgba(200,170,110,.16)"
+    },
+    {
+      "type": "motes",
+      "every": 20,
+      "color": "rgba(220,190,140,.14)"
+    }
+  ],
+  "lights": [
+    {
+      "x": 372,
+      "y": 128,
+      "radius": 70,
+      "color": "#f0b060",
+      "alpha": 0.2
+    },
+    {
+      "x": 110,
+      "y": 156,
+      "radius": 48,
+      "color": "#d09050",
+      "alpha": 0.12
+    }
+  ],
+  "fog": true,
+  "wet": false,
+  "source": "Superpowers red cliffs + cave rock; custom headframe, cart and conveyor",
+  "fogColor": "#c8a878"
+}

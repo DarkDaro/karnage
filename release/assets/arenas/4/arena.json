@@ -1,7 +1,68 @@
 {
   "name": "ДОДЗЁ КЛИНКА",
-  "bg": "bg.png",
-  "props": "props.png",
+  "width": 848,
   "floor": 206,
-  "source": "Superpowers bamboo + Kenney background elements"
+  "bg": "far.png",
+  "props": "props.png",
+  "layers": [
+    {
+      "file": "far.png",
+      "scroll": 0.12,
+      "y": 0
+    },
+    {
+      "file": "mid.png",
+      "scroll": 0.38,
+      "y": 0
+    },
+    {
+      "file": "props.png",
+      "scroll": 0.82,
+      "y": 0
+    },
+    {
+      "file": "fg.png",
+      "scroll": 1.15,
+      "y": 0,
+      "foreground": true
+    }
+  ],
+  "ambient": [
+    {
+      "type": "motes",
+      "every": 22,
+      "color": "rgba(200,220,150,.24)"
+    },
+    {
+      "type": "fog",
+      "every": 10
+    }
+  ],
+  "lights": [
+    {
+      "x": 350,
+      "y": 160,
+      "radius": 46,
+      "color": "#f0b050",
+      "alpha": 0.18
+    },
+    {
+      "x": 648,
+      "y": 160,
+      "radius": 46,
+      "color": "#f0b050",
+      "alpha": 0.18
+    },
+    {
+      "x": 676,
+      "y": 42,
+      "radius": 92,
+      "color": "#d8e8b0",
+      "alpha": 0.12
+    }
+  ],
+  "fog": true,
+  "wet": false,
+  "source": "Superpowers pagoda + bamboo; custom torii, lanterns and weapon rack",
+  "fogColor": "#a8c890"
 }

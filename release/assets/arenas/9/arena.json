@@ -1,7 +1,75 @@
 {
-  "name": "Кладбище",
-  "bg": "bg.png",
-  "props": "props.png",
+  "name": "КЛАДБИЩЕ",
+  "width": 848,
   "floor": 206,
-  "source": "GothicVania Cemetery Pack"
+  "bg": "far.png",
+  "props": "props.png",
+  "layers": [
+    {
+      "file": "far.png",
+      "scroll": 0.12,
+      "y": 0
+    },
+    {
+      "file": "mid.png",
+      "scroll": 0.38,
+      "y": 0
+    },
+    {
+      "file": "props.png",
+      "scroll": 0.82,
+      "y": 0
+    },
+    {
+      "file": "fg.png",
+      "scroll": 1.15,
+      "y": 0,
+      "foreground": true
+    }
+  ],
+  "ambient": [
+    {
+      "type": "fog",
+      "every": 8
+    },
+    {
+      "type": "motes",
+      "every": 26,
+      "color": "rgba(200,200,225,.16)"
+    }
+  ],
+  "lights": [
+    {
+      "x": 196,
+      "y": 48,
+      "radius": 110,
+      "color": "#d8b0e8",
+      "alpha": 0.12
+    },
+    {
+      "x": 256,
+      "y": 188,
+      "radius": 38,
+      "color": "#f0a050",
+      "alpha": 0.16
+    },
+    {
+      "x": 292,
+      "y": 180,
+      "radius": 42,
+      "color": "#f0a050",
+      "alpha": 0.14
+    },
+    {
+      "x": 648,
+      "y": 186,
+      "radius": 38,
+      "color": "#f0a050",
+      "alpha": 0.14
+    }
+  ],
+  "fog": true,
+  "wet": false,
+  "source": "GothicVania Cemetery Pack: background, mountains, graveyard, statue and trees",
+  "fogColor": "#a8a0c8"
 }

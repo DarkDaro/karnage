@@ -5,8 +5,11 @@
 `index.html` — готовый запуск, он читает `release/app.js`. `dev.html` —
 модульный вход для `npm run dev`: `src/main.js` загружает FX через
 `src/assets/fx.js` и вызывает `startKarnage(assets)` из
-`src/game/karnage.js`. Бойцы и арены уже вынесены в `src/data`, HTML/CSS/шрифты
-— в `assets`. Основная логика пока остаётся в обёртке монолита;
+`src/game/karnage.js`. Бойцы и арены уже вынесены в `src/data`, состояние,
+частицы, боец, боевые расчёты и ввод — в `src/game/core/state.js`,
+`src/game/fx/particles.js`, `src/game/fighter.js`, `src/game/combat.js` и
+`src/game/input.js`, HTML/CSS/шрифты — в `assets`. Основная логика пока
+остаётся в обёртке монолита;
 `src/legacy/karnage.js` — замороженная копия для сравнения. `tools/build.mjs`
 собирает `src/main.js` через esbuild в `release/app.js`, копирует только
 `assets/fonts`, `styles`, `fx` и `arenas` (без `vendor`), релиз запускается как
@@ -29,11 +32,13 @@
 
 - `F` — боец: `def`, `ctrl`, `x`, `y`, `state`, `st`, `hp`, `rage`, `atk`,
   статусы (`frozen`, `netT`, `poison`, `invis`), буферы (`jbuf`, `abuf`).
+  Создаётся фабрикой `createFighter` из `src/game/fighter.js`.
 - `drawF(f, cam)` — рисует бойца; не мутирует игровое состояние.
 - `drawGear(f, hx, hy)` — только `def.*` и явно переданные поля; локальной
   `skin` нет.
 - `drawPort(def, x, y, scale)` — портрет; не зависит от боевого состояния.
 - `drawArena(index, cam, frame)` — только чтение данных арены.
+- `arenaView.foreground()` рисует передний слой с прозрачностью 0.7; `arenaView.post()` добавляет виньетку после бойцов и частиц.
 - `render()` — чистый рендер; спавн частиц и таймеры — в `step()`.
 
 ## Инварианты

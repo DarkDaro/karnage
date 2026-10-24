@@ -9,7 +9,7 @@ function rgba(hex, alpha) {
 }
 
 export function createArenaView({ g, RW, RH, FL, AR, assets, shade, mix }) {
-  function drawLayer(layer, cam) {
+  function drawLayer(layer, cam, opacity = 1) {
     const image = layer.image;
     if (!image) return;
     const maxSource = Math.max(0, image.width - RW);
@@ -17,7 +17,7 @@ export function createArenaView({ g, RW, RH, FL, AR, assets, shade, mix }) {
     const height = Math.min(layer.height ?? RH, RH);
     const y = layer.y ?? 0;
     g.save();
-    g.globalAlpha = layer.alpha ?? 1;
+    g.globalAlpha = (layer.alpha ?? 1) * opacity;
     g.imageSmoothingEnabled = false;
     if (layer.blend) g.globalCompositeOperation = layer.blend;
     g.drawImage(image, sourceX, 0, RW, height, 0, y, RW, height);
@@ -26,18 +26,19 @@ export function createArenaView({ g, RW, RH, FL, AR, assets, shade, mix }) {
 
   function drawFog(asset, cam, time) {
     if (!asset.fog) return;
+    const color = asset.fogColor || '#b8a4e8';
     for (let i = 0; i < 3; i++) {
       const x = ((i * 174 - cam * 0.24 + time * 0.18) % (RW + 260) + RW + 260) % (RW + 260) - 130;
       const horizon = g.createRadialGradient(x, FL - 18, 8, x, FL - 18, 94);
-      horizon.addColorStop(0, 'rgba(184,164,232,.15)');
-      horizon.addColorStop(1, 'rgba(184,164,232,0)');
+      horizon.addColorStop(0, rgba(color, 0.15));
+      horizon.addColorStop(1, rgba(color, 0));
       g.fillStyle = horizon;
       g.fillRect(x - 94, FL - 112, 188, 112);
     }
     const haze = g.createLinearGradient(0, FL - 40, 0, FL);
-    haze.addColorStop(0, 'rgba(158,142,202,0)');
-    haze.addColorStop(0.68, 'rgba(158,142,202,.14)');
-    haze.addColorStop(1, 'rgba(158,142,202,.03)');
+    haze.addColorStop(0, rgba(color, 0));
+    haze.addColorStop(0.68, rgba(color, 0.14));
+    haze.addColorStop(1, rgba(color, 0.03));
     g.fillStyle = haze;
     g.fillRect(0, FL - 40, RW, 40);
   }
@@ -149,7 +150,7 @@ export function createArenaView({ g, RW, RH, FL, AR, assets, shade, mix }) {
     let drawn = false;
     for (const layer of asset.layers) {
       if (!layer.foreground) continue;
-      drawLayer(layer, cam);
+      drawLayer(layer, cam, 0.7);
       drawn = true;
     }
     return drawn;
@@ -158,6 +159,20 @@ export function createArenaView({ g, RW, RH, FL, AR, assets, shade, mix }) {
   function hasForeground(ai) {
     const asset = assets[ai];
     return Boolean(asset && asset.ready && Array.isArray(asset.layers) && asset.layers.some((layer) => layer.foreground));
+  }
+
+  function post() {
+    const vignette = g.createRadialGradient(RW * 0.5, FL * 0.52, 80, RW * 0.5, FL * 0.52, 310);
+    vignette.addColorStop(0, 'rgba(0,0,0,0)');
+    vignette.addColorStop(0.72, 'rgba(0,0,0,.03)');
+    vignette.addColorStop(1, 'rgba(0,0,0,.18)');
+    g.fillStyle = vignette;
+    g.fillRect(0, 0, RW, RH);
+    const top = g.createLinearGradient(0, 0, 0, 26);
+    top.addColorStop(0, 'rgba(0,0,0,.16)');
+    top.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = top;
+    g.fillRect(0, 0, RW, 26);
   }
 
   function ambient({ arena, cam, frame, parts }) {
@@ -179,6 +194,40 @@ export function createArenaView({ g, RW, RH, FL, AR, assets, shade, mix }) {
           line: 1,
           kf: 1,
         });
+      } else if (item.type === 'snow') {
+        parts.push({
+          x: cam + Math.random() * RW,
+          y: -4,
+          vx: (Math.random() - 0.5) * 0.4,
+          vy: 0.32 + Math.random() * 0.35,
+          c: item.color || 'rgba(230,240,255,.7)',
+          l: 420,
+          s: 1 + Math.random(),
+          gv: 0,
+        });
+      } else if (item.type === 'sand') {
+        parts.push({
+          x: cam + RW + 10,
+          y: FL - Math.random() * 158,
+          vx: -1.6 - Math.random() * 1.2,
+          vy: 0.04,
+          c: item.color || 'rgba(220,180,110,.2)',
+          l: 80,
+          s: 1,
+          gv: 0,
+          horiz: 3 + Math.random() * 5,
+        });
+      } else if (item.type === 'ember') {
+        parts.push({
+          x: cam + Math.random() * RW,
+          y: FL + Math.random() * 10,
+          vx: (Math.random() - 0.5) * 0.3,
+          vy: -0.4 - Math.random() * 0.6,
+          c: item.color || 'rgba(240,110,40,.8)',
+          l: 60 + Math.random() * 60,
+          s: 1 + Math.random(),
+          gv: -0.01,
+        });
       } else if (item.type === 'motes') {
         parts.push({
           x: cam + Math.random() * RW,
@@ -190,10 +239,12 @@ export function createArenaView({ g, RW, RH, FL, AR, assets, shade, mix }) {
           s: 1 + Math.random() * 1.6,
           gv: 0,
         });
+      } else if (item.type === 'fog') {
+        // Full-screen fog is a separate pass; see drawFog().
       }
     }
     return true;
   }
 
-  return { draw, foreground, hasForeground, ambient };
+  return { draw, foreground, hasForeground, ambient, post };
 }

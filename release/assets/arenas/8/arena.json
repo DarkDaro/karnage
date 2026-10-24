@@ -1,0 +1,68 @@
+{
+  "name": "КИБЕР-ЗАВОД",
+  "width": 848,
+  "floor": 206,
+  "bg": "far.png",
+  "props": "props.png",
+  "layers": [
+    {
+      "file": "far.png",
+      "scroll": 0.12,
+      "y": 0
+    },
+    {
+      "file": "mid.png",
+      "scroll": 0.38,
+      "y": 0
+    },
+    {
+      "file": "props.png",
+      "scroll": 0.82,
+      "y": 0
+    },
+    {
+      "file": "fg.png",
+      "scroll": 1.15,
+      "y": 0,
+      "foreground": true
+    }
+  ],
+  "ambient": [
+    {
+      "type": "ember",
+      "every": 12,
+      "color": "rgba(80,220,170,.55)"
+    },
+    {
+      "type": "motes",
+      "every": 20,
+      "color": "rgba(160,190,190,.12)"
+    }
+  ],
+  "lights": [
+    {
+      "x": 652,
+      "y": 158,
+      "radius": 96,
+      "color": "#40d0a0",
+      "alpha": 0.22
+    },
+    {
+      "x": 120,
+      "y": 166,
+      "radius": 54,
+      "color": "#e05040",
+      "alpha": 0.14
+    },
+    {
+      "x": 500,
+      "y": 92,
+      "radius": 80,
+      "color": "#5080c0",
+      "alpha": 0.1
+    }
+  ],
+  "fog": false,
+  "wet": true,
+  "source": "Superpowers industrial interior + reactor chamber; custom console, pipes and tank"
+}

@@ -41,9 +41,9 @@ for (const [name, entry] of Object.entries(entries)) {
         fighters: 13,
         arenas: 10,
         fx: 10,
-        arenaAssets: 4,
-        layeredArenas: 2,
-        arenaLayers: [4, 4, 0, 0],
+        arenaAssets: 10,
+        layeredArenas: 10,
+        arenaLayers: [4, 4, 4, 4, 4, 4, 4, 4, 4, 4],
         uiAssets: 2
       });
       assert.deepEqual(errors, []);

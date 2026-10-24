@@ -1,0 +1,69 @@
+{
+  "name": "ВУЛКАН",
+  "width": 848,
+  "floor": 206,
+  "bg": "far.png",
+  "props": "props.png",
+  "layers": [
+    {
+      "file": "far.png",
+      "scroll": 0.12,
+      "y": 0
+    },
+    {
+      "file": "mid.png",
+      "scroll": 0.38,
+      "y": 0
+    },
+    {
+      "file": "props.png",
+      "scroll": 0.82,
+      "y": 0
+    },
+    {
+      "file": "fg.png",
+      "scroll": 1.15,
+      "y": 0,
+      "foreground": true
+    }
+  ],
+  "ambient": [
+    {
+      "type": "ember",
+      "every": 2,
+      "color": "rgba(240,110,40,.75)"
+    },
+    {
+      "type": "motes",
+      "every": 18,
+      "color": "rgba(120,100,90,.14)"
+    }
+  ],
+  "lights": [
+    {
+      "x": 378,
+      "y": 194,
+      "radius": 92,
+      "color": "#f06020",
+      "alpha": 0.26
+    },
+    {
+      "x": 118,
+      "y": 174,
+      "radius": 54,
+      "color": "#e05020",
+      "alpha": 0.18
+    },
+    {
+      "x": 610,
+      "y": 150,
+      "radius": 48,
+      "color": "#d04820",
+      "alpha": 0.14
+    }
+  ],
+  "fog": true,
+  "wet": false,
+  "source": "Superpowers lava field + lava rock; custom lava band, arch and ash",
+  "fogColor": "#e07038"
+}

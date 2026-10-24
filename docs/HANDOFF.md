@@ -1,12 +1,12 @@
 # KARNAGE — handoff
 
-Дата: 2026-10-24.
+Дата: 2026-10-25.
 Проект: `C:\OpenCode\Game\karnage-game`.
 Репозиторий: `https://github.com/DarkDaro/karnage.git`.
 Ветка: `main`.
 Последний коммит: см. `git log -1`.
 `origin/main` совпадает с локальной веткой.
-После коммита в рабочем дереве: слоёные «Док» и «Храм призраков», модуль `src/game/world/arena.js`.
+В рабочем дереве без коммита: 10 слоёных арен, `src/game/world/arena.js`, `src/game/core/state.js`, `src/game/fx/particles.js`, `src/game/fighter.js`, `src/game/combat.js`, `src/game/input.js`.
 
 ## С чего начать в новом чате
 
@@ -28,7 +28,7 @@
 - 13 бойцов, 10 арен, аркада, VS CPU, 2P, суперы, фаталити.
 - Процедурные бойцы; спрайты Аямэ не подключены.
 - CC0-эффекты: `hitLight`, `hitHeavy`, `dust`.
-- «Док» и «Храм призраков» — 4 слоя, параллакс, дождь, туман, свечи.
+- Все 10 арен — 4 слоя, параллакс, свет, туман и погода; передний слой не закрывает бойцов.
 - Звук по умолчанию выключен; настройки или `?sound=1` включают, выбор сохраняется.
 - Тесты: 33 сценария (unit + Playwright).
 - `npm run check`: синтаксис, ESLint, UTF-8/BOM, ростер, checksums архивов.
@@ -54,9 +54,13 @@
 - touch-управление, safe-area и мобильный canvas;
 - damage scaling, броски `P+K` и special cancel;
 - FX: block, smoke, dustRun, fireImpact, iceImpact, shadowImpact, explosion;
-- арены «Кладбище» и «Додзё клинка» на ассетах с fallback;
-- «Док» и «Храм призраков» переведены на `far/mid/props/fg`, свет и погоду;
+- все 10 арен на ассетах с fallback, слои `far/mid/props/fg`, свет и погода;
 - `src/game/world/arena.js` вынесен из монолита;
+- `src/game/core/state.js` хранит состояние сессии, боя, выбора и эффектов;
+- `src/game/fx/particles.js` отвечает за частицы, кровь, декали и лимиты;
+- `src/game/fighter.js` хранит `ATK`, `WM`, `hitR` и фабрику бойца `createFighter`;
+- `src/game/combat.js` хранит `resolveHit`, `autoHit` и спад урона в комбо;
+- `src/game/input.js` хранит `keys`, `TOUCH`, `Ctrl`, `KM1`, `KM2` и буфер ввода;
 - UI: 9-slice панель и кнопка из Kenney; HUD/таймер, строки и иконки настроек;
 - Вега: женский силуэт, хвост с лентой, серьга, губы, ресницы и боевая юбка;
 - low/high-блок, пропуск фаталити/победы и таймер FINISH HIM;
@@ -89,21 +93,20 @@ npm run assets:build
 
 Приоритет:
 
-1. Остальные арены на слои и ассеты.
+1. Разбор `src/game/karnage.js`: после `core/state`, `fx/particles`, `game/fighter`, `game/combat` и `game/input` — `render`, `audio`, `screens`.
 2. UI-кит: иконки и экран настроек.
 3. Проверка мобилки на реальных iOS/Android.
 4. Аркада: сохранение прогресса, дедупликация рекордов, финальный босс.
-5. Портреты и кэш.
-6. Разбор `src/game/karnage.js`: `core/state`, затем `fx/particles`.
-7. После разборки убрать `default`-заглушки, маскирующие отсутствие ветки персонажа.
+5. Портреты и кэш отрисовки.
+6. После разборки убрать `default`-заглушки, маскирующие отсутствие ветки персонажа.
 
 ## Известные ограничения
 
 - `src/game/karnage.js` — обёртка монолита, не финальная архитектура.
 - `fx.hitHeavy` используется только при уроне > 15, чтобы не перекрывать обычный удар.
 - `fx.dust` пока только при приземлении.
-- `fx.whiff`, `fx.super` и остальные арены не подключены.
-- «Кладбище» и «Додзё» пока без параллакса: фон собран в один `bg.png`.
+- `fx.whiff` и `fx.super` пока не подключены.
+- У «Каменоломни» и «Ледника» средний план ещё можно насытить деталями; сейчас добавлены промышленный горизонт и аврора/ледяные стены.
 - У бросков пока нет техбрейка; special cancel работает только по попаданию.
 - `assets/vendor/*/extracted/` не в git; распаковывается из `pack.zip`.
 - `release/` генерируется, вручную не править.
@@ -126,9 +129,12 @@ npm run assets:build
 ## Ассеты
 
 - `assets/fx` — готовые атласы.
-- `assets/arenas/0`, `assets/arenas/1` — слоёные «Док» и «Храм призраков».
-- `assets/arenas/4`, `assets/arenas/9` — однослойные «Додзё» и «Кладбище».
+- `assets/arenas/0`–`assets/arenas/9` — все арены в четырёх слоях.
 - `src/game/world/arena.js` — слои, свет, туман, погода.
+- `src/game/core/state.js` — состояние сессии и боя.
+- `src/game/fx/particles.js` — частицы и декали.
+- `src/game/fighter.js` — таблица атак, походки и боец `F`.
+- `src/game/combat.js` — урон, блок, комбо и статистика боя.
 - `assets/vendor` — CC0 zip + `LICENSE.txt` + `SOURCE.md`.
 - `assets/fx/fx.json` — человекочитаемые метаданные.
 - `src/assets/arena-manifest.js` — статический манифест арен.

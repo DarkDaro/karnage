@@ -1,0 +1,68 @@
+{
+  "name": "ЛЕДНИК",
+  "width": 848,
+  "floor": 206,
+  "bg": "far.png",
+  "props": "props.png",
+  "layers": [
+    {
+      "file": "far.png",
+      "scroll": 0.12,
+      "y": 0
+    },
+    {
+      "file": "mid.png",
+      "scroll": 0.38,
+      "y": 0
+    },
+    {
+      "file": "props.png",
+      "scroll": 0.82,
+      "y": 0
+    },
+    {
+      "file": "fg.png",
+      "scroll": 1.15,
+      "y": 0,
+      "foreground": true
+    }
+  ],
+  "ambient": [
+    {
+      "type": "snow",
+      "every": 2
+    },
+    {
+      "type": "motes",
+      "every": 24,
+      "color": "rgba(200,230,255,.18)"
+    }
+  ],
+  "lights": [
+    {
+      "x": 676,
+      "y": 46,
+      "radius": 96,
+      "color": "#c8e0f0",
+      "alpha": 0.12
+    },
+    {
+      "x": 110,
+      "y": 174,
+      "radius": 62,
+      "color": "#70b0d0",
+      "alpha": 0.14
+    },
+    {
+      "x": 580,
+      "y": 164,
+      "radius": 72,
+      "color": "#70b0d0",
+      "alpha": 0.14
+    }
+  ],
+  "fog": true,
+  "wet": true,
+  "source": "Superpowers snow hills + ice cave; Kenney frozen pine and custom ice spikes",
+  "fogColor": "#b8d8f0"
+}
