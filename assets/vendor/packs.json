@@ -57,5 +57,54 @@
     "keep": ["PNG/**", "License.txt"],
     "ignore": ["__MACOSX/**", ".DS_Store"],
     "max_mb": 20
+  },
+  "kenney-impact-sounds": {
+    "page": "https://kenney.nl/assets/impact-sounds",
+    "license": "CC0",
+    "keep": ["**/*.ogg", "**/*.wav", "**/*.mp3", "**/License.txt", "**/license.txt"],
+    "ignore": ["__MACOSX/**", ".DS_Store", "**/*.png", "**/*.psd"],
+    "max_mb": 5
+  },
+  "kenney-interface-sounds": {
+    "page": "https://kenney.nl/assets/interface-sounds",
+    "license": "CC0",
+    "keep": ["**/*.ogg", "**/*.wav", "**/*.mp3", "**/License.txt", "**/license.txt"],
+    "ignore": ["__MACOSX/**", ".DS_Store", "**/*.png", "**/*.psd"],
+    "max_mb": 5
+  },
+  "kenney-rpg-audio": {
+    "page": "https://kenney.nl/assets/rpg-audio",
+    "license": "CC0",
+    "keep": ["**/*.ogg", "**/*.wav", "**/*.mp3", "**/License.txt", "**/license.txt"],
+    "ignore": ["__MACOSX/**", ".DS_Store", "**/*.png", "**/*.psd"],
+    "max_mb": 5
+  },
+  "kenney-sci-fi-sounds": {
+    "page": "https://kenney.nl/assets/sci-fi-sounds",
+    "license": "CC0",
+    "keep": ["**/*.ogg", "**/*.wav", "**/*.mp3", "**/License.txt", "**/license.txt"],
+    "ignore": ["__MACOSX/**", ".DS_Store", "**/*.png", "**/*.psd"],
+    "max_mb": 12
+  },
+  "kenney-ui-audio": {
+    "page": "https://kenney.nl/assets/ui-audio",
+    "license": "CC0",
+    "keep": ["**/*.ogg", "**/*.wav", "**/*.mp3", "**/License.txt", "**/license.txt"],
+    "ignore": ["__MACOSX/**", ".DS_Store", "**/*.png", "**/*.psd"],
+    "max_mb": 5
+  },
+  "kenney-music-jingles": {
+    "page": "https://kenney.nl/assets/music-jingles",
+    "license": "CC0",
+    "keep": ["**/*.ogg", "**/*.wav", "**/*.mp3", "**/License.txt", "**/license.txt"],
+    "ignore": ["__MACOSX/**", ".DS_Store", "**/*.png", "**/*.psd"],
+    "max_mb": 5
+  },
+  "kenney-digital-audio": {
+    "page": "https://kenney.nl/assets/digital-audio",
+    "license": "CC0",
+    "keep": ["**/*.ogg", "**/*.wav", "**/*.mp3", "**/License.txt", "**/license.txt"],
+    "ignore": ["__MACOSX/**", ".DS_Store", "**/*.png", "**/*.psd"],
+    "max_mb": 5
   }
 }

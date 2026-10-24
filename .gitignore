@@ -6,6 +6,17 @@ playwright-report/
 .cache/
 assets/vendor/*/extracted/
 assets/vendor/*/selected/
+# исходники аудио остаются локально; в git идут только WAV/MP3 из assets/audio
+assets/vendor/kenney-impact-sounds/
+assets/vendor/kenney-interface-sounds/
+assets/vendor/kenney-rpg-audio/
+assets/vendor/kenney-sci-fi-sounds/
+assets/vendor/kenney-ui-audio/
+assets/vendor/kenney-music-jingles/
+assets/vendor/kenney-digital-audio/
+assets/vendor/audio-source-ogg/
+# копия аудио в release собирается из assets/audio
+release/assets/audio/
 *.log
 .env
 .env.*
