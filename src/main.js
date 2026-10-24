@@ -1,6 +1,10 @@
+import { loadArenaAssets } from './assets/arena.js';
 import { loadFxAssets } from './assets/fx.js';
 import { startKarnage } from './game/karnage.js';
 
-loadFxAssets()
-  .then((assets) => startKarnage(assets))
-  .catch(() => startKarnage({}));
+Promise.all([
+  loadFxAssets().catch(() => ({})),
+  loadArenaAssets().catch(() => ({}))
+])
+  .then(([fxAssets, arenaAssets]) => startKarnage(fxAssets, arenaAssets))
+  .catch(() => startKarnage({}, {}));

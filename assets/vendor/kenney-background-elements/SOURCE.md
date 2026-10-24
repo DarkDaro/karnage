@@ -1,0 +1,5 @@
+# Kenney — Background Elements Remastered
+
+License: CC0
+Source: https://kenney.nl/media/pages/assets/background-elements-remastered/7b034822ed-1774771758/kenney_background-elements-remastered.zip
+Downloaded: 2026-10-24

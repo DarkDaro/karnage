@@ -415,6 +415,130 @@ test('settings open from the main menu and persist video toggles', async () => {
   assert.equal(result.closed, 'menu');
 });
 
+test('combo damage scales and resets with the combo window', async () => {
+  const result = await page.evaluate(() => {
+    const K = window.KARNAGE;
+    K.setDebug({ GAME: 'fight', paused: false });
+    K.newBattle(0, new K.Ctrl(K.KM1), 1, new K.Ctrl(K.KM2), 9);
+    const battle = K.battle;
+    battle.mode = '2p';
+    battle.phase = 'fight';
+    battle.phaseT = 200;
+    const hit = (combo, comboT) => {
+      battle.p1.combo = combo;
+      battle.p1.comboT = comboT;
+      battle.p2.hp = 100;
+      battle.p2.state = 'idle';
+      battle.p2.defeated = 0;
+      battle.p2.invuln = 0;
+      battle.p2.frozen = 0;
+      K.resolveHit(battle.p1, battle.p2, 10, {});
+      return 100 - battle.p2.hp;
+    };
+    return {
+      first: hit(0, 99),
+      third: hit(2, 0),
+      long: hit(8, 0),
+      reset: hit(5, 60)
+    };
+  });
+  assert.equal(result.first, 10);
+  assert.ok(result.third < result.first && result.third > result.long);
+  assert.equal(result.long, 5.5);
+  assert.equal(result.reset, 10);
+});
+
+test('throws beat block but miss crouching targets', async () => {
+  const result = await page.evaluate(() => {
+    const K = window.KARNAGE;
+    K.setDebug({ GAME: 'fight', paused: false });
+    K.newBattle(0, new K.Ctrl(K.KM1), 1, new K.Ctrl(K.KM2), 9);
+    const battle = K.battle;
+    battle.mode = '2p';
+    battle.phase = 'fight';
+    battle.phaseT = 200;
+    battle.p1.x = 300;
+    battle.p2.x = 330;
+    battle.p1.face = 1;
+    battle.p2.face = -1;
+    const reset = (state) => {
+      battle.p1.combo = 0;
+      battle.p1.comboT = 99;
+      battle.p2.hp = 100;
+      battle.p2.state = state;
+      battle.p2.defeated = 0;
+      battle.p2.invuln = 0;
+      battle.p2.blockLow = 0;
+      battle.p2.y = 214;
+      battle.p2.vy = 0;
+    };
+    reset('block');
+    const blockResult = K.resolveHit(battle.p1, battle.p2, 12, { throw: 1, knock: 1 });
+    const blocked = { result: blockResult, hp: battle.p2.hp, state: battle.p2.state };
+    reset('block');
+    const normal = K.resolveHit(battle.p1, battle.p2, 12, {});
+    const normalBlock = { result: normal, hp: battle.p2.hp, state: battle.p2.state };
+    reset('crouch');
+    battle.p1.startAtk('throw');
+    for (let i = 0; i < 8; i += 1) battle.p1.update(100 + i, battle.p2);
+    const crouch = { hp: battle.p2.hp, state: battle.p2.state, hit: battle.p1.atk?.hit || 0 };
+    reset('idle');
+    battle.p1.startAtk('throw');
+    for (let i = 0; i < 8; i += 1) battle.p1.update(120 + i, battle.p2);
+    const standing = { hp: battle.p2.hp, state: battle.p2.state, hit: battle.p1.atk?.hit || 0 };
+    return { blocked, normalBlock, crouch, standing };
+  });
+  assert.deepEqual(result.blocked, { result: 'hit', hp: 88, state: 'down' });
+  assert.deepEqual(result.normalBlock, { result: 'block', hp: 99, state: 'block' });
+  assert.equal(result.crouch.hp, 100);
+  assert.equal(result.crouch.hit, 0);
+  assert.ok(result.standing.hp < 100);
+  assert.equal(result.standing.hit, 1);
+});
+
+test('special cancel works only after a connected hit', async () => {
+  const result = await page.evaluate(() => {
+    const K = window.KARNAGE;
+    K.setDebug({ GAME: 'fight', paused: false });
+    K.newBattle(0, new K.Ctrl(K.KM1), 1, new K.Ctrl(K.KM2), 9);
+    const battle = K.battle;
+    battle.mode = '2p';
+    battle.phase = 'fight';
+    battle.phaseT = 200;
+    battle.p1.x = 300;
+    battle.p2.x = 330;
+    battle.p1.face = 1;
+    battle.p2.state = 'idle';
+    const run = (connected, blocked) => {
+      battle.p1.state = 'atk';
+      battle.p1.st = K.ATK.punch.wd + K.ATK.punch.ac + 2;
+      battle.p1.atk = {
+        t: 'punch',
+        A: K.ATK.punch,
+        hit: 1,
+        blocked,
+        connected,
+        cancel: 0
+      };
+      battle.p1.ctrl.buf = [
+        { k: 'D', t: 100 },
+        { k: 'R', t: 102 },
+        { k: 'P', t: 104 }
+      ];
+      battle.p1.update(110, battle.p2);
+      return battle.p1.state;
+    };
+    return {
+      hit: run(1, 0),
+      block: run(0, 1),
+      whiff: run(0, 0)
+    };
+  });
+  assert.equal(result.hit, 'cast');
+  assert.equal(result.block, 'atk');
+  assert.equal(result.whiff, 'atk');
+});
+
 test('settings load from storage on reload', async () => {
   await page.evaluate(() => {
     localStorage.setItem('karnageOpts', JSON.stringify({ crt: false, blood: false, shake: false, reduce: true }));

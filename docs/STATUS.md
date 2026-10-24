@@ -68,7 +68,7 @@
 
 ### Тесты и аудит
 
-- `npm test` — 26 тестов: unit + Playwright.
+- `npm test` — 30 тестов: unit + Playwright.
 - `npm run test:unit` — ростер, комбинации, фаталити, арены.
 - `npm run test:e2e` — экраны, все бойцы, все фаталити, root/release с диска.
 - Регрессии: относительный ввод, finish lock, KO lock, двойной KO, лимит раундов, `netT`/`autoHit`, битый зал славы, `spec2go`.
@@ -89,11 +89,11 @@
 
 ### Блокеры препродакшена
 
-- Нет touch и геймпада.
+- Нет touch-управления.
 - Портреты обрезают рога Базальта, нимб Веги и корону Кармин.
-- Нет damage scaling, бросков и special cancel.
 - Пропуск катсцен и таймер FINISH HIM уже добавлены.
 - Low/high-блок, blockstun и wakeup уже добавлены.
+- Damage scaling, броски и special cancel уже добавлены.
 
 ### Интерфейс и режимы
 
@@ -104,6 +104,7 @@
 ### Уже закрыто в техническом проходе
 
 - настройки в главном меню: звук, голос, громкость, CRT, кровь, тряска и reduce motion;
+- damage scaling, броски `P+K` и special cancel;
 - Вега получила женский силуэт, хвост с лентой, серьгу и боевую юбку;
 - announce/wipe первого раунда ждут боевой экран;
 - `drawFx` больше не спавнит частицы в рендере;
@@ -122,10 +123,12 @@
 
 - `docs/ASSETS.md` — бриф по окружению и эффектам.
 - Персонажи остаются процедурными; спрайт-лист Аямэ не подключается.
-- Пилот подключён: `hitLight`, `hitHeavy`, `dust`.
+- Подключено 10 FX: `hitLight`, `hitHeavy`, `dust`, `block`, `smoke`, `dustRun`, `fireImpact`, `iceImpact`, `shadowImpact`, `explosion`.
+- Арена «Кладбище» собрана из GothicVania Cemetery, fallback на процедурную.
 - Исходники: `assets/vendor` (zip + лицензии), распакованные `extracted/` вне git.
+- Скачаны универсальные Kenney-паки: particle, light masks, splat, UI, input prompts, items, pixel platformer, backgrounds.
 - Снимок: `archive/2026-10-24-fx-pilot`, `archive/2026-10-24-final-tails`.
-- Следующий шаг: `fx.block`/`fx.smoke` или кладбище на GothicVania.
+- Следующий шаг: UI-кит на Kenney Fantasy UI/RPG и остальные арены.
 
 ### Архитектура
 
@@ -181,8 +184,9 @@ npm run dev
 
 ## Следующий порядок работ
 
-1. Сделать damage scaling, броски и special cancel.
-2. Добавить touch и геймпад.
-3. Починить портреты с высоким гиром.
-4. Добавить финального босса, сохранение аркады и нормальный зал славы.
-5. Разобрать `src/game/karnage.js` на модули.
+1. Собрать UI-кит на Kenney Fantasy UI/RPG.
+2. Добавить touch-управление и мобильный адаптив.
+3. Перенести остальные арены на ассеты.
+4. Добавить сохранение аркады, рекорды и финального босса.
+5. Починить портреты и кэш.
+6. Разобрать `src/game/karnage.js` на модули.

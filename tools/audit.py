@@ -131,7 +131,7 @@ def check_comments(path: Path, text: str, warnings: list[str]) -> None:
 
 
 def check_service_files(errors: list[str]) -> None:
-    skip = {"node_modules", ".git", "release", "test-results"}
+    skip = {"node_modules", ".git", "release", "test-results", "vendor"}
     for path in ROOT.rglob("*"):
         if any(part in skip for part in path.parts):
             continue
@@ -177,7 +177,7 @@ TEXT_NAMES = {".gitignore", ".gitattributes", ".editorconfig"}
 
 
 def text_files() -> list[Path]:
-    skip = {"node_modules", ".git", "test-results"}
+    skip = {"node_modules", ".git", "test-results", "vendor"}
     out: list[Path] = []
     for path in ROOT.rglob("*"):
         if any(part in skip for part in path.parts):

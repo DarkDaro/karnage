@@ -28,6 +28,12 @@
 - Добавлены пропуск фаталити/победы, таймер FINISH HIM и low/high-блок.
 - Добавлены настройки в главном меню: звук, голос, громкость, CRT, кровь, тряска и reduce motion; выбор сохраняется.
 - Доработан дизайн Веги: женский силуэт, длинный хвост с лентой, серьга, губы, ресницы и боевая юбка.
+- Добавлен damage scaling: спад урона в серии до 55%.
+- Добавлены броски `P+K`: обход блока, нокдаун, запрет на присед и прыжок.
+- Добавлен special cancel: отмена обычной атаки в спец после попадания.
+- Добавлены FX: block, smoke, dustRun, fireImpact, iceImpact, shadowImpact, explosion.
+- Добавлена арена «Кладбище» на ассетах GothicVania Cemetery с fallback.
+- Скачаны универсальные CC0-паки Kenney: particle, light masks, splat, UI, input prompts, items, pixel platformer, backgrounds.
 - Добавлен `docs/HANDOFF.md` для старта нового чата.
 - Снимок: `archive/2026-10-24-handoff`, `archive/2026-10-24-final-tails`.
 - GitHub Pages: https://darkdaro.github.io/karnage/ — страница запущена и проверена.

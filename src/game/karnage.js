@@ -1,9 +1,9 @@
 import { CH } from '../data/characters.js';
 import { AR, initArenas } from '../data/arenas.js';
 
-export function startKarnage(fxAssets = {}) {
+export function startKarnage(fxAssets = {}, arenaAssets = {}) {
 const RW=424,RH=240,FL=206,AW=760,GR=8,OUT='#0e0b08';
-const FX=fxAssets||{};
+const FX=fxAssets||{},ARENA_IMG=arenaAssets||{};
 const cv=document.getElementById('cv'),g=cv.getContext('2d');
 function fit(){let s=Math.min(innerWidth/RW,innerHeight/RH);s=s>=1?Math.floor(s):s;cv.style.width=s*RW+'px';cv.style.height=s*RH+'px';}
 addEventListener('resize',fit);fit();
@@ -91,7 +91,8 @@ clear(){this.buf.length=0;}}
 /* ВТОРЫЕ СПЕЦПРИЁМЫ (08.09): по одному на бойца, ввод — 3 кнопки */
 /* АРЕНЫ */
 ;
-function drawArena(ai,cam,t){const A=AR[ai];
+function drawArena(ai,cam,t){const A=AR[ai],AS=ARENA_IMG[ai];
+if(AS&&AS.ready){g.drawImage(AS.image,0,0,RW,RH);if(AS.props)g.drawImage(AS.props,0,0,RW,RH);const fg=g.createLinearGradient(0,FL-26,0,FL);fg.addColorStop(0,'rgba(178,188,208,0)');fg.addColorStop(1,'rgba(178,188,208,.08)');g.fillStyle=fg;g.fillRect(0,FL-26,RW,26);const gr=g.createLinearGradient(0,FL,0,RH);gr.addColorStop(0,A.gr);gr.addColorStop(1,shade(A.gr,.55));g.fillStyle=gr;g.fillRect(0,FL,RW,RH-FL);g.fillStyle=mix(A.gr,'#fff',.14);g.fillRect(0,FL,RW,1);g.fillStyle='rgba(0,0,0,.25)';g.fillRect(0,FL,RW,2);return;}// 24.10: пилот арены на ассетах
 const sky=g.createLinearGradient(0,0,0,FL);// 08.09: небо градиентом вместо плоских полос
 sky.addColorStop(0,A.sky[0]);sky.addColorStop(.45,A.sky[1]);sky.addColorStop(.75,A.sky[2]);sky.addColorStop(1,A.sky[3]);
 g.fillStyle=sky;g.fillRect(0,0,RW,FL+1);
@@ -143,7 +144,8 @@ if(A.ember&&FRAME%3===0)parts.push({x:cam+rnd(0,RW),y:FL+rnd(-4,10),vx:rnd(-.3,.
 if(A.rain&&Math.random()<.004){flashS=Math.max(flashS,3);SFX.thunder();}}// 08.09: молния и гром на грозовой арене
 /* ЧАСТИЦЫ */
 let parts=[],projs=[],decals=[],fx=[];
-function spriteFx(name,x,y,opts){const a=FX[name];if(!a||!a.ready)return false;opts=opts||{};const frames=a.frames||1;const fps=a.fps||30;fx.push({ty:'sprite',img:a.image,x,y,t:0,dur:Math.max(1,Math.round(frames*60/fps)),frames,frameW:a.frameWidth,frameH:a.frameHeight,anchor:a.anchor||[a.frameWidth/2,a.frameHeight/2],blend:a.blend||'source-over',scale:opts.scale??a.scale??1,alpha:opts.alpha??a.alpha??1});return true;}
+function spriteFx(name,x,y,opts){const a=FX[name];if(!a||!a.ready)return false;opts=opts||{};const frames=a.frames||1;const fps=a.fps||30;if(fx.length>40)fx.splice(0,fx.length-40);fx.push({ty:'sprite',img:a.image,x,y,t:0,dur:Math.max(1,Math.round(frames*60/fps)),frames,frameW:a.frameWidth,frameH:a.frameHeight,anchor:a.anchor||[a.frameWidth/2,a.frameHeight/2],blend:a.blend||'source-over',scale:opts.scale??a.scale??1,alpha:opts.alpha??a.alpha??1});return true;}
+function impactFx(ty,x,y,color){if(ty==='ice'||(ty==='shard'&&(color==='#c8ecff'||color==='#9adcee')))return spriteFx('iceImpact',x,y,{scale:.8,alpha:.9});if(ty==='shadow'||(ty==='shard'&&(color==='#7a3aa8'||color==='#b89aff')))return spriteFx('shadowImpact',x,y,{scale:.8,alpha:.8});if(ty==='fire'||(ty==='shard'&&(color==='#f06020'||color==='#f8d060')))return spriteFx('fireImpact',x,y,{scale:.8,alpha:.85});return false;}
 function P(x,y,vx,vy,c,l,s,gv){if(!OPT.blood&&c==='#b01818')return;parts.push({x,y,vx,vy,c,l:l||30,s:s||2,gv:gv===undefined?.3:gv});}
 function blood(x,y,n,pw){if(!OPT.blood)return;for(let i=0;i<n;i++)P(x,y,rnd(-2.5,2.5)*(pw||1),rnd(-4,1),'#b01818',rnd(20,50),rnd(1,3));}
 function updParts(){for(let i=parts.length;i--;){const p=parts[i];p.x+=p.vx;p.y+=p.vy;p.vy+=p.gv;p.l--;
@@ -154,14 +156,14 @@ for(let i=decals.length;i--;){const dd=decals[i];dd.t++;if(dd.t>dd.l)decals.spli
 if(decals.length>240)decals.splice(0,decals.length-240);if(parts.length>400)parts.splice(0,parts.length-400);}
 function drawParts(cam){for(const p of parts){g.fillStyle=p.c;if(p.line)g.fillRect(p.x-cam,p.y,1,6);else g.fillRect(p.x-cam-p.s/2,p.y-p.s/2,p.s,p.s);}}
 /* БОЕЦ */
-const ATK={punch:{d:6,wd:5,ac:3,rc:8,rng:28,hh:.72},kick:{d:9,wd:7,ac:4,rc:11,rng:36,hh:.6},upper:{d:15,wd:6,ac:4,rc:15,rng:24,hh:.5,launch:1},sweep:{d:10,wd:6,ac:3,rc:13,rng:38,hh:.12,low:1},jkick:{d:10,wd:4,ac:8,rc:20,rng:34,hh:.4,overhead:1},rh:{d:12,wd:8,ac:4,rc:15,rng:40,hh:.55,knock:1}};// 30.09: восстановления короче на 1 кадр — бой цепляется живее// 08.09: roundhouse — тяжёлый удар с нокдауном
+const ATK={punch:{d:6,wd:5,ac:3,rc:8,rng:28,hh:.72},kick:{d:9,wd:7,ac:4,rc:11,rng:36,hh:.6},upper:{d:15,wd:6,ac:4,rc:15,rng:24,hh:.5,launch:1},sweep:{d:10,wd:6,ac:3,rc:13,rng:38,hh:.12,low:1},jkick:{d:10,wd:4,ac:8,rc:20,rng:34,hh:.4,overhead:1},rh:{d:12,wd:8,ac:4,rc:15,rng:40,hh:.55,knock:1},throw:{d:12,wd:6,ac:2,rc:24,rng:34,hh:.55,throw:1,knock:1}};// 30.09: восстановления короче на 1 кадр — бой цепляется живее// 08.09: roundhouse — тяжёлый удар с нокдауном
 const ZEROC={l:0,r:0,u:0,d:0,P:0,K:0,B:0,pP:0,pK:0,pl:0,pr:0,pu:0,pd:0};// 08.09: пустой ввод для интро
 class F{
 constructor(def,ctrl){this.def=def;this.ctrl=ctrl;this.wins=0;this.rage=0;this.aiDir=null;this.reset(200,1);}
 reset(x,face){this.x=x;this.y=FL+GR;this.vx=0;this.vy=0;this.face=face;this.state='idle';this.st=0;this.hp=100;this.atk=null;this.frozen=0;this.netT=0;this.invis=0;this.invuln=0;this.poison=0;this.charred=0;this.hidden=0;this.tilt=0;this.run=100;this.running=0;this.hpLag=100;this.lastTap=-99;this.tapDir=0;this.animT=0;this.squash=1;this.scale=1;this.flash=0;this.jbuf=0;this.abuf=0;this.abufB='punch';this.dodging=0;this.dvx=0;this.marks=[];this.poisonC=null;this.spec2go=0;this.combo=0;this.comboT=99;this.pale=0;this.defeated=0;this.damageTaken=0;this.armor=0;this.blockStun=0;this.blockLow=0;this.ctrl.clear();}
 get onGround(){return this.y>=FL+GR-.5;}
 get box(){const d=this.def,bh=(this.state==='crouch')?d.h*.55:d.h;return{x:this.x-9*d.bulk,y:this.y-bh,w:18*d.bulk,h:bh};}
-startAtk(t){this.state='atk';this.st=0;this.atk={t,A:ATK[t],hit:0};this.invis=0;this.spec2go=0;SFX.swing();}// 08.09: атака пробивает невидимость
+startAtk(t){this.state='atk';this.st=0;this.atk={t,A:ATK[t],hit:0,blocked:0,connected:0,cancel:0};this.invis=0;this.spec2go=0;if(!battle||battle.phase==='fight')this.ctrl.buf.length=0;SFX.swing();}// 08.09: атака пробивает невидимость; 24.10: буфер очищается для special cancel только в бою
 update(FR,foe){const d=this.def,c=(battle&&battle.phase==='intro')?ZEROC:this.ctrl;const stunned=this.blockStun>0;if(stunned)this.blockStun--;// 08.09: в интро ввод заблокирован, но бойцы дышат
 this.animT++;this.st++;this.flash=Math.max(0,this.flash-1);this.squash=lerp(this.squash,1,.12);this.hpLag=Math.max(this.hp,this.hpLag-.4);// 08.09: отстающий бар урона + восстановление сквоша
 if(this.defeated){this.tilt=lerp(this.tilt,this.state==='dizzy'?0:-1.4,.2);return;}
@@ -179,7 +181,7 @@ if(!c.l&&!c.r)this.running=0;
 if(this.onGround){if((c.pl||c.pr)&&FR-this.lastTap<16&&this.tapDir===(c.pl?-1:1)&&this.run>10){this.running=c.pl?-1:1;SFX.swing();for(let i=0;i<4;i++)P(this.x,FL+GR-3,rnd(-1,1),rnd(-1.4,-.3),'#9a9080',14,2,.06);}// 08.09: пыль при рывке
 if(c.pl||c.pr){this.lastTap=FR;this.tapDir=c.pl?-1:1;}}
 this.vx=mv*(this.running?d.spd*2.3:d.spd);
-if(this.running&&this.onGround&&FR%4===0)P(this.x-this.running*8,FL+GR-2,-this.running*rnd(.2,.6),rnd(-1,-.2),'#9a9080',16,1,.05);// 08.09: пыль от бега
+if(this.running&&this.onGround&&FR%4===0){P(this.x-this.running*8,FL+GR-2,-this.running*rnd(.2,.6),rnd(-1,-.2),'#9a9080',16,1,.05);if(FR%12===0)spriteFx('dustRun',this.x-this.running*8,FL+GR,{scale:.9,alpha:.35});}// 08.09: пыль от бега; 24.10: спрайтовая пыль
 else if(this.state==='walk'&&this.onGround&&FR%Math.max(8,Math.round(3.5/(WM[d.id]?WM[d.id][0]:.22)))===0)SFX.step();// 30.09: каденс шагов от походки
 if(mv&&this.onGround&&this.state==='idle')this.state='walk';
 if(!mv&&this.state==='walk')this.state='idle';
@@ -193,6 +195,7 @@ if(!stunned&&['idle','walk','crouch','block'].includes(this.state)&&this.onGroun
 if(this.rage>=100&&this.ctrl.match('DDP',60))this.startSuper();
 else if(this.ctrl.matchRel(d.spec,this.face,60))this.startSpec(foe);
 else if(this.ctrl.matchRel(d.spec2,this.face,60))this.startSpec2(foe);// 08.09: второй спецприём
+else if(c.pP&&c.pK)this.startAtk('throw');// 24.10: бросок P+K
 else if(btn==='P')this.startAtk(c.d?'upper':'punch');else if(c.d)this.startAtk('sweep');else this.startAtk(((c.l&&!c.r&&this.face>0)||(c.r&&!c.l&&this.face<0))?'rh':'kick');}// 08.09: назад+нога = roundhouse
 if(this.state==='jump'&&(c.pP||c.pK)){if(this.ctrl.matchRel(d.spec,this.face,60))this.startSpec(foe);else if(this.ctrl.matchRel(d.spec2,this.face,60))this.startSpec2(foe);else this.startAtk('jkick');}}// 08.09: спец Вольта (DUP) перехватывался прыжком — теперь комбо проверяется в воздухе
 else this.vx*=.98;
@@ -211,9 +214,10 @@ const dx=this.x-foe.x;if(Math.abs(dx)<16&&Math.abs(this.y-foe.y)<40){const push=
 if(['idle','walk','crouch','block'].includes(this.state))this.face=foe.x<this.x?-1:1;
 if(this.state==='atk'&&this.atk){const A=this.atk.A;
 if(c.pP){this.abuf=8;this.abufB='punch';}else if(c.pK){this.abuf=8;this.abufB=c.d?'sweep':'kick';}else if(this.abuf>0)this.abuf--;// 30.09: буфер атаки 8 кадров
-if(this.st>A.wd&&this.st<=A.wd+A.ac&&!this.atk.hit&&foe.state!=='down'){const hb=this.atkBox();if(hb&&hitR(hb,foe.box)){this.atk.hit=1;resolveHit(this,foe,A.d,{launch:A.launch,low:A.low,overhead:A.overhead});}}
+if(this.st>A.wd&&this.st<=A.wd+A.ac&&!this.atk.hit&&foe.state!=='down'){const hb=this.atkBox();if(hb&&hitR(hb,foe.box)&&(!A.throw||(foe.onGround&&['idle','walk','block'].includes(foe.state)))){const res=resolveHit(this,foe,A.d,{launch:A.launch,low:A.low,overhead:A.overhead,throw:A.throw,knock:A.knock});this.atk.hit=1;this.atk.blocked=res==='block'?1:0;this.atk.connected=res==='hit'?1:0;}}
 if(this.st===A.wd+A.ac&&!this.atk.hit)SFX.whiff();// 30.09: свист промаха
-if(this.st>A.wd+A.ac+A.rc){if(this.abuf>0&&this.onGround){this.abuf=0;this.startAtk(this.abufB);}// 30.09: чейнинг из буфера
+if(this.atk.hit&&this.atk.connected&&!this.atk.blocked&&!this.atk.cancel&&!A.throw&&this.st>A.wd+A.ac&&this.st<=A.wd+A.ac+10&&this.onGround){if(this.ctrl.matchRel(d.spec,this.face,60)){this.atk.cancel=1;this.startSpec(foe);}else if(this.ctrl.matchRel(d.spec2,this.face,60)){this.atk.cancel=1;this.startSpec2(foe);}}// 24.10: special cancel только по попаданию
+if(this.state==='atk'&&this.st>A.wd+A.ac+A.rc){if(this.abuf>0&&this.onGround){this.abuf=0;this.startAtk(this.abufB);}// 30.09: чейнинг из буфера
 else{this.state='idle';this.atk=null;}}}
 if(this.state==='cast'&&this.st===14){if(this.spec2go){this.fireSpec2(foe);this.spec2go=0;}else this.fireSpec(foe);}
 if(this.state==='cast'&&this.st>28)this.state='idle';
@@ -275,7 +279,8 @@ case 12:{this.marks=this.marks||[];if(this.marks.length){const m=this.marks.pop(
 else{this.x=clamp(foe.x-foe.face*30,20,AW-20);smoke(this.x,this.y-30);SFX.tele();if(foe.state!=='down')resolveHit(this,foe,5,{});}break;}// без меток — прыжок за спину с ударом
 default:projs.push({ty:'shard',c:'#f8d060',x,y,vx:this.face*2.4,vy:0,o:this,d:10,l:110,s:7,k:1});SFX.shoot();break;}}// Тяжёлый снаряд — медленный, валит
 updSuper(){if(this.state!=='super')return;for(const e of this.supEv)if(!e.done&&this.st>=e.t){e.done=1;e.fn();}if(this.st>this.superDur)this.state='idle';}}
-function smoke(x,y){for(let i=0;i<10;i++)P(x+rnd(-8,8),y+rnd(-20,10),rnd(-1,1),rnd(-1.5,-.2),'#889',30,3,-.02);}
+function smoke(x,y){spriteFx('smoke',x,y,{scale:.85,alpha:.4});for(let i=0;i<10;i++)P(x+rnd(-8,8),y+rnd(-20,10),rnd(-1,1),rnd(-1.5,-.2),'#889',30,3,-.02);}
+function comboScale(f){const chain=(f.comboT!==undefined&&f.comboT<60)?(f.combo||0):0;return Math.max(.55,1-chain*.07);}// 24.10: спад урона в длинной серии
 function autoHit(a,dmg){
 const f=a.foe;
 if(!f||f.hidden||f.dodging||f.defeated)return;
@@ -290,7 +295,7 @@ a.rage=Math.min(100,a.rage+1);f.rage=Math.min(100,f.rage+1);
 f.vx=a.face*2;f.hvx=0;SFX.block();
 for(let i=0;i<4;i++)P(f.x+f.face*8,f.y-f.def.h*.55,rnd(-1.5,1.5),rnd(-2,0),'#fff',10,2,0);
 return;}
-const d=dmg*a.def.dmg;
+let d=dmg*a.def.dmg*comboScale(a);
 f.hp=Math.max(0,f.hp-d);f.damageTaken=(f.damageTaken||0)+d;
 f.flash=4;f.state='hit';f.st=0;f.vx=0;f.hvx=0;f.atk=null;f.spec2go=0;f.invis=0;f.netT=0;f.combo=0;f.blockStun=0;
 if(f.frozen>0)f.frozen=0;
@@ -303,14 +308,15 @@ freeze=Math.max(freeze,3);if(f.hp<=0)freeze=Math.max(freeze,12);
 SFX.hit();}
 function hitR(a,b){return a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;}
 function resolveHit(att,def,dmg,opts){opts=opts||{};
-if(battle&&['finish','fatal','over','ko'].includes(battle.phase))return;
-if(def.defeated)return;
-if(def.armor>0){def.armor--;def.flash=4;SFX.block();return;}
+if(battle&&['finish','fatal','over','ko'].includes(battle.phase))return'miss';
+if(def.defeated)return'miss';
+if(def.armor>0){def.armor--;def.flash=4;SFX.block();return'miss';}
 if(def.state==='super'&&def.st<20)def.rage=Math.min(100,def.rage+50);
-if(def.invuln>0)return;if(def.dodging){for(let i=0;i<5;i++)P(def.x+rnd(-6,6),def.y-rnd(8,44),-att.face*rnd(.6,1.6),rnd(-1,-.2),'#9a9080',14,2,.03);SFX.whiff();return;}// 30.09: рывок сквозь удар — пыль и свист
-if(def.state==='block'&&!((opts.low&&!def.blockLow)||(opts.overhead&&def.blockLow))){def.hp=Math.max(1,def.hp-1);def.blockStun=6;def.damageTaken=(def.damageTaken||0)+1;SFX.block();att.rage=Math.min(100,att.rage+1);def.rage=Math.min(100,def.rage+1);def.vx=att.face*2;def.hvx=0;spriteFx('hitLight',def.x+def.face*8,def.y-def.def.h*.55,{scale:.65,alpha:.8});for(let i=0;i<4;i++)P(def.x+def.face*8,def.y-def.def.h*.55,rnd(-1.5,1.5),rnd(-2,0),'#fff',10,2,0);
-return;}
-let d=dmg*att.def.dmg;if(def.frozen>0){d*=1.4;def.frozen=0;for(let i=0;i<6;i++)P(def.x+rnd(-8,8),def.y-rnd(10,50),rnd(-2,2),rnd(-3,0),'#c8ecff',18,2,.04);}
+if(def.invuln>0)return'miss';if(def.dodging){for(let i=0;i<5;i++)P(def.x+rnd(-6,6),def.y-rnd(8,44),-att.face*rnd(.6,1.6),rnd(-1,-.2),'#9a9080',14,2,.03);SFX.whiff();return'miss';}// 30.09: рывок сквозь удар — пыль и свист
+if(opts.throw)def.blockStun=0;
+if(def.state==='block'&&!opts.throw&&!((opts.low&&!def.blockLow)||(opts.overhead&&def.blockLow))){def.hp=Math.max(1,def.hp-1);def.blockStun=6;def.damageTaken=(def.damageTaken||0)+1;SFX.block();att.rage=Math.min(100,att.rage+1);def.rage=Math.min(100,def.rage+1);def.vx=att.face*2;def.hvx=0;spriteFx('block',def.x+def.face*8,def.y-def.def.h*.55,{scale:.9,alpha:.9});for(let i=0;i<4;i++)P(def.x+def.face*8,def.y-def.def.h*.55,rnd(-1.5,1.5),rnd(-2,0),'#fff',10,2,0);
+return'block';}
+let d=dmg*att.def.dmg*comboScale(att);if(def.frozen>0){d*=1.4;def.frozen=0;for(let i=0;i<6;i++)P(def.x+rnd(-8,8),def.y-rnd(10,50),rnd(-2,2),rnd(-3,0),'#c8ecff',18,2,.04);}
 // 08.09: баланс Крио — урон по льду 1.6→1.4// 08.09: осколки льда при разбивании
 def.hp=Math.max(0,def.hp-d);if(def.hp<=0)freeze=Math.max(freeze,12);def.blockStun=0;def.damageTaken=(def.damageTaken||0)+d;def.netT=0;def.spec2go=0;def.atk=null;def.invis=0;
 att.combo=(att.comboT!==undefined&&att.comboT<60?att.combo:0)+1;att.comboT=0;if(def.combo>=3)SFX.cbreak();// 30.09: разрыв длинной серии звучит
@@ -328,7 +334,7 @@ freeze=def.hp<=0?Math.max(freeze,12):Math.max(freeze,Math.min(6,2+d*.25));
 if(opts.launch){def.vy=-8;def.vx=att.face*3;def.state='hit';def.st=0;def.hvx=att.face*3;SFX.upper();shake=5;}
 else if(def.hp<=0&&battle.phase==='fight'){def.state='hit';def.st=0;def.hvx=att.face*4;SFX.hitH();}
 else if(opts.knock||d>9||def.hp<=0){def.state='down';def.st=0;def.vx=att.face*5;def.vy=-5;def.hvx=att.face*3;SFX.hitH();shake=6;fx.push({ty:'ring',x:def.x,y:def.y-def.def.h*.55,t:0,col:'#f8d060'});}// 08.09: roundhouse всегда валит + ударное кольцо
-else{def.state='hit';def.st=0;def.hvx=opts.still?0:att.face*2.4;def.vy=def.onGround?-2:0;(Math.random()<.4?SFX.hitV:SFX.hit)();shake=2;}}// 01.10: +opts.still — AoE не отбрасывает
+else{def.state='hit';def.st=0;def.hvx=opts.still?0:att.face*2.4;def.vy=def.onGround?-2:0;(Math.random()<.4?SFX.hitV:SFX.hit)();shake=2;}return'hit';}// 01.10: +opts.still — AoE не отбрасывает
 /* СНАРЯДЫ */
 function updProjs(){if(battle&&['finish','fatal','over','ko'].includes(battle.phase)){projs.length=0;return;}if(projs.length>60)projs.splice(0,projs.length-60);// 08.09: страховочный лимит
 for(let i=projs.length;i--;){const p=projs[i];p.l--;p.x+=p.vx;p.y+=p.vy;
@@ -339,7 +345,7 @@ if(p.hom&&p.o&&p.o.foe&&p.l%2===0){const f2=p.o.foe;if(f2.state!=='down'){const 
 const f=p.o.foe;
 if(f&&!f.hidden&&!f.dodging&&f.state!=='down'&&f.state!=='victim'){const b=f.box;
 if(p.ty!=='meteor'&&p.ty!=='rocket'&&p.ty!=='bomb'&&p.x>b.x-4&&p.x<b.x+b.w+4&&p.y>b.y-6&&p.y<b.y+b.h+4){
-const wf=f.frozen>0;resolveHit(p.o,f,p.d,p.k?{knock:1}:{});// 08.09: shard с k:1 валит с ног
+const wf=f.frozen>0;impactFx(p.ty,p.x,p.y,p.c);resolveHit(p.o,f,p.d,p.k?{knock:1}:{});// 08.09: shard с k:1 валит с ног; 24.10: спрайтовый импакт
 const blk=f.state==='block';// 08.09: блок гасит контроль-эффекты снарядов
 if(p.ty==='ice'&&!wf&&!blk&&f.hp>0){f.frozen=85;f.state='frozen';f.atk=null;SFX.freeze();}
 // 08.09: баланс Крио — заморозка 100→85 кадров; звон льда; блок больше не замораживает
@@ -348,7 +354,7 @@ if(p.bl&&!blk&&f.hp>0){f.poison=150;f.poisonC='#d82040';}// 30.09: кровот�
 if(p.ty==='net'&&!blk&&f.hp>0){f.netT=95;f.state='net';f.atk=null;}// 08.09: блок больше не опутывает
 if(p.ty==='shadow'&&!blk){p.o.hp=Math.min(100,p.o.hp+p.d*.7);for(let j=0;j<6;j++)P(p.x,p.y,(p.o.x-p.x)*.04,rnd(-1,-.3),'#7a3aa8',26,2,0);}// 08.09: блок гасит вытягивание
 projs.splice(i,1);continue;}}
-if((p.ty==='meteor'||p.ty==='rocket'||p.ty==='bomb')&&p.y>=FL+GR-2){fx.push({ty:'boom',x:p.x,y:FL+GR-4,t:0});SFX.boom();shake=6;const f=p.o.foe;if(f&&!f.dodging&&Math.abs(f.x-p.x)<30&&f.state!=='down'&&f.state!=='victim')resolveHit(p.o,f,p.d,{still:1});projs.splice(i,1);continue;}// 01.10: AoE 26→30, без отброса и без требования onGround (жертва подпрыгивает от попаданий)// 08.09: AoE бомб не должен трогать жертву фаталити
+if((p.ty==='meteor'||p.ty==='rocket'||p.ty==='bomb')&&p.y>=FL+GR-2){spriteFx('explosion',p.x,FL+GR-2,{scale:1.05,alpha:.9});fx.push({ty:'boom',x:p.x,y:FL+GR-4,t:0});SFX.boom();shake=6;const f=p.o.foe;if(f&&!f.dodging&&Math.abs(f.x-p.x)<30&&f.state!=='down'&&f.state!=='victim')resolveHit(p.o,f,p.d,{still:1});projs.splice(i,1);continue;}// 01.10: AoE 26→30, без отброса и без требования onGround (жертва подпрыгивает от попаданий)// 08.09: AoE бомб не должен трогать жертву фаталити
 if(p.l<=0||p.x<-30||p.x>AW+30)projs.splice(i,1);}}
 function drawProjs(cam){for(const p of projs){const x=p.x-cam,y=p.y;
 const gl={fire:'#f06020',ice:'#88c8f0',shadow:'#7a3aa8',bolt:'#f8f860',meteor:'#f06020',rocket:'#d84030',bomb:'#f06020'}[p.ty]||p.c;if(gl){g.shadowColor=gl;g.shadowBlur=8;}// 08.09: свечение снарядов + цвет shard
@@ -1041,10 +1047,14 @@ if (new URLSearchParams(location.search).has('debug')) {
     get AU() { return AU; },
     get keys() { return keys; },
     get fxAssets() { return FX; },
+    get arenaAssets() { return ARENA_IMG; },
     get OPT() { return OPT; },
     get settingsIdx() { return settingsIdx; },
     autoHit,
     onKey,
+    smoke,
+    spriteFx,
+    impactFx,
     toLobby,
     applyCrt,
     step,

@@ -64,7 +64,14 @@ test('effect atlases load', async () => {
   assert.deepEqual(assets, {
     hitLight: { ready: true, width: 384, height: 48, frames: 8 },
     hitHeavy: { ready: true, width: 432, height: 48, frames: 9 },
-    dust: { ready: true, width: 288, height: 32, frames: 9 }
+    dust: { ready: true, width: 288, height: 32, frames: 9 },
+    block: { ready: true, width: 192, height: 32, frames: 6 },
+    smoke: { ready: true, width: 288, height: 32, frames: 9 },
+    dustRun: { ready: true, width: 64, height: 16, frames: 4 },
+    fireImpact: { ready: true, width: 384, height: 48, frames: 8 },
+    iceImpact: { ready: true, width: 384, height: 48, frames: 8 },
+    shadowImpact: { ready: true, width: 384, height: 48, frames: 8 },
+    explosion: { ready: true, width: 576, height: 64, frames: 9 }
   });
 });
 
@@ -100,4 +107,38 @@ test('hit and landing spawn sprite effects', async () => {
   assert.ok(result.heavy.includes(432), JSON.stringify(result.heavy));
   assert.ok(result.all.includes(288), JSON.stringify(result.all));
   assert.equal(result.remaining, 0);
+});
+
+test('block, smoke and run dust use their own atlases', async () => {
+  const result = await page.evaluate(() => {
+    const K = window.KARNAGE;
+    K.setDebug({ GAME: 'fight', paused: false });
+    K.newBattle(0, new K.Ctrl(K.KM1), 1, new K.Ctrl(K.KM2), 9);
+    const battle = K.battle;
+    battle.mode = '2p';
+    battle.phase = 'fight';
+    battle.phaseT = 200;
+    battle.p2.state = 'block';
+    battle.p2.hp = 100;
+    battle.p1.combo = 0;
+    K.resolveHit(battle.p1, battle.p2, 10, {});
+    const block = K.fx.filter((effect) => effect.ty === 'sprite').map((effect) => effect.img.width);
+    K.fx.length = 0;
+    K.smoke(300, 160);
+    const smoke = K.fx.filter((effect) => effect.ty === 'sprite').map((effect) => effect.img.width);
+    K.fx.length = 0;
+    K.spriteFx('dustRun', 300, 214);
+    const run = K.fx.filter((effect) => effect.ty === 'sprite').map((effect) => effect.img.width);
+    K.fx.length = 0;
+    K.impactFx('fire', 300, 160);
+    K.impactFx('ice', 300, 160);
+    K.impactFx('shadow', 300, 160);
+    K.spriteFx('explosion', 300, 214);
+    const impacts = K.fx.filter((effect) => effect.ty === 'sprite').map((effect) => effect.img.width);
+    return { block, smoke, run, impacts };
+  });
+  assert.ok(result.block.includes(192), JSON.stringify(result.block));
+  assert.ok(result.smoke.includes(288), JSON.stringify(result.smoke));
+  assert.ok(result.run.includes(64), JSON.stringify(result.run));
+  assert.deepEqual(result.impacts, [384, 384, 384, 576]);
 });

@@ -1,0 +1,5 @@
+# Kenney — kenney-input-prompts
+
+License: CC0
+Source: https://kenney.nl/media/pages/assets/input-prompts-pixel/84a40a31f6-1774771309/kenney_input-prompts-pixel.zip
+Downloaded: 2026-10-24

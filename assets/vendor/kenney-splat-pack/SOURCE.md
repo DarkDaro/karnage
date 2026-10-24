@@ -1,0 +1,5 @@
+# Kenney — kenney-splat-pack
+
+License: CC0
+Source: https://kenney.nl/media/pages/assets/splat-pack/1070534984-1677495350/kenney_splat-pack.zip
+Downloaded: 2026-10-24

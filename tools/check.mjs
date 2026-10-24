@@ -19,7 +19,7 @@ async function walk(dir) {
 
 const files = (await walk(root)).filter((path) => {
   const rel = path.slice(root.length + 1).replaceAll('\\', '/');
-  if (rel.startsWith('archive/') || rel.startsWith('release/') || rel.startsWith('test-results/')) return false;
+  if (rel.startsWith('archive/') || rel.startsWith('release/') || rel.startsWith('test-results/') || rel.startsWith('assets/vendor/')) return false;
   return extname(path) === '.js' || extname(path) === '.mjs';
 });
 

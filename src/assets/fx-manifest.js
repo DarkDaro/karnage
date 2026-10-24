@@ -44,5 +44,110 @@ export default {
     "blend": "source-over",
     "scale": 0.8,
     "alpha": 0.45
+  },
+  "block": {
+    "image": "block.png",
+    "frameWidth": 32,
+    "frameHeight": 32,
+    "frames": 6,
+    "fps": 24,
+    "loop": false,
+    "anchor": [
+      16,
+      16
+    ],
+    "blend": "lighter",
+    "scale": 0.8,
+    "alpha": 0.8
+  },
+  "smoke": {
+    "image": "smoke.png",
+    "frameWidth": 32,
+    "frameHeight": 32,
+    "frames": 9,
+    "fps": 14,
+    "loop": false,
+    "anchor": [
+      16,
+      28
+    ],
+    "blend": "source-over",
+    "scale": 1,
+    "alpha": 0.55
+  },
+  "dustRun": {
+    "image": "dust-run.png",
+    "frameWidth": 16,
+    "frameHeight": 16,
+    "frames": 4,
+    "fps": 18,
+    "loop": false,
+    "anchor": [
+      8,
+      14
+    ],
+    "blend": "source-over",
+    "scale": 1,
+    "alpha": 0.35
+  },
+  "fireImpact": {
+    "image": "fire-impact.png",
+    "frameWidth": 48,
+    "frameHeight": 48,
+    "frames": 8,
+    "fps": 24,
+    "loop": false,
+    "anchor": [
+      24,
+      24
+    ],
+    "blend": "lighter",
+    "scale": 0.8,
+    "alpha": 0.85
+  },
+  "iceImpact": {
+    "image": "ice-impact.png",
+    "frameWidth": 48,
+    "frameHeight": 48,
+    "frames": 8,
+    "fps": 22,
+    "loop": false,
+    "anchor": [
+      24,
+      24
+    ],
+    "blend": "lighter",
+    "scale": 0.85,
+    "alpha": 0.9
+  },
+  "shadowImpact": {
+    "image": "shadow-impact.png",
+    "frameWidth": 48,
+    "frameHeight": 48,
+    "frames": 8,
+    "fps": 20,
+    "loop": false,
+    "anchor": [
+      24,
+      24
+    ],
+    "blend": "lighter",
+    "scale": 0.8,
+    "alpha": 0.8
+  },
+  "explosion": {
+    "image": "explosion.png",
+    "frameWidth": 64,
+    "frameHeight": 64,
+    "frames": 9,
+    "fps": 18,
+    "loop": false,
+    "anchor": [
+      32,
+      38
+    ],
+    "blend": "lighter",
+    "scale": 1,
+    "alpha": 0.9
   }
 };

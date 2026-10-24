@@ -2,7 +2,7 @@
 
 Дата: 2026-10-24.
 Область: окружение и эффекты. Персонажи остаются процедурными.
-Статус: пилот подключён. `hitLight`, `hitHeavy` и `dust` загружаются из `assets/fx`, остальные слоты остаются планом.
+Статус: пилот расширен. В `assets/fx` подключены `hitLight`, `hitHeavy`, `dust`, `block`, `smoke`, `dustRun`, `fireImpact`, `iceImpact`, `shadowImpact`, `explosion`. Арена «Кладбище» собрана из GothicVania Cemetery.
 
 ## Цель
 
@@ -260,25 +260,40 @@ tools/assets_preview.py        контактные листы
 - `hitLight` — CodeManu `10_weaponhit`, 8 кадров, 48×48, additive.
 - `hitHeavy` — Kenney `Flash`, 9 кадров, 48×48, additive.
 - `dust` — Kenney `White puff`, 9 кадров, 32×32, normal, тонировано.
+- `block` — Kenney `Flash`, 6 кадров, 32×32, холодный тон.
+- `smoke` — Kenney `Black smoke`, 9 кадров, 32×32, normal.
+- `dustRun` — Kenney `White puff`, 4 кадра, 16×16, normal.
+- `fireImpact` — CodeManu `16_sunburn`, 8 кадров, 48×48, additive.
+- `iceImpact` — CodeManu `19_freezing`, 8 кадров, 48×48, additive.
+- `shadowImpact` — CodeManu `18_midnight`, 8 кадров, 48×48, additive.
+- `explosion` — Kenney `Explosion`, 9 кадров, 64×64, additive.
 
 Файлы: `assets/fx/*.png`, `assets/fx/fx.json`, `src/assets/fx-manifest.js`.
 Загрузчик: `src/assets/fx.js`.
 Тест: `tests/e2e/fx.test.mjs`.
 
+Арена-пилот:
+
+- `assets/arenas/9/bg.png` — фон и кладбище;
+- `assets/arenas/9/props.png` — деревья и статуя;
+- `assets/arenas/9/arena.json`;
+- `tools/arenas_import.py`;
+- `src/assets/arena-manifest.js`, `src/assets/arena.js`.
+
 Ограничения пилота:
 
 - `hitHeavy` используется только при уроне > 15, чтобы не перекрывать обычный удар.
 - `dust` пока только при приземлении.
-- `fx.smoke`, `fx.block`, `fx.super` и арены ещё не подключены.
+- `fx.whiff`, `fx.super` и остальные арены ещё не подключены.
+- Арена «Кладбище» пока без параллакса слоёв: фон собран в один `bg.png`.
 
 ## Порядок
 
 1. `docs/ASSETS.md` — этот файл.
-2. Скачать CodeManu Free Pixel Effects Pack и Kenney Smoke Particles. Сделано.
-3. Импортировать 5–6 эффектов, собрать preview. Пилот: 3.
-4. Подключить `fx.hit.*`, `fx.block`, `fx.dust.*`, `fx.smoke`. Пилот: `hitLight`, `hitHeavy`, `dust`.
-5. Скачать GothicVania Cemetery, взять только фоны и пропсы.
-6. Сделать кладбище пилотной ареной.
-7. Оценить стиль на скриншотах.
-8. Если стиль подходит — остальные арены.
-9. Вернуться к препродакшен-блокам: announce/wipe, пропуск фаталити, `drawFx`, пауза при скрытии вкладки, blockstun.
+2. CodeManu и Kenney Smoke скачаны.
+3. Импортированы 10 FX-атласов.
+4. Подключены `hitLight`, `hitHeavy`, `dust`, `block`, `smoke`, `dustRun`, `fireImpact`, `iceImpact`, `shadowImpact`, `explosion`.
+5. GothicVania Cemetery скачан, фоны и пропсы взяты.
+6. Кладбище стало пилотной ареной.
+7. Скачаны универсальные Kenney-паки для UI, света, частиц и окружения.
+8. Следующее: UI-кит, остальные арены, мобильный адаптив.

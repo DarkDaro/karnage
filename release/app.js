@@ -1,4 +1,44 @@
 (() => {
+  // src/assets/arena-manifest.js
+  var arena_manifest_default = {
+    "9": {
+      "image": "9/bg.png",
+      "props": "9/props.png"
+    }
+  };
+
+  // src/assets/arena.js
+  var base = new URL("assets/arenas/", location.href);
+  function loadImage(src) {
+    return new Promise((resolve, reject) => {
+      const image = new Image();
+      image.onload = () => resolve(image);
+      image.onerror = reject;
+      image.src = src;
+    });
+  }
+  async function loadArenaAssets() {
+    const entries = await Promise.all(
+      Object.entries(arena_manifest_default).map(async ([key, definition]) => {
+        try {
+          const image = await loadImage(new URL(definition.image, base).href);
+          let props = null;
+          if (definition.props) {
+            try {
+              props = await loadImage(new URL(definition.props, base).href);
+            } catch {
+              props = null;
+            }
+          }
+          return [key, { ...definition, image, props, ready: true }];
+        } catch {
+          return [key, { ...definition, ready: false }];
+        }
+      })
+    );
+    return Object.fromEntries(entries);
+  }
+
   // src/assets/fx-manifest.js
   var fx_manifest_default = {
     "hitLight": {
@@ -45,12 +85,117 @@
       "blend": "source-over",
       "scale": 0.8,
       "alpha": 0.45
+    },
+    "block": {
+      "image": "block.png",
+      "frameWidth": 32,
+      "frameHeight": 32,
+      "frames": 6,
+      "fps": 24,
+      "loop": false,
+      "anchor": [
+        16,
+        16
+      ],
+      "blend": "lighter",
+      "scale": 0.8,
+      "alpha": 0.8
+    },
+    "smoke": {
+      "image": "smoke.png",
+      "frameWidth": 32,
+      "frameHeight": 32,
+      "frames": 9,
+      "fps": 14,
+      "loop": false,
+      "anchor": [
+        16,
+        28
+      ],
+      "blend": "source-over",
+      "scale": 1,
+      "alpha": 0.55
+    },
+    "dustRun": {
+      "image": "dust-run.png",
+      "frameWidth": 16,
+      "frameHeight": 16,
+      "frames": 4,
+      "fps": 18,
+      "loop": false,
+      "anchor": [
+        8,
+        14
+      ],
+      "blend": "source-over",
+      "scale": 1,
+      "alpha": 0.35
+    },
+    "fireImpact": {
+      "image": "fire-impact.png",
+      "frameWidth": 48,
+      "frameHeight": 48,
+      "frames": 8,
+      "fps": 24,
+      "loop": false,
+      "anchor": [
+        24,
+        24
+      ],
+      "blend": "lighter",
+      "scale": 0.8,
+      "alpha": 0.85
+    },
+    "iceImpact": {
+      "image": "ice-impact.png",
+      "frameWidth": 48,
+      "frameHeight": 48,
+      "frames": 8,
+      "fps": 22,
+      "loop": false,
+      "anchor": [
+        24,
+        24
+      ],
+      "blend": "lighter",
+      "scale": 0.85,
+      "alpha": 0.9
+    },
+    "shadowImpact": {
+      "image": "shadow-impact.png",
+      "frameWidth": 48,
+      "frameHeight": 48,
+      "frames": 8,
+      "fps": 20,
+      "loop": false,
+      "anchor": [
+        24,
+        24
+      ],
+      "blend": "lighter",
+      "scale": 0.8,
+      "alpha": 0.8
+    },
+    "explosion": {
+      "image": "explosion.png",
+      "frameWidth": 64,
+      "frameHeight": 64,
+      "frames": 9,
+      "fps": 18,
+      "loop": false,
+      "anchor": [
+        32,
+        38
+      ],
+      "blend": "lighter",
+      "scale": 1,
+      "alpha": 0.9
     }
   };
 
   // src/assets/fx.js
-  var base = new URL("assets/fx/", location.href);
-  function loadImage(src) {
+  var base2 = new URL("assets/fx/", location.href);
+  function loadImage2(src) {
     return new Promise((resolve, reject) => {
       const image = new Image();
       image.onload = () => resolve(image);
@@ -62,7 +207,7 @@
     const entries = await Promise.all(
       Object.entries(fx_manifest_default).map(async ([key, definition]) => {
         try {
-          const image = await loadImage(new URL(definition.image, base).href);
+          const image = await loadImage2(new URL(definition.image, base2).href);
           return [key, { ...definition, image, ready: true }];
         } catch {
           return [key, { ...definition, ready: false }];
@@ -152,9 +297,9 @@
   }
 
   // src/game/karnage.js
-  function startKarnage(fxAssets = {}) {
+  function startKarnage(fxAssets = {}, arenaAssets = {}) {
     const RW = 424, RH = 240, FL = 206, AW = 760, GR = 8, OUT = "#0e0b08";
-    const FX = fxAssets || {};
+    const FX = fxAssets || {}, ARENA_IMG = arenaAssets || {};
     const cv = document.getElementById("cv"), g = cv.getContext("2d");
     function fit() {
       let s = Math.min(innerWidth / RW, innerHeight / RH);
@@ -583,7 +728,26 @@
     ;
     ;
     function drawArena(ai, cam2, t) {
-      const A = AR[ai];
+      const A = AR[ai], AS = ARENA_IMG[ai];
+      if (AS && AS.ready) {
+        g.drawImage(AS.image, 0, 0, RW, RH);
+        if (AS.props) g.drawImage(AS.props, 0, 0, RW, RH);
+        const fg = g.createLinearGradient(0, FL - 26, 0, FL);
+        fg.addColorStop(0, "rgba(178,188,208,0)");
+        fg.addColorStop(1, "rgba(178,188,208,.08)");
+        g.fillStyle = fg;
+        g.fillRect(0, FL - 26, RW, 26);
+        const gr2 = g.createLinearGradient(0, FL, 0, RH);
+        gr2.addColorStop(0, A.gr);
+        gr2.addColorStop(1, shade(A.gr, 0.55));
+        g.fillStyle = gr2;
+        g.fillRect(0, FL, RW, RH - FL);
+        g.fillStyle = mix(A.gr, "#fff", 0.14);
+        g.fillRect(0, FL, RW, 1);
+        g.fillStyle = "rgba(0,0,0,.25)";
+        g.fillRect(0, FL, RW, 2);
+        return;
+      }
       const sky = g.createLinearGradient(0, 0, 0, FL);
       sky.addColorStop(0, A.sky[0]);
       sky.addColorStop(0.45, A.sky[1]);
@@ -782,8 +946,15 @@
       opts = opts || {};
       const frames = a.frames || 1;
       const fps = a.fps || 30;
+      if (fx.length > 40) fx.splice(0, fx.length - 40);
       fx.push({ ty: "sprite", img: a.image, x, y, t: 0, dur: Math.max(1, Math.round(frames * 60 / fps)), frames, frameW: a.frameWidth, frameH: a.frameHeight, anchor: a.anchor || [a.frameWidth / 2, a.frameHeight / 2], blend: a.blend || "source-over", scale: opts.scale ?? a.scale ?? 1, alpha: opts.alpha ?? a.alpha ?? 1 });
       return true;
+    }
+    function impactFx(ty, x, y, color) {
+      if (ty === "ice" || ty === "shard" && (color === "#c8ecff" || color === "#9adcee")) return spriteFx("iceImpact", x, y, { scale: 0.8, alpha: 0.9 });
+      if (ty === "shadow" || ty === "shard" && (color === "#7a3aa8" || color === "#b89aff")) return spriteFx("shadowImpact", x, y, { scale: 0.8, alpha: 0.8 });
+      if (ty === "fire" || ty === "shard" && (color === "#f06020" || color === "#f8d060")) return spriteFx("fireImpact", x, y, { scale: 0.8, alpha: 0.85 });
+      return false;
     }
     function P(x, y, vx, vy, c, l, s, gv) {
       if (!OPT.blood && c === "#b01818") return;
@@ -827,7 +998,7 @@
         else g.fillRect(p.x - cam2 - p.s / 2, p.y - p.s / 2, p.s, p.s);
       }
     }
-    const ATK = { punch: { d: 6, wd: 5, ac: 3, rc: 8, rng: 28, hh: 0.72 }, kick: { d: 9, wd: 7, ac: 4, rc: 11, rng: 36, hh: 0.6 }, upper: { d: 15, wd: 6, ac: 4, rc: 15, rng: 24, hh: 0.5, launch: 1 }, sweep: { d: 10, wd: 6, ac: 3, rc: 13, rng: 38, hh: 0.12, low: 1 }, jkick: { d: 10, wd: 4, ac: 8, rc: 20, rng: 34, hh: 0.4, overhead: 1 }, rh: { d: 12, wd: 8, ac: 4, rc: 15, rng: 40, hh: 0.55, knock: 1 } };
+    const ATK = { punch: { d: 6, wd: 5, ac: 3, rc: 8, rng: 28, hh: 0.72 }, kick: { d: 9, wd: 7, ac: 4, rc: 11, rng: 36, hh: 0.6 }, upper: { d: 15, wd: 6, ac: 4, rc: 15, rng: 24, hh: 0.5, launch: 1 }, sweep: { d: 10, wd: 6, ac: 3, rc: 13, rng: 38, hh: 0.12, low: 1 }, jkick: { d: 10, wd: 4, ac: 8, rc: 20, rng: 34, hh: 0.4, overhead: 1 }, rh: { d: 12, wd: 8, ac: 4, rc: 15, rng: 40, hh: 0.55, knock: 1 }, throw: { d: 12, wd: 6, ac: 2, rc: 24, rng: 34, hh: 0.55, throw: 1, knock: 1 } };
     const ZEROC = { l: 0, r: 0, u: 0, d: 0, P: 0, K: 0, B: 0, pP: 0, pK: 0, pl: 0, pr: 0, pu: 0, pd: 0 };
     class F {
       constructor(def, ctrl) {
@@ -893,12 +1064,13 @@
       startAtk(t) {
         this.state = "atk";
         this.st = 0;
-        this.atk = { t, A: ATK[t], hit: 0 };
+        this.atk = { t, A: ATK[t], hit: 0, blocked: 0, connected: 0, cancel: 0 };
         this.invis = 0;
         this.spec2go = 0;
+        if (!battle || battle.phase === "fight") this.ctrl.buf.length = 0;
         SFX.swing();
       }
-      // 08.09: атака пробивает невидимость
+      // 08.09: атака пробивает невидимость; 24.10: буфер очищается для special cancel только в бою
       update(FR, foe) {
         const d = this.def, c = battle && battle.phase === "intro" ? ZEROC : this.ctrl;
         const stunned = this.blockStun > 0;
@@ -968,8 +1140,10 @@
             }
           }
           this.vx = mv * (this.running ? d.spd * 2.3 : d.spd);
-          if (this.running && this.onGround && FR % 4 === 0) P(this.x - this.running * 8, FL + GR - 2, -this.running * rnd(0.2, 0.6), rnd(-1, -0.2), "#9a9080", 16, 1, 0.05);
-          else if (this.state === "walk" && this.onGround && FR % Math.max(8, Math.round(3.5 / (WM[d.id] ? WM[d.id][0] : 0.22))) === 0) SFX.step();
+          if (this.running && this.onGround && FR % 4 === 0) {
+            P(this.x - this.running * 8, FL + GR - 2, -this.running * rnd(0.2, 0.6), rnd(-1, -0.2), "#9a9080", 16, 1, 0.05);
+            if (FR % 12 === 0) spriteFx("dustRun", this.x - this.running * 8, FL + GR, { scale: 0.9, alpha: 0.35 });
+          } else if (this.state === "walk" && this.onGround && FR % Math.max(8, Math.round(3.5 / (WM[d.id] ? WM[d.id][0] : 0.22))) === 0) SFX.step();
           if (mv && this.onGround && this.state === "idle") this.state = "walk";
           if (!mv && this.state === "walk") this.state = "idle";
           if (this.onGround && c.d && ["idle", "walk"].includes(this.state)) this.state = "crouch";
@@ -988,6 +1162,7 @@
             if (this.rage >= 100 && this.ctrl.match("DDP", 60)) this.startSuper();
             else if (this.ctrl.matchRel(d.spec, this.face, 60)) this.startSpec(foe);
             else if (this.ctrl.matchRel(d.spec2, this.face, 60)) this.startSpec2(foe);
+            else if (c.pP && c.pK) this.startAtk("throw");
             else if (btn === "P") this.startAtk(c.d ? "upper" : "punch");
             else if (c.d) this.startAtk("sweep");
             else this.startAtk(c.l && !c.r && this.face > 0 || c.r && !c.l && this.face < 0 ? "rh" : "kick");
@@ -1071,13 +1246,24 @@
           } else if (this.abuf > 0) this.abuf--;
           if (this.st > A.wd && this.st <= A.wd + A.ac && !this.atk.hit && foe.state !== "down") {
             const hb = this.atkBox();
-            if (hb && hitR(hb, foe.box)) {
+            if (hb && hitR(hb, foe.box) && (!A.throw || foe.onGround && ["idle", "walk", "block"].includes(foe.state))) {
+              const res = resolveHit(this, foe, A.d, { launch: A.launch, low: A.low, overhead: A.overhead, throw: A.throw, knock: A.knock });
               this.atk.hit = 1;
-              resolveHit(this, foe, A.d, { launch: A.launch, low: A.low, overhead: A.overhead });
+              this.atk.blocked = res === "block" ? 1 : 0;
+              this.atk.connected = res === "hit" ? 1 : 0;
             }
           }
           if (this.st === A.wd + A.ac && !this.atk.hit) SFX.whiff();
-          if (this.st > A.wd + A.ac + A.rc) {
+          if (this.atk.hit && this.atk.connected && !this.atk.blocked && !this.atk.cancel && !A.throw && this.st > A.wd + A.ac && this.st <= A.wd + A.ac + 10 && this.onGround) {
+            if (this.ctrl.matchRel(d.spec, this.face, 60)) {
+              this.atk.cancel = 1;
+              this.startSpec(foe);
+            } else if (this.ctrl.matchRel(d.spec2, this.face, 60)) {
+              this.atk.cancel = 1;
+              this.startSpec2(foe);
+            }
+          }
+          if (this.state === "atk" && this.st > A.wd + A.ac + A.rc) {
             if (this.abuf > 0 && this.onGround) {
               this.abuf = 0;
               this.startAtk(this.abufB);
@@ -1468,7 +1654,12 @@
       }
     }
     function smoke(x, y) {
+      spriteFx("smoke", x, y, { scale: 0.85, alpha: 0.4 });
       for (let i = 0; i < 10; i++) P(x + rnd(-8, 8), y + rnd(-20, 10), rnd(-1, 1), rnd(-1.5, -0.2), "#889", 30, 3, -0.02);
+    }
+    function comboScale(f) {
+      const chain = f.comboT !== void 0 && f.comboT < 60 ? f.combo || 0 : 0;
+      return Math.max(0.55, 1 - chain * 0.07);
     }
     function autoHit(a, dmg) {
       const f = a.foe;
@@ -1494,7 +1685,7 @@
         for (let i = 0; i < 4; i++) P(f.x + f.face * 8, f.y - f.def.h * 0.55, rnd(-1.5, 1.5), rnd(-2, 0), "#fff", 10, 2, 0);
         return;
       }
-      const d = dmg * a.def.dmg;
+      let d = dmg * a.def.dmg * comboScale(a);
       f.hp = Math.max(0, f.hp - d);
       f.damageTaken = (f.damageTaken || 0) + d;
       f.flash = 4;
@@ -1530,22 +1721,23 @@
     }
     function resolveHit(att, def, dmg, opts) {
       opts = opts || {};
-      if (battle && ["finish", "fatal", "over", "ko"].includes(battle.phase)) return;
-      if (def.defeated) return;
+      if (battle && ["finish", "fatal", "over", "ko"].includes(battle.phase)) return "miss";
+      if (def.defeated) return "miss";
       if (def.armor > 0) {
         def.armor--;
         def.flash = 4;
         SFX.block();
-        return;
+        return "miss";
       }
       if (def.state === "super" && def.st < 20) def.rage = Math.min(100, def.rage + 50);
-      if (def.invuln > 0) return;
+      if (def.invuln > 0) return "miss";
       if (def.dodging) {
         for (let i = 0; i < 5; i++) P(def.x + rnd(-6, 6), def.y - rnd(8, 44), -att.face * rnd(0.6, 1.6), rnd(-1, -0.2), "#9a9080", 14, 2, 0.03);
         SFX.whiff();
-        return;
+        return "miss";
       }
-      if (def.state === "block" && !(opts.low && !def.blockLow || opts.overhead && def.blockLow)) {
+      if (opts.throw) def.blockStun = 0;
+      if (def.state === "block" && !opts.throw && !(opts.low && !def.blockLow || opts.overhead && def.blockLow)) {
         def.hp = Math.max(1, def.hp - 1);
         def.blockStun = 6;
         def.damageTaken = (def.damageTaken || 0) + 1;
@@ -1554,11 +1746,11 @@
         def.rage = Math.min(100, def.rage + 1);
         def.vx = att.face * 2;
         def.hvx = 0;
-        spriteFx("hitLight", def.x + def.face * 8, def.y - def.def.h * 0.55, { scale: 0.65, alpha: 0.8 });
+        spriteFx("block", def.x + def.face * 8, def.y - def.def.h * 0.55, { scale: 0.9, alpha: 0.9 });
         for (let i = 0; i < 4; i++) P(def.x + def.face * 8, def.y - def.def.h * 0.55, rnd(-1.5, 1.5), rnd(-2, 0), "#fff", 10, 2, 0);
-        return;
+        return "block";
       }
-      let d = dmg * att.def.dmg;
+      let d = dmg * att.def.dmg * comboScale(att);
       if (def.frozen > 0) {
         d *= 1.4;
         def.frozen = 0;
@@ -1623,6 +1815,7 @@
         (Math.random() < 0.4 ? SFX.hitV : SFX.hit)();
         shake = 2;
       }
+      return "hit";
     }
     function updProjs() {
       if (battle && ["finish", "fatal", "over", "ko"].includes(battle.phase)) {
@@ -1661,6 +1854,7 @@
           const b = f.box;
           if (p.ty !== "meteor" && p.ty !== "rocket" && p.ty !== "bomb" && p.x > b.x - 4 && p.x < b.x + b.w + 4 && p.y > b.y - 6 && p.y < b.y + b.h + 4) {
             const wf = f.frozen > 0;
+            impactFx(p.ty, p.x, p.y, p.c);
             resolveHit(p.o, f, p.d, p.k ? { knock: 1 } : {});
             const blk = f.state === "block";
             if (p.ty === "ice" && !wf && !blk && f.hp > 0) {
@@ -1691,6 +1885,7 @@
           }
         }
         if ((p.ty === "meteor" || p.ty === "rocket" || p.ty === "bomb") && p.y >= FL + GR - 2) {
+          spriteFx("explosion", p.x, FL + GR - 2, { scale: 1.05, alpha: 0.9 });
           fx.push({ ty: "boom", x: p.x, y: FL + GR - 4, t: 0 });
           SFX.boom();
           shake = 6;
@@ -4768,6 +4963,9 @@
         get fxAssets() {
           return FX;
         },
+        get arenaAssets() {
+          return ARENA_IMG;
+        },
         get OPT() {
           return OPT;
         },
@@ -4776,6 +4974,9 @@
         },
         autoHit,
         onKey,
+        smoke,
+        spriteFx,
+        impactFx,
         toLobby,
         applyCrt,
         step,
@@ -4846,5 +5047,8 @@
   }
 
   // src/main.js
-  loadFxAssets().then((assets) => startKarnage(assets)).catch(() => startKarnage({}));
+  Promise.all([
+    loadFxAssets().catch(() => ({})),
+    loadArenaAssets().catch(() => ({}))
+  ]).then(([fxAssets, arenaAssets]) => startKarnage(fxAssets, arenaAssets)).catch(() => startKarnage({}, {}));
 })();
