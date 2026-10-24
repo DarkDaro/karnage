@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { test } from 'node:test';
+import { ENDINGS } from '../../src/data/endings.js';
 
 const root = resolve(import.meta.dirname, '..', '..');
 const source = readFileSync(join(root, 'src', 'data', 'characters.js'), 'utf8');
@@ -18,6 +19,13 @@ const arenas = [...entries, ...pushes].map((entry) => Number(entry[2].match(/\ba
 test('roster ids are sequential', () => {
   assert.deepEqual(ids, [...Array(ids.length).keys()]);
   assert.equal(ids.length, 13);
+  assert.equal(ENDINGS.length, 13);
+  for (const ending of ENDINGS) {
+    assert.ok(ending.title && ending.title.length <= 32, ending.title);
+    assert.equal(ending.lines.length, 2, ending.title);
+    assert.ok(ending.lines.every((line) => line.length > 0 && line.length <= 48), ending.title);
+    assert.match(ending.col, /^#[0-9a-f]{6}$/i);
+  }
 });
 
 test('combos use the command alphabet', () => {

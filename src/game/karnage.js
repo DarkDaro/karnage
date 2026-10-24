@@ -1,4 +1,5 @@
 import { CH, BOSS } from '../data/characters.js';
+import { ENDINGS } from '../data/endings.js';
 import { AR, initArenas } from '../data/arenas.js';
 import { createArenaView } from './world/arena.js';
 import { createState, createSelection, setScreen, beginBattle, resetRound } from './core/state.js';
@@ -728,10 +729,13 @@ panel(132,158,160,18);g.font='8px "Russo One"';g.fillStyle='#e8c040';g.textAlign
 g.fillText('АРЕНА: '+AR[S.battle.arena].n,RW/2,170);
 if(S.vsEscT>0&&blink()){g.font='8px "Russo One"';g.fillStyle='#e04020';g.fillText('ЕЩЁ РАЗ ESC — ПОКИНУТЬ ТУРНИР',RW/2,200);}else if(S.vsT>50&&blink()){g.font='9px "Russo One"';g.fillStyle='#e8e0c0';g.fillText('J — НАЧАТЬ БОЙ',RW/2,214);}}// 08.09: подтверждение выхода
 function drawEnd(){bgFill();
-panel(112,14,200,26);g.font='10px "Russo One"';g.fillStyle='#e8c040';g.textAlign='center';g.fillText('ПОБЕДИТЕЛЬ ТУРНИРА',RW/2,31);
+panel(102,12,220,28);g.font='10px "Russo One"';g.fillStyle='#e8c040';g.textAlign='center';g.fillText('ПОБЕДИТЕЛЬ ТУРНИРА',RW/2,30);
 const d=CH[S.arcP1];drawPort(d,RW/2,94,2.1);
 g.font='16px "Russo One"';g.fillStyle='#e8e0c0';g.fillText(d.name,RW/2,146);
-g.font='8px "Russo One"';g.fillStyle='#c8a040';g.fillText('ФИНАЛЬНЫЙ БОСС '+BOSS.name+' ПОВЕРЖЕН',RW/2,166);// 25.10: финал аркады
+const e=ENDINGS[d.id]||{title:'ТУРНИР ЗАВЕРШЁН',lines:['Арена опустела.','Победитель уходит в тишину.'],col:'#e8c040'};
+g.font='9px "Russo One"';g.fillStyle=e.col;g.fillText(e.title,RW/2,166);
+g.font='7px "Russo One"';g.fillStyle='#c8a040';for(let i=0;i<e.lines.length&&i<2;i++)g.fillText(e.lines[i],RW/2,182+i*12);
+g.font='7px "Russo One"';g.fillStyle='#807850';g.fillText('КАЙЗЕР-ПРАЙМ ПОВЕРЖЕН',RW/2,212);
 if(blink()){g.fillStyle='#807850';g.font='8px "Russo One"';g.fillText('J — в меню',RW/2,228);}}
 function drawTop(){bgFill();// 08.09: зал славы — топ-5 аркады
 g.font='15px "Russo One"';g.fillStyle='#e8c040';g.textAlign='center';g.fillText('ЗАЛ СЛАВЫ',RW/2,24);
