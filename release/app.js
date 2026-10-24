@@ -528,6 +528,23 @@
     dmg: 1.28,
     arena: 8
   };
+  var THROW_DATA = {
+    0: { throwN: "\u041F\u0415\u041F\u0415\u041B\u042C\u041D\u042B\u0419 \u0412\u0417\u0420\u042B\u0412", throwT: "fire", throwC: "#f06020", throwD: 10 },
+    1: { throwN: "\u0422\u0415\u041D\u0415\u0412\u041E\u0419 \u0421\u0411\u0420\u041E\u0421", throwT: "shadow", throwC: "#9fb4bd", throwD: 9 },
+    2: { throwN: "\u0420\u0410\u0417\u0420\u042F\u0414 \u0412 \u0423\u041F\u041E\u0420", throwT: "shock", throwC: "#f8f860", throwD: 10 },
+    3: { throwN: "\u041A\u0410\u041C\u0415\u041D\u041D\u042B\u0419 \u0413\u0420\u041E\u0425\u041E\u0422", throwT: "slam", throwC: "#8a7a5c", throwD: 13 },
+    4: { throwN: "\u042F\u0414\u041E\u0412\u0418\u0422\u042B\u0419 \u0423\u041A\u0423\u0421", throwT: "claw", throwC: "#7ac83a", throwD: 9 },
+    5: { throwN: "\u0417\u0415\u0420\u041A\u0410\u041B\u042C\u041D\u042B\u0419 \u0412\u0418\u0425\u0420\u042C", throwT: "sand", throwC: "#c8a060", throwD: 9 },
+    6: { throwN: "\u041B\u0415\u0414\u042F\u041D\u0410\u042F \u0413\u0420\u041E\u0411\u041D\u0418\u0426\u0410", throwT: "ice", throwC: "#c8ecff", throwD: 9 },
+    7: { throwN: "\u0420\u0416\u0410\u0412\u0410\u042F \u041F\u0415\u0420\u0415\u0413\u0420\u0423\u0417\u041A\u0410", throwT: "blast", throwC: "#c8c8a0", throwD: 11 },
+    8: { throwN: "\u041F\u041E\u0425\u0418\u0429\u0415\u041D\u0418\u0415 \u0421\u041D\u0410", throwT: "drain", throwC: "#7a3aa8", throwD: 8 },
+    9: { throwN: "\u041A\u041E\u0420\u041E\u041B\u0415\u0412\u0421\u041A\u0418\u0419 \u041F\u0420\u0418\u0413\u041E\u0412\u041E\u0420", throwT: "royal", throwC: "#f8f860", throwD: 12 },
+    10: { throwN: "\u0410\u041B\u0410\u042F \u0416\u0410\u0422\u0412\u0410", throwT: "blood", throwC: "#d82040", throwD: 10 },
+    11: { throwN: "\u041B\u0423\u041D\u041D\u042B\u0419 \u0421\u041D\u041E\u0421", throwT: "blade", throwC: "#9adcee", throwD: 10 },
+    12: { throwN: "\u0417\u0412\u0401\u0417\u0414\u041D\u042B\u0419 \u0428\u0412\u042B\u0420\u041E\u041A", throwT: "star", throwC: "#b89aff", throwD: 9 }
+  };
+  for (const c of CH) Object.assign(c, THROW_DATA[c.id]);
+  Object.assign(BOSS, { throwN: "\u041F\u0420\u0418\u0413\u041E\u0412\u041E\u0420 \u041A\u041E\u0420\u041E\u041D\u042B", throwT: "royal", throwC: "#f0c850", throwD: 14 });
 
   // src/data/endings.js
   var ENDINGS = [
@@ -959,7 +976,7 @@
   }
 
   // src/game/fighter.js
-  var ATK = { punch: { d: 6, wd: 5, ac: 3, rc: 8, rng: 28, hh: 0.72 }, kick: { d: 9, wd: 7, ac: 4, rc: 11, rng: 36, hh: 0.6 }, upper: { d: 15, wd: 6, ac: 4, rc: 15, rng: 24, hh: 0.5, launch: 1 }, sweep: { d: 10, wd: 6, ac: 3, rc: 13, rng: 38, hh: 0.12, low: 1 }, jkick: { d: 10, wd: 4, ac: 8, rc: 20, rng: 34, hh: 0.4, overhead: 1 }, rh: { d: 12, wd: 8, ac: 4, rc: 15, rng: 40, hh: 0.55, knock: 1 }, throw: { d: 12, wd: 6, ac: 2, rc: 24, rng: 34, hh: 0.55, throw: 1, knock: 1 } };
+  var ATK = { punch: { d: 6, wd: 5, ac: 3, rc: 8, rng: 28, hh: 0.72 }, kick: { d: 9, wd: 7, ac: 4, rc: 11, rng: 36, hh: 0.6 }, upper: { d: 15, wd: 6, ac: 4, rc: 15, rng: 24, hh: 0.5, launch: 1 }, sweep: { d: 10, wd: 6, ac: 3, rc: 13, rng: 38, hh: 0.12, low: 1 }, jkick: { d: 10, wd: 4, ac: 8, rc: 20, rng: 34, hh: 0.4, overhead: 1 }, rh: { d: 12, wd: 8, ac: 4, rc: 15, rng: 40, hh: 0.55, knock: 1 }, throw: { d: 1, wd: 5, ac: 3, rc: 20, rng: 30, hh: 0.55, throw: 1, grab: 1 } };
   var ZEROC = { l: 0, r: 0, u: 0, d: 0, P: 0, K: 0, B: 0, pP: 0, pK: 0, pl: 0, pr: 0, pu: 0, pd: 0 };
   var WM = { 0: [0.24, 1, 1, 1.5, 0.02], 1: [0.15, 0.65, 0.4, 0.6, 0.1], 2: [0.27, 1.1, 1.3, 1.8, 0], 3: [0.14, 1.2, 0.8, 2.6, 0.06], 4: [0.3, 0.9, 1.4, 1, 0.12], 5: [0.2, 0.7, 0.5, 0.8, -0.03], 6: [0.2, 0.9, 0.7, 1, 0], 7: [0.22, 1.1, 0.5, 1.6, 0.04], 8: [0.13, 0.5, 0.3, 0.4, -0.05], 9: [0.21, 0.95, 1.1, 1.6, 0.03], 10: [0.19, 0.75, 0.6, 0.9, -0.04], 11: [0.28, 0.85, 1.2, 0.9, 0.1], 12: [0.17, 0.6, 0.4, 0.5, -0.02] };
   function hitR(a, b) {
@@ -1034,6 +1051,8 @@
         this.armor = 0;
         this.blockStun = 0;
         this.blockLow = 0;
+        this.grabbedBy = 0;
+        this.throwTarget = 0;
         this.ctrl.clear();
       }
       get onGround() {
@@ -1080,6 +1099,22 @@
           if (d.id === 0 && FR % 9 === 0) P(this.x + rnd(-4, 4), this.y - d.h - 4, rnd(-0.3, 0.3), rnd(-1.2, -0.5), pick(["#f06020", "#f0a030"]), 26, 1, -0.02);
           if (d.id === 6 && FR % 12 === 0) P(this.x + rnd(-7, 7), this.y - d.h * rnd(0.3, 1), 0, rnd(0.2, 0.6), "#cfeaff", 30, 1, 0.02);
           if (d.id === 12 && FR % 13 === 0) P(this.x + rnd(-11, 11), this.y - d.h * rnd(0.1, 1.1), rnd(-0.2, 0.2), rnd(-0.7, -0.2), "#b89aff", 22, 1, -0.01);
+        }
+        if (this.state === "grabbed") {
+          const g = this.grabbedBy;
+          if (g && g.state === "atk" && g.atk && g.atk.t === "throw" && !g.atk.thrown) {
+            const ph = clamp2((g.st - (g.atk.A.wd + g.atk.A.ac)) / 8, 0, 1);
+            this.x = clamp2(g.x + g.face * (16 + ph * 8), 16, AW - 16);
+            this.y = g.y - 6 - ph * 8;
+            this.vx = 0;
+            this.vy = 0;
+            this.face = -g.face;
+            this.tilt = lerp(this.tilt, 0.22, 0.2);
+            return;
+          }
+          this.grabbedBy = 0;
+          this.state = "idle";
+          this.st = 0;
         }
         if (this.state === "dash") {
           this.vx = this.dvx;
@@ -1229,12 +1264,14 @@
           if (this.st > A.wd && this.st <= A.wd + A.ac && !this.atk.hit && foe.state !== "down") {
             const hb = this.atkBox();
             if (hb && hitR(hb, foe.box) && (!A.throw || foe.onGround && ["idle", "walk", "block"].includes(foe.state))) {
-              const res = resolveHit(this, foe, A.d, { launch: A.launch, low: A.low, overhead: A.overhead, throw: A.throw, knock: A.knock });
+              const res = resolveHit(this, foe, A.d, { launch: A.launch, low: A.low, overhead: A.overhead, throw: A.throw, knock: A.knock, grab: A.grab });
               this.atk.hit = 1;
               this.atk.blocked = res === "block" ? 1 : 0;
-              this.atk.connected = res === "hit" ? 1 : 0;
+              this.atk.connected = res === "hit" || res === "grab" ? 1 : 0;
+              this.atk.grabbed = res === "grab" ? foe : 0;
             }
           }
+          if (this.atk.t === "throw" && this.atk.grabbed && !this.atk.thrown && this.st >= A.wd + A.ac + 8) this.finishThrow(this.atk.grabbed);
           if (this.st === A.wd + A.ac && !this.atk.hit) {
             SFX.whiff();
             const hb = this.atkBox();
@@ -1280,6 +1317,67 @@
         const A = this.atk.A, d = this.def;
         if (this.atk.t === "jkick") return { x: this.x + (this.face > 0 ? 4 : -4 - A.rng * d.bulk), y: this.y - d.h * 0.05, w: A.rng * d.bulk + 6, h: d.h * 0.6 };
         return { x: this.x + (this.face > 0 ? 4 : -4 - A.rng * d.bulk), y: this.y - d.h * A.hh - (this.atk.t === "sweep" ? 0 : 6), w: A.rng * d.bulk + 6, h: this.atk.t === "sweep" ? 12 : this.atk.t === "upper" ? 34 : 14 };
+      }
+      finishThrow(foe) {
+        const d = this.def, type = d.throwT || "slam", col = d.throwC || d.acc || "#f8d060", launch = type === "star";
+        foe.grabbedBy = 0;
+        this.throwTarget = 0;
+        const res = resolveHit(this, foe, d.throwD || 10, { throw: 1, knock: !launch, launch: launch ? 1 : 0 });
+        this.atk.thrown = 1;
+        this.atk.grabbed = 0;
+        if (res !== "hit") return;
+        foe.x = clamp2(this.x + this.face * (launch ? 22 : 34), 16, AW - 16);
+        foe.y = this.y - 4;
+        foe.vy = launch ? -9 : -3.6;
+        foe.vx = this.face * (launch ? 4.5 : 5);
+        this.x = clamp2(this.x - this.face * 3, 16, AW - 16);
+        this.squash = 0.86;
+        S.shake = Math.max(S.shake, type === "slam" || type === "blast" || type === "royal" ? 7 : 4);
+        S.fx.push({ ty: "ring", x: foe.x, y: foe.y - foe.def.h * 0.55, t: 0, col });
+        S.fx.push({ ty: "name", x: this.x + this.face * 10, y: this.y - this.def.h - 10, txt: d.throwN, col, life: 60, t: 0 });
+        if (type === "fire") {
+          SFX.fire();
+          foe.poison = 50;
+          foe.poisonC = col;
+        } else if (type === "shadow") {
+          SFX.tele();
+          this.invis = 24;
+          smoke(this.x, this.y - 30);
+        } else if (type === "shock") {
+          SFX.zap();
+          foe.blockStun = 12;
+        } else if (type === "slam") {
+          SFX.bone();
+        } else if (type === "claw") {
+          SFX.slash();
+          foe.poison = 60;
+          foe.poisonC = col;
+        } else if (type === "sand") {
+          SFX.mirror();
+        } else if (type === "ice") {
+          SFX.ice();
+          S.fx.push({ ty: "nova", x: foe.x, y: foe.y - 30, t: 0 });
+        } else if (type === "blast") {
+          SFX.boom();
+        } else if (type === "drain") {
+          SFX.sting();
+          this.hp = Math.min(100, this.hp + 6);
+          S.fx.push({ ty: "drain", x: foe.x, y: foe.y, t: 0 });
+        } else if (type === "royal") {
+          SFX.sting();
+          S.flashS = Math.max(S.flashS, 4);
+        } else if (type === "blood") {
+          SFX.sting();
+          foe.poison = 70;
+          foe.poisonC = col;
+          blood(foe.x, foe.y - foe.def.h * 0.5, 8, 1.2);
+        } else if (type === "blade") {
+          SFX.slash();
+          blood(foe.x, foe.y - foe.def.h * 0.5, 9, 1.3);
+        } else if (type === "star") {
+          SFX.cast2();
+        }
+        for (let i = 0; i < 10; i++) P(foe.x + rnd(-12, 12), foe.y - rnd(8, 50), rnd(-2, 2), rnd(-2.5, 0), col, 24, 2, -0.01);
       }
       startSpec(foe) {
         this.state = "cast";
@@ -1754,6 +1852,40 @@
         SFX.whiff();
         return "miss";
       }
+      if (opts.grab) {
+        const d2 = dmg * att.def.dmg * comboScale(att);
+        def.hp = Math.max(0, def.hp - d2);
+        def.damageTaken = (def.damageTaken || 0) + d2;
+        def.flash = 4;
+        def.state = "grabbed";
+        def.st = 0;
+        def.vx = 0;
+        def.vy = 0;
+        def.grabbedBy = att;
+        def.atk = null;
+        def.spec2go = 0;
+        def.invis = 0;
+        def.netT = 0;
+        def.blockStun = 0;
+        def.frozen = 0;
+        def.face = -att.face;
+        att.throwTarget = def;
+        att.combo = (att.comboT !== void 0 && att.comboT < 60 ? att.combo : 0) + 1;
+        att.comboT = 0;
+        att.rage = Math.min(100, att.rage + 2);
+        def.rage = Math.min(100, def.rage + d2 * 0.9);
+        if (S.bstat) {
+          const k = att === S.battle.p1 ? "1" : "2";
+          S.bstat["h" + k]++;
+          S.bstat["d" + k] += d2;
+          S.bstat["c" + k] = Math.max(S.bstat["c" + k], att.combo || 0);
+        }
+        SFX.hitV();
+        S.freeze = Math.max(S.freeze, 2);
+        if (def.hp <= 0) S.freeze = Math.max(S.freeze, 12);
+        for (let i = 0; i < 4; i++) P(def.x + rnd(-8, 8), def.y - rnd(10, 48), rnd(-1, 1), rnd(-1.5, 0), "#fff", 12, 2, 0.03);
+        return "grab";
+      }
       if (opts.throw) def.blockStun = 0;
       if (def.state === "block" && !opts.throw && !(opts.low && !def.blockLow || opts.overhead && def.blockLow)) {
         def.hp = Math.max(1, def.hp - 1);
@@ -1887,6 +2019,22 @@
         const mapped = seq.split("").map((k) => k === "R" ? face > 0 ? "R" : "L" : k === "L" ? face > 0 ? "L" : "R" : k);
         return this.match(mapped, win);
       }
+      matchRelLoose(seq, face, win) {
+        win = win || 60;
+        const mapped = seq.split("").map((k) => k === "R" ? face > 0 ? "R" : "L" : k === "L" ? face > 0 ? "L" : "R" : k);
+        const b = this.buf, n = mapped.length;
+        if (b.length < n) return false;
+        for (let start = b.length - n; start >= 0; start--) {
+          if (b[b.length - 1].t - b[start].t > win) break;
+          let ok = true;
+          for (let i = 0; i < n; i++) if (b[start + i].k !== mapped[i]) {
+            ok = false;
+            break;
+          }
+          if (ok) return true;
+        }
+        return false;
+      }
       clear() {
         this.buf.length = 0;
       }
@@ -1897,6 +2045,7 @@
   // src/game/karnage.js
   function startKarnage(fxAssets = {}, arenaAssets = {}, uiAssets = {}) {
     const RW = 424, RH = 240, FL = 206, AW = 760, GR = 8, OUT = "#0e0b08";
+    const FATAL_FRAMES = 600, FATAL_INPUT = 240;
     const FX = fxAssets || {}, ARENA_IMG = arenaAssets || {}, UI = uiAssets || {};
     const S = createState();
     const cv = document.getElementById("cv"), g = cv.getContext("2d");
@@ -3099,6 +3248,15 @@
           g.beginPath();
           g.arc(x, f.y, f.t * 3.2, 0, 7);
           g.stroke();
+        } else if (f.ty === "name") {
+          const pr = f.t / (f.life || 60), a = 1 - pr;
+          g.save();
+          g.globalAlpha = a;
+          g.font = '9px "Russo One"';
+          g.textAlign = "center";
+          g.fillStyle = f.col;
+          g.fillText(f.txt, x, f.y - pr * 14);
+          g.restore();
         } else if (f.ty === "boltfx") drawBolt(x, FL, x, FL - 90);
         if (f.ty === "castbolt") {
           const by2 = f.y - (f.h || 60);
@@ -3299,7 +3457,22 @@
           p.legB = [-1.2, -1.9];
           p.armF = [0.9, 2.2];
           p.armB = [-0.9, 1.8];
+        } else if (f.atk && f.atk.t === "throw") {
+          const A = f.atk.A, th = f.atk.grabbed || f.atk.thrown ? Math.min(1, (f.st - (A.wd + A.ac)) / 8) : 0;
+          p.armF = [lerp(0.7, 1.95, ph) + th * 0.35, lerp(1.9, 0.15, ph)];
+          p.armB = [lerp(-0.5, 1.25, ph) + th * 0.45, lerp(2.1, 0.25, ph)];
+          p.lean = ph * 0.25 - th * 0.42;
+          p.hip = d.h * 0.44;
+          p.legF = [0.55, -0.2];
+          p.legB = [-0.6, -0.2];
         }
+      } else if (s === "grabbed") {
+        p.lean = 0.28;
+        p.armF = [0.9, 1.1];
+        p.armB = [-0.9, 1];
+        p.legF = [0.85, -1.1];
+        p.legB = [-0.9, -0.9];
+        p.head = 0.25;
       } else if (s === "hit") {
         p.lean = -0.35;
         p.armF = [-0.6, 1.2];
@@ -3786,7 +3959,7 @@
         g.fillStyle = ac;
         g.fillRect(hx - 14, hy + 16 + sw, 2, 2);
       }
-      const expr = f.state === "hit" || f.state === "victim" ? 1 : f.state === "dizzy" ? 2 : 0;
+      const expr = f.state === "hit" || f.state === "victim" || f.state === "grabbed" ? 1 : f.state === "dizzy" ? 2 : 0;
       if (expr === 0) {
         g.fillStyle = "#f0e8e0";
         g.fillRect(hx + 2, hy - 5, 3, 2);
@@ -4353,12 +4526,16 @@
       g.fillRect(x, y, w, h);
       frame(x, y, w, h);
     }
-    const seqTxt = (s, p2) => s.split("").map((x) => ({ D: "\u2193", U: "\u2191", L: "\u2190", R: "\u2192", P: p2 ? "I" : "J", K: p2 ? "O" : "K" })[x]).join(" ");
+    const seqTxt = (s, p2, face = 1) => s.split("").map((x) => {
+      if (face < 0 && x === "L") x = "R";
+      else if (face < 0 && x === "R") x = "L";
+      return { D: "\u2193", U: "\u2191", L: "\u2190", R: "\u2192", P: p2 ? "I" : "J", K: p2 ? "O" : "K" }[x];
+    }).join(" ");
     const RANGED = [0, 2, 3, 6, 7, 8, 9, 10, 12];
     function aiUpd(f, foe, lvl) {
       const c = f.ctrl;
       c.ax = {};
-      if (["down", "hit", "frozen", "net", "super", "cast", "victim", "dizzy", "fatal", "getup", "win"].includes(f.state)) return;
+      if (["down", "hit", "frozen", "net", "super", "cast", "victim", "dizzy", "fatal", "getup", "win", "grabbed"].includes(f.state)) return;
       if (f.aiDir) c.ax[f.aiDir] = true;
       if (foe.invis > 0 && Math.random() < 0.3) {
         f.aiDir = null;
@@ -4442,7 +4619,10 @@
       if (Math.random() < agg) {
         f.aiDir = null;
         const pk = Math.random();
-        if (pk < 0.3) c.ax.P = true;
+        if (pk < 0.07) {
+          c.ax.P = true;
+          c.ax.K = true;
+        } else if (pk < 0.3) c.ax.P = true;
         else if (pk < 0.58) c.ax.K = true;
         else if (pk < 0.75) {
           c.ax.d = true;
@@ -4823,6 +5003,7 @@
         w.foe.defeated = 1;
         w.foe.netT = 0;
         w.foe.frozen = 0;
+        b.fatalProg = 0;
         S.announce = { txt: "FINISH HIM!", t: 0, col: "#e02020", pulse: 1 };
         say("Finish him");
         const wx = w.x, wf = w.face;
@@ -4851,6 +5032,20 @@
         say(fl ? "Excellent. Flawless victory" : "K O");
       }
     }
+    function fatalMapped(seq, face) {
+      return seq.split("").map((k) => k === "R" ? face > 0 ? "R" : "L" : k === "L" ? face > 0 ? "L" : "R" : k);
+    }
+    function fatalProgress(ctrl, seq, face) {
+      const mapped = fatalMapped(seq, face), b = ctrl.buf, now = b.length ? b[b.length - 1].t : 0;
+      let best = 0;
+      for (let start = 0; start < b.length; start++) {
+        if (now - b[start].t > FATAL_INPUT) continue;
+        let n = 0;
+        while (n < mapped.length && start + n < b.length && b[start + n].k === mapped[n]) n++;
+        if (n > best) best = n;
+      }
+      return best;
+    }
     function finishUpd() {
       const b = S.battle;
       b.phaseT++;
@@ -4871,11 +5066,18 @@
           startFatal(w, l);
           return;
         }
-      } else if ((w.ctrl.pP || w.ctrl.pK) && w.ctrl.matchRel(w.def.fat, w.face, 150)) {
-        startFatal(w, l);
-        return;
+      } else {
+        const prog = fatalProgress(w.ctrl, w.def.fat, w.face);
+        if (prog > b.fatalProg) {
+          b.fatalProg = prog;
+          if (prog > 0) SFX.tick();
+        } else if (prog < b.fatalProg) b.fatalProg = prog;
+        if ((w.ctrl.pP || w.ctrl.pK) && (w.ctrl.matchRel(w.def.fat, w.face, FATAL_INPUT) || w.ctrl.matchRelLoose(w.def.fat, w.face, FATAL_INPUT))) {
+          startFatal(w, l);
+          return;
+        }
       }
-      if (b.phaseT > 430) {
+      if (b.phaseT >= FATAL_FRAMES) {
         l.state = "down";
         l.st = 0;
       }
@@ -5361,9 +5563,9 @@
       g.font = '7px "Russo One"';
       g.fillStyle = "#c8a040";
       g.textAlign = "center";
-      g.fillText("\u0421\u041F\u0415\u0426 \u2014 \u043D\u0430\u043F\u0440\u0430\u0432\u043B\u0435\u043D\u0438\u044F + \u043A\u043D\u043E\u043F\u043A\u0430 \xB7 \u0421\u0423\u041F\u0415\u0420 \u2014 S,S+J \xB7 \u0424\u0410\u0422\u0410\u041B\u0418\u0422\u0418 \u2014 \u0432 \u043E\u043A\u043D\u0435 FINISH HIM", RW / 2, 214);
+      g.fillText("P+K \u2014 \u0437\u0430\u0445\u0432\u0430\u0442/\u0431\u0440\u043E\u0441\u043E\u043A \xB7 \u0421\u041F\u0415\u0426 \u2014 \u043D\u0430\u043F\u0440\u0430\u0432\u043B\u0435\u043D\u0438\u044F+\u043A\u043D\u043E\u043F\u043A\u0430 \xB7 \u0421\u0423\u041F\u0415\u0420 \u2014 S,S+J", RW / 2, 214);
       g.fillStyle = "#807850";
-      g.fillText("\u2190/\u2192 \u0432 \u0441\u043F\u0435\u0446/\u0444\u0430\u0442\u0430\u043B\u0438\u0442\u0438 \u2014 \u043D\u0430\u0437\u0430\u0434/\u0432\u043F\u0435\u0440\u0451\u0434 \u043E\u0442\u043D\u043E\u0441\u0438\u0442\u0435\u043B\u044C\u043D\u043E \u0432\u0437\u0433\u043B\u044F\u0434\u0430", RW / 2, 222);
+      g.fillText("\u0424\u0410\u0422\u0410\u041B\u0418\u0422\u0418 \u2014 \u0432 \u043E\u043A\u043D\u0435 FINISH HIM \xB7 \u0441\u0442\u0440\u0435\u043B\u043A\u0438 \u2014 \u0441 \u0443\u0447\u0451\u0442\u043E\u043C \u0432\u0437\u0433\u043B\u044F\u0434\u0430", RW / 2, 222);
       g.fillText("J / ESC \u2014 \u043D\u0430\u0437\u0430\u0434", RW / 2, 230);
     }
     function drawSelect() {
@@ -5834,17 +6036,21 @@
         g.fillStyle = "#e8e0c0";
         g.fillText("\u0421\u041F\u0415\u0426: " + d.specN, x, 96);
         g.fillStyle = "#c8a040";
-        g.fillText("[" + seqTxt(d.spec, p2) + "]", x, 106);
+        g.fillText("[" + seqTxt(d.spec, p2, f.face) + "]", x, 106);
         g.fillStyle = "#e8e0c0";
         g.fillText("\u0421\u041F\u0415\u04262: " + d.spec2N, x, 118);
         g.fillStyle = "#c8a040";
-        g.fillText("[" + seqTxt(d.spec2, p2) + "]", x, 128);
+        g.fillText("[" + seqTxt(d.spec2, p2, f.face) + "]", x, 128);
         g.fillStyle = "#e8e0c0";
         g.fillText("\u0421\u0423\u041F\u0415\u0420: " + d.sup, x, 140);
         g.fillStyle = "#c8a040";
-        g.fillText("[" + seqTxt("DDP", p2) + "] \u043F\u0440\u0438 \u044F\u0440\u043E\u0441\u0442\u0438 100", x, 150);
+        g.fillText("[" + seqTxt("DDP", p2, f.face) + "] \u043F\u0440\u0438 \u044F\u0440\u043E\u0441\u0442\u0438 100", x, 150);
         g.fillStyle = "#e8e0c0";
-        g.fillText("\u0424\u0410\u0422\u0410\u041B\u0418\u0422\u0418: [" + seqTxt(d.fat, p2) + "]", x, 162);
+        g.fillText("\u0424\u0410\u0422\u0410\u041B\u0418\u0422\u0418: [" + seqTxt(d.fat, p2, f.face) + "]", x, 162);
+        g.fillStyle = "#e8e0c0";
+        g.fillText("\u0411\u0420\u041E\u0421\u041E\u041A: " + (d.throwN || "\u0417\u0430\u0445\u0432\u0430\u0442"), x, 174);
+        g.fillStyle = "#c8a040";
+        g.fillText("[P+K]", x, 184);
       };
       ab(S.battle.p1, 215);
       ab(S.battle.p2, 345);
@@ -6001,7 +6207,7 @@
         }
       }
       drawDecals(S.cam);
-      for (const f of [b.p2, b.p1]) drawF(f, S.cam);
+      for (const f of b.p2.state === "grabbed" ? [b.p1, b.p2] : [b.p2, b.p1]) drawF(f, S.cam);
       if (b.p1.state === "super" && b.p1.def.id === 5 && b.p1.st > 14 && b.p1.st < 90) {
         g.globalAlpha = 0.5;
         drawFakeShift(b.p1, S.cam, -30);
@@ -6062,7 +6268,7 @@
         g.restore();
       }
       if (b.phase === "finish") {
-        const left = Math.max(0, 1 - b.phaseT / 430);
+        const left = Math.max(0, 1 - b.phaseT / FATAL_FRAMES);
         g.fillStyle = "rgba(0,0,0,.6)";
         g.fillRect(RW / 2 - 80, 220, 160, 5);
         g.fillStyle = left > 0.35 ? "#c8a040" : "#e04020";
@@ -6070,18 +6276,39 @@
         g.strokeStyle = "#c8a040";
         g.lineWidth = 1;
         g.strokeRect(RW / 2 - 80.5, 219.5, 161, 6);
+        if (!b.winner.ctrl.ai) {
+          const w = b.winner, p2 = w === b.p2, prog = b.fatalProg || 0, seq = fatalMapped(w.def.fat, w.face), n = seq.length, secs = Math.max(0, Math.ceil((FATAL_FRAMES - b.phaseT) / 60));
+          g.fillStyle = "rgba(8,5,4,.86)";
+          g.fillRect(116, 52, 192, 36);
+          frame(116, 52, 192, 36);
+          g.font = '7px "Russo One"';
+          g.fillStyle = "#c8a040";
+          g.textAlign = "left";
+          g.fillText("\u0424\u0410\u0422\u0410\u041B\u0418\u0422\u0418", 124, 63);
+          g.textAlign = "right";
+          g.fillStyle = secs > 3 ? "#c8a040" : "#e04020";
+          g.fillText(secs + " \u0421", 300, 63);
+          g.font = '12px "Russo One"';
+          g.fillStyle = blink() ? "#e02020" : "#f0e8d0";
+          g.textAlign = "center";
+          g.fillText(seqTxt(w.def.fat, p2, w.face), 212, 76);
+          const bw = 12, gap = 5, tw = n * bw + (n - 1) * gap, sx = 212 - tw / 2;
+          for (let i = 0; i < n; i++) {
+            const x = sx + i * (bw + gap), on = i < prog;
+            g.fillStyle = on ? "#e04020" : "#2a2522";
+            g.fillRect(x, 81, bw, 3);
+            if (on) {
+              g.fillStyle = "rgba(255,140,110,.55)";
+              g.fillRect(x, 81, bw, 1);
+            }
+          }
+        }
       }
       if ((b.phase === "fatal" || b.phase === "over") && b.phaseT > 30) {
         g.font = '8px "Russo One"';
         g.fillStyle = "#e8e0c0";
         g.textAlign = "center";
         g.fillText("J \u2014 \u041F\u0420\u041E\u041F\u0423\u0421\u0422\u0418\u0422\u042C", RW / 2, 232);
-      }
-      if (b.phase === "finish" && !b.winner.ctrl.ai) {
-        g.font = '10px "Russo One"';
-        g.fillStyle = blink() ? "#e02020" : "#e8c040";
-        g.textAlign = "center";
-        g.fillText("\u0424\u0410\u0422\u0410\u041B\u0418\u0422\u0418: " + seqTxt(b.winner.def.fat, b.winner === b.p2), RW / 2, 232);
       }
       if (S.announce && S.announce.t < 110) {
         const t = S.announce.t;

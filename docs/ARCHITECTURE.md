@@ -41,6 +41,8 @@
 - `F` — боец: `def`, `ctrl`, `x`, `y`, `state`, `st`, `hp`, `rage`, `atk`,
   статусы (`frozen`, `netT`, `poison`, `invis`), буферы (`jbuf`, `abuf`).
   Создаётся фабрикой `createFighter` из `src/game/fighter.js`.
+- `throwN`, `throwT`, `throwC`, `throwD` — имя, стихия, цвет и урон добивания; назначаются в `src/data/characters.js` каждому бойцу и боссу.
+- Захват: `ATK.throw` с `grab:1` переводит жертву в `grabbed`; `F.finishThrow` через 8 кадров удержания наносит именной урон и запускает эффект стихии.
 - `drawF(f, cam)` — рисует бойца; не мутирует игровое состояние.
 - `drawGear(f, hx, hy)` — только `def.*` и явно переданные поля; локальной
   `skin` нет.

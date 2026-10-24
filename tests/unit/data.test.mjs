@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { test } from 'node:test';
+import { BOSS, CH } from '../../src/data/characters.js';
 import { ENDINGS } from '../../src/data/endings.js';
 
 const root = resolve(import.meta.dirname, '..', '..');
@@ -39,6 +40,15 @@ test('combos use the command alphabet', () => {
 test('fatalities end with an attack button', () => {
   for (const combo of fats) {
     assert.ok(combo.endsWith('P') || combo.endsWith('K'), combo);
+  }
+});
+
+test('every fighter has a named throw finisher', () => {
+  for (const fighter of [...CH, BOSS]) {
+    assert.ok(fighter.throwN && fighter.throwN.length <= 24, fighter.name);
+    assert.ok(fighter.throwT, fighter.name);
+    assert.ok(Number.isFinite(fighter.throwD) && fighter.throwD > 0, fighter.name);
+    assert.match(fighter.throwC, /^#[0-9a-f]{6}$/i, fighter.name);
   }
 });
 

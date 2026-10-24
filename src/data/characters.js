@@ -52,3 +52,22 @@ export const BOSS = {
   dmg: 1.28,
   arena: 8
 };
+
+// 25.10: у каждого бойца свой захват-бросок; P+K — общий вход, дальше персонаж добивает по-своему.
+const THROW_DATA = {
+  0: { throwN: 'ПЕПЕЛЬНЫЙ ВЗРЫВ', throwT: 'fire', throwC: '#f06020', throwD: 10 },
+  1: { throwN: 'ТЕНЕВОЙ СБРОС', throwT: 'shadow', throwC: '#9fb4bd', throwD: 9 },
+  2: { throwN: 'РАЗРЯД В УПОР', throwT: 'shock', throwC: '#f8f860', throwD: 10 },
+  3: { throwN: 'КАМЕННЫЙ ГРОХОТ', throwT: 'slam', throwC: '#8a7a5c', throwD: 13 },
+  4: { throwN: 'ЯДОВИТЫЙ УКУС', throwT: 'claw', throwC: '#7ac83a', throwD: 9 },
+  5: { throwN: 'ЗЕРКАЛЬНЫЙ ВИХРЬ', throwT: 'sand', throwC: '#c8a060', throwD: 9 },
+  6: { throwN: 'ЛЕДЯНАЯ ГРОБНИЦА', throwT: 'ice', throwC: '#c8ecff', throwD: 9 },
+  7: { throwN: 'РЖАВАЯ ПЕРЕГРУЗКА', throwT: 'blast', throwC: '#c8c8a0', throwD: 11 },
+  8: { throwN: 'ПОХИЩЕНИЕ СНА', throwT: 'drain', throwC: '#7a3aa8', throwD: 8 },
+  9: { throwN: 'КОРОЛЕВСКИЙ ПРИГОВОР', throwT: 'royal', throwC: '#f8f860', throwD: 12 },
+  10: { throwN: 'АЛАЯ ЖАТВА', throwT: 'blood', throwC: '#d82040', throwD: 10 },
+  11: { throwN: 'ЛУННЫЙ СНОС', throwT: 'blade', throwC: '#9adcee', throwD: 10 },
+  12: { throwN: 'ЗВЁЗДНЫЙ ШВЫРОК', throwT: 'star', throwC: '#b89aff', throwD: 9 }
+};
+for (const c of CH) Object.assign(c, THROW_DATA[c.id]);
+Object.assign(BOSS, { throwN: 'ПРИГОВОР КОРОНЫ', throwT: 'royal', throwC: '#f0c850', throwD: 14 });

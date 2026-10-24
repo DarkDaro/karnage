@@ -35,7 +35,7 @@ before(async () => {
     stdio: ['ignore', 'pipe', 'pipe']
   });
   await waitForServer();
-  browser = await chromium.launch({ headless: true });
+  browser = await chromium.launch({ headless: true, args: ['--mute-audio'] });
   page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
   page.on('pageerror', (error) => pageErrors.push(String(error)));
   page.on('console', (message) => {
@@ -130,7 +130,7 @@ test('renders every screen', async () => {
 test('draws every fighter in combat states', async () => {
   const states = [
     'idle', 'walk', 'jump', 'dash', 'crouch', 'block', 'hit',
-    'cast', 'super', 'win', 'fatal', 'victim', 'dizzy', 'down',
+    'cast', 'super', 'win', 'fatal', 'victim', 'grabbed', 'dizzy', 'down',
     'getup', 'frozen', 'net'
   ];
   const errors = await page.evaluate((names) => {

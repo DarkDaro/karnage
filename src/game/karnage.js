@@ -10,6 +10,7 @@ import { createInput } from './input.js';
 
 export function startKarnage(fxAssets = {}, arenaAssets = {}, uiAssets = {}) {
 const RW=424,RH=240,FL=206,AW=760,GR=8,OUT='#0e0b08';
+const FATAL_FRAMES=600,FATAL_INPUT=240;// 25.10: 10 секунд на добивание и 4 секунды на ввод — запас для спокойного набора
 const FX=fxAssets||{},ARENA_IMG=arenaAssets||{},UI=uiAssets||{};
 const S=createState();
 const cv=document.getElementById('cv'),g=cv.getContext('2d');
@@ -319,6 +320,7 @@ else if(f.ty==='nova'){g.strokeStyle='#c8ecff';g.lineWidth=2;g.beginPath();g.arc
 else if(f.ty==='drain'){g.strokeStyle='#7a3aa8';g.lineWidth=2;g.beginPath();g.arc(x,FL-40+Math.sin(f.t*.15)*6,20+f.t*.2,0,7);g.stroke();}
 else if(f.ty==='slash'){g.strokeStyle='#fff';g.lineWidth=2;g.beginPath();g.moveTo(x-10,f.y-14);g.lineTo(x+10,f.y+10);g.stroke();}
 else if(f.ty==='ring'){g.strokeStyle=f.col;g.lineWidth=2;g.beginPath();g.arc(x,f.y,f.t*3.2,0,7);g.stroke();}// 08.09: ударное кольцо
+else if(f.ty==='name'){const pr=f.t/(f.life||60),a=1-pr;g.save();g.globalAlpha=a;g.font='9px "Russo One"';g.textAlign='center';g.fillStyle=f.col;g.fillText(f.txt,x,f.y-pr*14);g.restore();}// 25.10: название броска над бойцом
 else if(f.ty==='boltfx')drawBolt(x,FL,x,FL-90);
 if(f.ty==='castbolt'){const by2=f.y-(f.h||60);drawBolt(x,by2-6,x+Math.sin(f.t)*3,by2-72);g.fillStyle='rgba(248,248,96,.5)';g.fillRect(x-2,by2-8,4,4);}// 30.09: канал молнии из руки Вольта
 }}
@@ -364,7 +366,9 @@ else if(f.atk&&(f.atk.t==='kick'||f.atk.t==='rh')){p.legF=[lerp(.3,1.5,ph),lerp(
 p.legB=[-.35,-.15];p.armF=[-.3,1.6];p.armB=[-.8,1.9];p.lean=ph*.2;p.hip=d.h*.44;}
 else if(f.atk&&f.atk.t==='jkick'){p.legF=[lerp(.5,1.4,ph),-.1];p.legB=[-.8,-1.4];p.armF=[-.6,1.5];p.armB=[-1.3,-.4];}
 else if(f.atk&&f.atk.t==='upper'){p.armF=[lerp(1.2,2.7,ph),.1];p.armB=[-.6,2];p.lean=-ph*.2;p.legF=[.4,-.2];p.legB=[-.5,-.2];}
-else if(f.atk&&f.atk.t==='sweep'){p.hip=d.h*.18;p.legF=[lerp(.5,1.55,ph),-.05];p.legB=[-1.2,-1.9];p.armF=[.9,2.2];p.armB=[-.9,1.8];}}
+else if(f.atk&&f.atk.t==='sweep'){p.hip=d.h*.18;p.legF=[lerp(.5,1.55,ph),-.05];p.legB=[-1.2,-1.9];p.armF=[.9,2.2];p.armB=[-.9,1.8];}
+else if(f.atk&&f.atk.t==='throw'){const A=f.atk.A,th=(f.atk.grabbed||f.atk.thrown)?Math.min(1,(f.st-(A.wd+A.ac))/8):0;p.armF=[lerp(.7,1.95,ph)+th*.35,lerp(1.9,.15,ph)];p.armB=[lerp(-.5,1.25,ph)+th*.45,lerp(2.1,.25,ph)];p.lean=ph*.25-th*.42;p.hip=d.h*.44;p.legF=[.55,-.2];p.legB=[-.6,-.2];}}
+else if(s==='grabbed'){p.lean=.28;p.armF=[.9,1.1];p.armB=[-.9,1];p.legF=[.85,-1.1];p.legB=[-.9,-.9];p.head=.25;}
 else if(s==='hit'){p.lean=-.35;p.armF=[-.6,1.2];p.armB=[-1.1,1];p.head=-.3;p.legF=[.6,-.3];p.legB=[-.6,-.2];}
 else if(s==='cast'||s==='super'){const ph=Math.min(1,f.st/12);p.armF=[lerp(-.5,1.5,ph),lerp(2,.1,ph)];p.armB=[lerp(-.8,1.3,ph),lerp(2,.2,ph)];p.lean=ph*.2;
 const ci={1:[[.2,1.2],[.1,1.1]],2:[[2.6,0],[-2.6,.1]],3:[[1.8,.6],[-.5,1.8]],4:[[1.2,.5],[-.6,1.8]],5:[[.6,1.2],[-.6,1.3]],6:[[2.4,.3],[-.4,1.8]],7:[[1.5,.05],[1.2,.2]],8:[[1.6,.2],[-.9,1.6]],9:[[1.5,.1],[1.3,.2]],10:[[1.7,.35],[1.35,.45]],11:[[1.9,-.1],[-.4,2.1]],12:[[1.55,-.05],[-.5,1.7]]}[d.id];// 30.09: Вега — поза лучницы
@@ -449,7 +453,7 @@ g.fillStyle=shade(skin,.7);g.fillRect(hx-6,hy-4,2,3);// ухо
 if(d.female){g.fillStyle=ac;g.fillRect(hx-7,hy-1,1,2);}// 24.10: серьга Веги
 if(d.longhair&&!f.charred&&!f.pale){g.fillStyle=OUT;g.fillRect(hx-9,hy-9,4,22);g.fillRect(hx+6,hy-9,4,22);g.fillStyle=d.hair;g.fillRect(hx-8,hy-8,3,20);g.fillRect(hx+6,hy-8,3,20);g.fillStyle=mix(d.hair,'#ffffff',.3);g.fillRect(hx-8,hy-8,3,1);g.fillRect(hx+6,hy-8,3,1);g.fillStyle=shade(d.hair,.75);g.fillRect(hx-8,hy+6,3,4);g.fillRect(hx+6,hy+6,3,4);}// 30.09: длинные волосы до лопаток с бликом
 if(d.ponytail&&!f.charred&&!f.pale){const sw=Math.sin(f.animT*.08)*2;g.fillStyle=OUT;g.beginPath();g.moveTo(hx-6,hy-8);g.quadraticCurveTo(hx-11,hy-10+sw,hx-13,hy-2+sw);g.quadraticCurveTo(hx-15,hy+7+sw,hx-15,hy+18+sw);g.lineTo(hx-12,hy+17+sw);g.quadraticCurveTo(hx-11,hy+7+sw,hx-10,hy+sw);g.quadraticCurveTo(hx-9,hy-5+sw,hx-4,hy-6);g.closePath();g.fill();g.fillStyle=d.hair;g.beginPath();g.moveTo(hx-5,hy-7);g.quadraticCurveTo(hx-10,hy-8+sw,hx-12,hy-2+sw);g.quadraticCurveTo(hx-13,hy+7+sw,hx-13,hy+16+sw);g.lineTo(hx-12,hy+15+sw);g.quadraticCurveTo(hx-11,hy+6+sw,hx-10,hy+sw);g.quadraticCurveTo(hx-9,hy-4+sw,hx-4,hy-5);g.closePath();g.fill();g.strokeStyle=shade(d.hair,.78);g.lineWidth=.8;for(const q of[[-11,-2],[-12,3],[-13,8],[-13,13]]){g.beginPath();g.moveTo(hx+q[0]-1,hy+q[1]+sw*.4);g.lineTo(hx+q[0]+1,hy+q[1]+1+sw*.4);g.stroke();}g.strokeStyle=mix(d.hair,'#ffffff',.45);g.lineWidth=.7;g.beginPath();g.moveTo(hx-6,hy-7);g.quadraticCurveTo(hx-11,hy-9+sw,hx-13,hy-2+sw);g.quadraticCurveTo(hx-14,hy+7+sw,hx-14,hy+15+sw);g.stroke();g.fillStyle=ac;g.fillRect(hx-8,hy-9,2,5);g.beginPath();g.moveTo(hx-8,hy-7);g.lineTo(hx-12,hy-5+sw);g.lineTo(hx-9,hy-3);g.fill();g.fillStyle=ac;g.fillRect(hx-14,hy+16+sw,2,2);}// 24.10: длинный хвост с лентой и прядями
-const expr=(f.state==='hit'||f.state==='victim')?1:f.state==='dizzy'?2:0;// 30.09: выражение лица
+const expr=(f.state==='hit'||f.state==='victim'||f.state==='grabbed')?1:f.state==='dizzy'?2:0;// 30.09: выражение лица
 if(expr===0){g.fillStyle='#f0e8e0';g.fillRect(hx+2,hy-5,3,2);g.fillStyle='#141414';g.fillRect(d.female?hx+4:hx+3,hy-5,d.female?1:2,2);if(d.female){g.fillStyle='#141414';g.fillRect(hx+4,hy-6,1,1);}}
 else if(expr===1){g.fillStyle='#141414';g.fillRect(hx+2,hy-4,3,1);}// зажмурен
 else{g.fillStyle='#141414';g.fillRect(hx+2,hy-5,1,2);g.fillRect(hx+4,hy-5,1,2);}// крестит
@@ -542,11 +546,11 @@ for(let i=0;i<2;i++){pip(RW/2-45-i*9,10,i<p1.wins);pip(RW/2+39+i*9,10,i<p2.wins)
 function bigText(t,y,col,sc){g.save();g.translate(RW/2,y);g.scale(sc,sc);g.font='20px "Rubik Mono One","Russo One",sans-serif';g.textAlign='center';g.fillStyle='#000';for(let dx=-2;dx<=2;dx+=2)for(let dy=-2;dy<=2;dy+=2)g.fillText(t,dx,dy);g.fillStyle=col;g.fillText(t,0,0);g.restore();}// 08.09: заголовочный шрифт Rubik Mono One
 function frame(x,y,w,h,key='panel'){const p=UI[key];if(p&&p.ready){const sm=p.slice||12,dm=Math.min(sm,Math.max(2,Math.floor(Math.min(w,h)/2))),iw=p.image.width,ih=p.image.height,cw=iw-sm*2,ch=ih-sm*2;g.save();g.imageSmoothingEnabled=false;g.drawImage(p.image,0,0,sm,sm,x,y,dm,dm);g.drawImage(p.image,iw-sm,0,sm,sm,x+w-dm,y,dm,dm);g.drawImage(p.image,0,ih-sm,sm,sm,x,y+h-dm,dm,dm);g.drawImage(p.image,iw-sm,ih-sm,sm,sm,x+w-dm,y+h-dm,dm,dm);g.drawImage(p.image,sm,0,cw,sm,x+dm,y,w-dm*2,dm);g.drawImage(p.image,sm,ih-sm,cw,sm,x+dm,y+h-dm,w-dm*2,dm);g.drawImage(p.image,0,sm,sm,ch,x,y+dm,dm,h-dm*2);g.drawImage(p.image,iw-sm,sm,sm,ch,x+w-dm,y+dm,dm,h-dm*2);g.restore();return true;}g.strokeStyle='#c8a040';g.lineWidth=1;g.strokeRect(x+.5,y+.5,w-1,h-1);g.fillStyle='#c8a040';g.fillRect(x,y,3,3);g.fillRect(x+w-3,y,3,3);g.fillRect(x,y+h-3,3,3);g.fillRect(x+w-3,y+h-3,3,3);return false;}
 function panel(x,y,w,h){g.fillStyle='rgba(10,8,6,.93)';g.fillRect(x,y,w,h);frame(x,y,w,h);}
-const seqTxt=(s,p2)=>s.split('').map(x=>({D:'\u2193',U:'\u2191',L:'\u2190',R:'\u2192',P:p2?'I':'J',K:p2?'O':'K'})[x]).join(' ');
+const seqTxt=(s,p2,face=1)=>s.split('').map(x=>{if(face<0&&x==='L')x='R';else if(face<0&&x==='R')x='L';return ({D:'\u2193',U:'\u2191',L:'\u2190',R:'\u2192',P:p2?'I':'J',K:p2?'O':'K'})[x];}).join(' ');
 /* ИИ */
 const RANGED=[0,2,3,6,7,8,9,10,12];// 30.09: +Кармин, +Вега
 function aiUpd(f,foe,lvl){const c=f.ctrl;c.ax={};
-if(['down','hit','frozen','net','super','cast','victim','dizzy','fatal','getup','win'].includes(f.state))return;// 08.09: +win — ИИ в позе победы не должен действовать
+if(['down','hit','frozen','net','super','cast','victim','dizzy','fatal','getup','win','grabbed'].includes(f.state))return;// 08.09: +win — ИИ в позе победы не должен действовать
 if(f.aiDir)c.ax[f.aiDir]=true;
 if(foe.invis>0&&Math.random()<.3){f.aiDir=null;c.ax.B=true;return;}// 08.09: ИИ осторожничает против невидимого
 const dx=foe.x-f.x,ad=Math.abs(dx),react=Math.max(5,26-lvl*2.4);
@@ -566,7 +570,7 @@ if(['idle','walk'].includes(f.state)&&Math.random()<.05+lvl*.008&&(RANGED.includ
 if(ad>120){f.aiDir=dx>0?'r':'l';if(Math.random()<.08)f.aiDir=null;return;}
 if(ad>56){if(Math.random()<.05+lvl*.012){c.ax.u=true;f.aiDir=dx>0?'r':'l';return;}// 08.09: прыжок-вближение
 f.aiDir=Math.random()<.8?(dx>0?'r':'l'):null;return;}
-if(Math.random()<agg){f.aiDir=null;const pk=Math.random();if(pk<.3)c.ax.P=true;else if(pk<.58)c.ax.K=true;else if(pk<.75){c.ax.d=true;c.ax.P=true;}else{c.ax.d=true;c.ax.K=true;}return;}
+if(Math.random()<agg){f.aiDir=null;const pk=Math.random();if(pk<.07){c.ax.P=true;c.ax.K=true;}else if(pk<.3)c.ax.P=true;else if(pk<.58)c.ax.K=true;else if(pk<.75){c.ax.d=true;c.ax.P=true;}else{c.ax.d=true;c.ax.K=true;}return;}
 if(Math.random()<.28){f.aiDir=null;c.ax.B=true;return;}
 f.aiDir=Math.random()<.6?(dx>0?'r':'l'):null;}
 /* БОЙ */
@@ -650,15 +654,18 @@ function roundWon(w){const b=S.battle;w.wins++;S.projs.length=0;
 if(w.wins>=2){b.loser=w.foe;b.winner=w;b.phase='finish';b.phaseT=0;
 w.ctrl.clear();w.foe.ctrl.clear();
 w.foe.hp=0;w.foe.state='dizzy';w.foe.st=0;w.foe.vx=0;w.foe.vy=0;w.foe.y=FL+GR;w.foe.atk=null;w.foe.defeated=1;w.foe.netT=0;w.foe.frozen=0;
-S.announce={txt:'FINISH HIM!',t:0,col:'#e02020',pulse:1};say('Finish him');
+b.fatalProg=0;S.announce={txt:'FINISH HIM!',t:0,col:'#e02020',pulse:1};say('Finish him');
 const wx=w.x,wf=w.face;w.reset(wx,wf);w.hp=100;w.defeated=0;}
 else{b.phase='ko';b.phaseT=0;const fl=(w.damageTaken||0)===0;if(fl)SFX.coin();S.announce={txt:fl?'FLAWLESS VICTORY':'K.O.',t:0,col:fl?'#e8e0c0':'#e02020'};w.state='win';w.st=0;w.atk=null;w.foe.state='down';w.foe.st=0;w.foe.hp=0;w.foe.vx=0;w.foe.vy=0;w.foe.y=FL+GR;w.foe.defeated=1;w.foe.netT=0;w.foe.frozen=0;SFX.ko();say(fl?'Excellent. Flawless victory':'K O');}}
+function fatalMapped(seq,face){return seq.split('').map(k=>k==='R'?(face>0?'R':'L'):k==='L'?(face>0?'L':'R'):k);}
+function fatalProgress(ctrl,seq,face){const mapped=fatalMapped(seq,face),b=ctrl.buf,now=b.length?b[b.length-1].t:0;let best=0;for(let start=0;start<b.length;start++){if(now-b[start].t>FATAL_INPUT)continue;let n=0;while(n<mapped.length&&start+n<b.length&&b[start+n].k===mapped[n])n++;if(n>best)best=n;}return best;}
 function finishUpd(){const b=S.battle;b.phaseT++;updFs(1);
 const w=b.winner,l=b.loser;
 if(l.state==='down'){b.phase='over';b.phaseT=0;endBattle(w);return;}
 if(w.ctrl.ai){const c=w.ctrl;c.ax={};const dx=l.x-w.x;if(b.phaseT>40&&Math.abs(dx)>44)c.ax[dx>0?'r':'l']=true;if(Math.abs(dx)<=44&&b.phaseT>140&&Math.random()<.03){startFatal(w,l);return;}}
-else if((w.ctrl.pP||w.ctrl.pK)&&w.ctrl.matchRel(w.def.fat,w.face,150)){startFatal(w,l);return;}// 08.09: окно ввода 90→150 кадров (2.5 сек) — было почти нереально
-if(b.phaseT>430){l.state='down';l.st=0;}}
+else{const prog=fatalProgress(w.ctrl,w.def.fat,w.face);if(prog>b.fatalProg){b.fatalProg=prog;if(prog>0)SFX.tick();}else if(prog<b.fatalProg)b.fatalProg=prog;
+if((w.ctrl.pP||w.ctrl.pK)&&(w.ctrl.matchRel(w.def.fat,w.face,FATAL_INPUT)||w.ctrl.matchRelLoose(w.def.fat,w.face,FATAL_INPUT))){startFatal(w,l);return;}}
+if(b.phaseT>=FATAL_FRAMES){l.state='down';l.st=0;}}
 function afterBattle(){const b=S.battle;// 08.09: удалена недостижимая ветка !b.winner — endBattle всегда ставит winner
 if(b.mode==='arcade'&&b.winner===b.p1){S.lStep++;
 if(S.lStep>=arcTotal()){clearArcRun();try{const rec=+(localStorage.karnageArc||0);if(S.lStep>rec)localStorage.karnageArc=S.lStep;}catch(e){}// 08.09: запись рекорда
@@ -780,8 +787,8 @@ const L1=['A / D — ходьба','W — прыжок','S — присед','J 
 const L2=['СТРЕЛКИ — движение','СТРЕЛКА ВВЕРХ — прыжок','СТРЕЛКА ВНИЗ — присед','I — удар рукой','O — удар ногой','P — блок (удерживать)','ВНИЗ + I — апперкот','ВНИЗ + O — подсечка','назад + O — roundhouse','бег + P — рывок-уклон','СПЕЦ2 — своя комбинация'];// 30.09
 L1.forEach((l,i)=>g.fillText(l,24,62+i*12));L2.forEach((l,i)=>g.fillText(l,228,62+i*12));
 g.font='7px "Russo One"';g.fillStyle='#c8a040';g.textAlign='center';
-g.fillText('СПЕЦ — направления + кнопка · СУПЕР — S,S+J · ФАТАЛИТИ — в окне FINISH HIM',RW/2,214);
-g.fillStyle='#807850';g.fillText('←/→ в спец/фаталити — назад/вперёд относительно взгляда',RW/2,222);
+g.fillText('P+K — захват/бросок · СПЕЦ — направления+кнопка · СУПЕР — S,S+J',RW/2,214);
+g.fillStyle='#807850';g.fillText('ФАТАЛИТИ — в окне FINISH HIM · стрелки — с учётом взгляда',RW/2,222);
 g.fillText('J / ESC — назад',RW/2,230);}
 function drawSelect(){const s=S.sel;bgFill();
 g.font='15px "Russo One"';g.fillStyle='#e8c040';g.textAlign='center';g.fillText('ВЫБОР БОЙЦА',RW/2,16);
@@ -904,12 +911,13 @@ g.font=on?'9px "Russo One"':'8px "Russo One"';g.fillStyle=on?(blink()?'#fff':'#e
 const ab=(f,x)=>{const d=f.def,p2=f===S.battle.p2;
 g.font='8px "Russo One"';g.fillStyle='#e02020';g.textAlign='center';g.fillText(d.name,x,84);
 g.font='7px "Russo One"';g.fillStyle='#e8e0c0';g.fillText('СПЕЦ: '+d.specN,x,96);
-g.fillStyle='#c8a040';g.fillText('['+seqTxt(d.spec,p2)+']',x,106);
+g.fillStyle='#c8a040';g.fillText('['+seqTxt(d.spec,p2,f.face)+']',x,106);
 g.fillStyle='#e8e0c0';g.fillText('СПЕЦ2: '+d.spec2N,x,118);// 08.09: СПЕЦ2 добавлен в панель способностей
-g.fillStyle='#c8a040';g.fillText('['+seqTxt(d.spec2,p2)+']',x,128);
+g.fillStyle='#c8a040';g.fillText('['+seqTxt(d.spec2,p2,f.face)+']',x,128);
 g.fillStyle='#e8e0c0';g.fillText('СУПЕР: '+d.sup,x,140);
-g.fillStyle='#c8a040';g.fillText('['+seqTxt('DDP',p2)+'] при ярости 100',x,150);
-g.fillStyle='#e8e0c0';g.fillText('ФАТАЛИТИ: ['+seqTxt(d.fat,p2)+']',x,162);};
+g.fillStyle='#c8a040';g.fillText('['+seqTxt('DDP',p2,f.face)+'] при ярости 100',x,150);
+g.fillStyle='#e8e0c0';g.fillText('ФАТАЛИТИ: ['+seqTxt(d.fat,p2,f.face)+']',x,162);
+g.fillStyle='#e8e0c0';g.fillText('БРОСОК: '+(d.throwN||'Захват'),x,174);g.fillStyle='#c8a040';g.fillText('[P+K]',x,184);};
 ab(S.battle.p1,215);ab(S.battle.p2,345);}
 /* ГЛАВНЫЙ ЦИКЛ */
 function loop(ts){requestAnimationFrame(loop);S.acc+=Math.min(50,ts-S.last);S.last=ts;
@@ -956,7 +964,7 @@ if(mx2>-20&&mx2<RW+20){g.save();g.translate(mx2,m.y);g.rotate(S.FRAME*.05);
 g.strokeStyle='#b89aff';g.lineWidth=1.5;for(let i2=0;i2<4;i2++){g.rotate(Math.PI/2);g.beginPath();g.moveTo(0,-3);g.lineTo(0,-9);g.stroke();}
 g.fillStyle='#e8e8ff';g.fillRect(-1.5,-1.5,3,3);g.restore();}}// 30.09: звёздные метки
 drawDecals(S.cam);
-for(const f of[b.p2,b.p1])drawF(f,S.cam);
+for(const f of(b.p2.state==='grabbed'?[b.p1,b.p2]:[b.p2,b.p1]))drawF(f,S.cam);// 25.10: удерживаемая жертва рисуется поверх захватчика
 if(b.p1.state==='super'&&b.p1.def.id===5&&b.p1.st>14&&b.p1.st<90){g.globalAlpha=.5;drawFakeShift(b.p1,S.cam,-30);drawFakeShift(b.p1,S.cam,30);g.globalAlpha=1;}
 if(b.p2.state==='super'&&b.p2.def.id===5&&b.p2.st>14&&b.p2.st<90){g.globalAlpha=.5;drawFakeShift(b.p2,S.cam,-30);drawFakeShift(b.p2,S.cam,30);g.globalAlpha=1;}
 drawProjs(S.cam);drawFx(S.cam);drawParts(S.cam);
@@ -970,10 +978,16 @@ if(S.flashS>0&&!OPT.reduce){g.fillStyle='rgba(255,255,255,'+(S.flashS/10)+')';g.
 drawHUD(b);
 if(S.wipe>0&&!OPT.reduce){const wh=RH*(S.wipe/24);g.fillStyle='#000';g.fillRect(0,0,RW,wh/2);g.fillRect(0,RH-wh/2,RW,wh/2);}// 30.09: раскрывающиеся шторки
 for(const f of[b.p1,b.p2])if(f.combo>=2&&f.comboT<50){const sc2=1+.25*Math.max(0,1-f.comboT/8);g.save();g.translate(f===b.p1?70:RW-70,80);g.scale(sc2,sc2);g.font='12px "Russo One"';g.textAlign='center';g.fillStyle=f.combo>=5?'#e02020':f.combo>=3?'#f08020':'#e8c040';g.fillText('КОМБО x'+f.combo,0,0);g.restore();}// 08.09: комбо-счётчик — цвет растёт с серией
-if(b.phase==='finish'){const left=Math.max(0,1-b.phaseT/430);g.fillStyle='rgba(0,0,0,.6)';g.fillRect(RW/2-80,220,160,5);g.fillStyle=left>.35?'#c8a040':'#e04020';g.fillRect(RW/2-80,220,160*left,5);g.strokeStyle='#c8a040';g.lineWidth=1;g.strokeRect(RW/2-80.5,219.5,161,6);}
+if(b.phase==='finish'){
+const left=Math.max(0,1-b.phaseT/FATAL_FRAMES);g.fillStyle='rgba(0,0,0,.6)';g.fillRect(RW/2-80,220,160,5);g.fillStyle=left>.35?'#c8a040':'#e04020';g.fillRect(RW/2-80,220,160*left,5);g.strokeStyle='#c8a040';g.lineWidth=1;g.strokeRect(RW/2-80.5,219.5,161,6);
+if(!b.winner.ctrl.ai){const w=b.winner,p2=w===b.p2,prog=b.fatalProg||0,seq=fatalMapped(w.def.fat,w.face),n=seq.length,secs=Math.max(0,Math.ceil((FATAL_FRAMES-b.phaseT)/60));
+g.fillStyle='rgba(8,5,4,.86)';g.fillRect(116,52,192,36);frame(116,52,192,36);
+g.font='7px "Russo One"';g.fillStyle='#c8a040';g.textAlign='left';g.fillText('ФАТАЛИТИ',124,63);
+g.textAlign='right';g.fillStyle=secs>3?'#c8a040':'#e04020';g.fillText(secs+' С',300,63);
+g.font='12px "Russo One"';g.fillStyle=blink()?'#e02020':'#f0e8d0';g.textAlign='center';g.fillText(seqTxt(w.def.fat,p2,w.face),212,76);
+const bw=12,gap=5,tw=n*bw+(n-1)*gap,sx=212-tw/2;
+for(let i=0;i<n;i++){const x=sx+i*(bw+gap),on=i<prog;g.fillStyle=on?'#e04020':'#2a2522';g.fillRect(x,81,bw,3);if(on){g.fillStyle='rgba(255,140,110,.55)';g.fillRect(x,81,bw,1);}}}}
 if((b.phase==='fatal'||b.phase==='over')&&b.phaseT>30){g.font='8px "Russo One"';g.fillStyle='#e8e0c0';g.textAlign='center';g.fillText('J — ПРОПУСТИТЬ',RW/2,232);}
-if(b.phase==='finish'&&!b.winner.ctrl.ai){g.font='10px "Russo One"';g.fillStyle=blink()?'#e02020':'#e8c040';g.textAlign='center';
-g.fillText('ФАТАЛИТИ: '+seqTxt(b.winner.def.fat,b.winner===b.p2),RW/2,232);}// 08.09: подсказка крупнее и мигает
 if(S.announce&&S.announce.t<110){const t=S.announce.t;const sc=t<10?3-t*.2:1;
 let a=1;if(t>90)a=1-(t-90)/20;
 g.save();g.globalAlpha=clamp(a,0,1);

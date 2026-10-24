@@ -34,7 +34,7 @@ before(async () => {
     stdio: ['ignore', 'pipe', 'pipe']
   });
   await ready();
-  browser = await chromium.launch({ headless: true });
+  browser = await chromium.launch({ headless: true, args: ['--mute-audio'] });
   page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
   await page.addInitScript(() => {
     window.requestAnimationFrame = () => 0;
@@ -118,9 +118,11 @@ test('finish lock blocks damage and accepts fatality input', async () => {
     const afterPunch = { phase: battle.phase, loser: battle.p2.state, hp: battle.p2.hp };
     for (const key in K.keys) K.keys[key] = false;
     battle.p1.ctrl.clear();
-    press('KeyD');
-    press('KeyD');
+    battle.p1.face = -1;
+    battle.phaseT = 500;
     press('KeyA');
+    press('KeyA');
+    press('KeyD');
     press('KeyJ');
     return {
       phaseAfterKo,
@@ -666,6 +668,77 @@ test('throws beat block but miss crouching targets', async () => {
   assert.equal(result.crouch.hit, 0);
   assert.ok(result.standing.hp < 100);
   assert.equal(result.standing.hit, 1);
+});
+
+test('throw grabs, holds and finishes with character combo', async () => {
+  const result = await page.evaluate(() => {
+    const K = window.KARNAGE;
+    K.setDebug({ GAME: 'fight', paused: false });
+    K.newBattle(0, new K.Ctrl(K.KM1), 1, new K.Ctrl(K.KM2), 9);
+    const battle = K.battle;
+    battle.mode = '2p';
+    battle.phase = 'fight';
+    battle.phaseT = 200;
+    battle.p1.ctrl.ai = false;
+    battle.p2.ctrl.ai = false;
+    battle.p1.x = 300;
+    battle.p2.x = 330;
+    battle.p1.face = 1;
+    battle.p2.face = -1;
+    K.keys.KeyJ = true;
+    K.keys.KeyK = true;
+    K.step();
+    K.keys.KeyJ = false;
+    K.keys.KeyK = false;
+    K.step();
+    const started = { type: battle.p1.atk?.t || '', name: battle.p1.def.throwN };
+    for (let i = 0; i < 8; i += 1) K.step();
+    const grabbed = { state: battle.p2.state, hp: battle.p2.hp, combo: battle.p1.combo };
+    for (let i = 0; i < 20; i += 1) K.step();
+    return { started, grabbed, final: { hp: battle.p2.hp, state: battle.p2.state, combo: battle.p1.combo } };
+  });
+  assert.equal(result.started.type, 'throw');
+  assert.ok(result.started.name);
+  assert.deepEqual(result.grabbed, { state: 'grabbed', hp: 99, combo: 1 });
+  assert.ok(result.final.hp < 99);
+  assert.equal(result.final.state, 'down');
+  assert.equal(result.final.combo, 2);
+});
+
+test('every fighter completes a named throw combo', async () => {
+  const result = await page.evaluate(() => {
+    const K = window.KARNAGE;
+    const out = [];
+    for (let id = 0; id < K.CH.length; id += 1) {
+      for (const key in K.keys) K.keys[key] = false;
+      K.setDebug({ GAME: 'fight', paused: false });
+      K.newBattle(id, new K.Ctrl(K.KM1), (id + 1) % K.CH.length, new K.Ctrl(K.KM2), 9);
+      const battle = K.battle;
+      battle.mode = '2p';
+      battle.phase = 'fight';
+      battle.phaseT = 200;
+      battle.p1.ctrl.ai = false;
+      battle.p2.ctrl.ai = false;
+      battle.p1.x = 300;
+      battle.p2.x = 330;
+      battle.p1.face = 1;
+      battle.p2.face = -1;
+      K.keys.KeyJ = true;
+      K.keys.KeyK = true;
+      K.step();
+      K.keys.KeyJ = false;
+      K.keys.KeyK = false;
+      K.step();
+      for (let i = 0; i < 30; i += 1) K.step();
+      out.push({ id, name: battle.p1.def.throwN, hp: battle.p2.hp, state: battle.p2.state });
+    }
+    return out;
+  });
+  for (const item of result) {
+    assert.ok(item.name, `fighter ${item.id} has no throw name`);
+    assert.ok(item.hp < 100, `fighter ${item.id} throw did not damage`);
+    assert.notEqual(item.state, 'grabbed', `fighter ${item.id} throw did not release`);
+  }
 });
 
 test('special cancel works only after a connected hit', async () => {

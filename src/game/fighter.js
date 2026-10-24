@@ -1,4 +1,4 @@
-export const ATK={punch:{d:6,wd:5,ac:3,rc:8,rng:28,hh:.72},kick:{d:9,wd:7,ac:4,rc:11,rng:36,hh:.6},upper:{d:15,wd:6,ac:4,rc:15,rng:24,hh:.5,launch:1},sweep:{d:10,wd:6,ac:3,rc:13,rng:38,hh:.12,low:1},jkick:{d:10,wd:4,ac:8,rc:20,rng:34,hh:.4,overhead:1},rh:{d:12,wd:8,ac:4,rc:15,rng:40,hh:.55,knock:1},throw:{d:12,wd:6,ac:2,rc:24,rng:34,hh:.55,throw:1,knock:1}};// 30.09: восстановления короче на 1 кадр — бой цепляется живее// 08.09: roundhouse — тяжёлый удар с нокдауном
+export const ATK={punch:{d:6,wd:5,ac:3,rc:8,rng:28,hh:.72},kick:{d:9,wd:7,ac:4,rc:11,rng:36,hh:.6},upper:{d:15,wd:6,ac:4,rc:15,rng:24,hh:.5,launch:1},sweep:{d:10,wd:6,ac:3,rc:13,rng:38,hh:.12,low:1},jkick:{d:10,wd:4,ac:8,rc:20,rng:34,hh:.4,overhead:1},rh:{d:12,wd:8,ac:4,rc:15,rng:40,hh:.55,knock:1},throw:{d:1,wd:5,ac:3,rc:20,rng:30,hh:.55,throw:1,grab:1}};// 25.10: P+K — захват, урон и добивание идут отдельным броском персонажа// 30.09: восстановления короче на 1 кадр — бой цепляется живее// 08.09: roundhouse — тяжёлый удар с нокдауном
 const ZEROC={l:0,r:0,u:0,d:0,P:0,K:0,B:0,pP:0,pK:0,pl:0,pr:0,pu:0,pd:0};// 08.09: пустой ввод для интро
 export const WM={0:[.24,1,1,1.5,.02],1:[.15,.65,.4,.6,.1],2:[.27,1.1,1.3,1.8,0],3:[.14,1.2,.8,2.6,.06],4:[.3,.9,1.4,1,.12],5:[.2,.7,.5,.8,-.03],6:[.2,.9,.7,1,0],7:[.22,1.1,.5,1.6,.04],8:[.13,.5,.3,.4,-.05],9:[.21,.95,1.1,1.6,.03],10:[.19,.75,.6,.9,-.04],11:[.28,.85,1.2,.9,.1],12:[.17,.6,.4,.5,-.02]};// 30.09: Вега — парящая походка — [частота, размах ног, размах рук, покачивание, наклон]: Базальт топает тяжело, Фэнг семенит, Ноктюрн плывёт, Кайзер марширует
 
@@ -9,7 +9,7 @@ export function createFighter({
 }) {
   class F{
   constructor(def,ctrl){this.def=def;this.ctrl=ctrl;this.wins=0;this.rage=0;this.aiDir=null;this.reset(200,1);}
-  reset(x,face){this.x=x;this.y=FL+GR;this.vx=0;this.vy=0;this.face=face;this.state='idle';this.st=0;this.hp=100;this.atk=null;this.frozen=0;this.netT=0;this.invis=0;this.invuln=0;this.poison=0;this.charred=0;this.hidden=0;this.tilt=0;this.run=100;this.running=0;this.hpLag=100;this.lastTap=-99;this.tapDir=0;this.animT=0;this.squash=1;this.scale=1;this.flash=0;this.jbuf=0;this.abuf=0;this.abufB='punch';this.dodging=0;this.dvx=0;this.marks=[];this.poisonC=null;this.spec2go=0;this.combo=0;this.comboT=99;this.pale=0;this.defeated=0;this.damageTaken=0;this.armor=0;this.blockStun=0;this.blockLow=0;this.ctrl.clear();}
+  reset(x,face){this.x=x;this.y=FL+GR;this.vx=0;this.vy=0;this.face=face;this.state='idle';this.st=0;this.hp=100;this.atk=null;this.frozen=0;this.netT=0;this.invis=0;this.invuln=0;this.poison=0;this.charred=0;this.hidden=0;this.tilt=0;this.run=100;this.running=0;this.hpLag=100;this.lastTap=-99;this.tapDir=0;this.animT=0;this.squash=1;this.scale=1;this.flash=0;this.jbuf=0;this.abuf=0;this.abufB='punch';this.dodging=0;this.dvx=0;this.marks=[];this.poisonC=null;this.spec2go=0;this.combo=0;this.comboT=99;this.pale=0;this.defeated=0;this.damageTaken=0;this.armor=0;this.blockStun=0;this.blockLow=0;this.grabbedBy=0;this.throwTarget=0;this.ctrl.clear();}
   get onGround(){return this.y>=FL+GR-.5;}
   get box(){const d=this.def,bh=(this.state==='crouch')?d.h*.55:d.h;return{x:this.x-9*d.bulk,y:this.y-bh,w:18*d.bulk,h:bh};}
   startAtk(t){this.state='atk';this.st=0;this.atk={t,A:ATK[t],hit:0,blocked:0,connected:0,cancel:0};this.invis=0;this.spec2go=0;if(!S.battle||S.battle.phase==='fight')this.ctrl.buf.length=0;SFX.swing();}// 08.09: атака пробивает невидимость; 24.10: буфер очищается для special cancel только в бою
@@ -20,6 +20,7 @@ export function createFighter({
   if(this.poison>0){this.poison--;this.hp=Math.max(1,this.hp-.06);this.damageTaken=(this.damageTaken||0)+.06;if(this.poison%9===0)P(this.x,this.y-d.h*.6,rnd(-.5,.5),rnd(-1.5,-.3),this.poisonC||'#7ac83a',20,2);}// 30.09: цвет DoT — яд зелёный, кровотечение алое
   if(this.invis>0)this.invis--;if(this.invuln>0)this.invuln--;if(this.armor>0)this.armor--;
   if(S.GAME==='fight'&&!this.hidden){if(d.id===0&&FR%9===0)P(this.x+rnd(-4,4),this.y-d.h-4,rnd(-.3,.3),rnd(-1.2,-.5),pick(['#f06020','#f0a030']),26,1,-.02);if(d.id===6&&FR%12===0)P(this.x+rnd(-7,7),this.y-d.h*rnd(.3,1),0,rnd(.2,.6),'#cfeaff',30,1,.02);if(d.id===12&&FR%13===0)P(this.x+rnd(-11,11),this.y-d.h*rnd(.1,1.1),rnd(-.2,.2),rnd(-.7,-.2),'#b89aff',22,1,-.01);}// 30.09: +звёздная пыль Веги
+  if(this.state==='grabbed'){const g=this.grabbedBy;if(g&&g.state==='atk'&&g.atk&&g.atk.t==='throw'&&!g.atk.thrown){const ph=clamp((g.st-(g.atk.A.wd+g.atk.A.ac))/8,0,1);this.x=clamp(g.x+g.face*(16+ph*8),16,AW-16);this.y=g.y-6-ph*8;this.vx=0;this.vy=0;this.face=-g.face;this.tilt=lerp(this.tilt,.22,.2);return;}this.grabbedBy=0;this.state='idle';this.st=0;}
   if(this.state==='dash'){this.vx=this.dvx;this.dodging=1;if(this.st>14){this.state='idle';this.dodging=0;}}
   else if(this.running&&this.onGround&&c.pB){this.st=0;this.state='dash';this.dvx=this.running*d.spd*3.4;this.dodging=1;SFX.swing();for(let i=0;i<6;i++)P(this.x,this.y-rnd(4,22),-this.running*rnd(1,2.2),rnd(-1,0),'#9a9080',16,2,.04);}// 30.09: рывок-уклонение (бег+блок), неуязвимость 15 кадров
   const M=({idle:1,walk:1,crouch:1,block:1,atk:1,cast:1,super:1,fatal:1,jump:1}[this.state])?1:0;
@@ -63,7 +64,8 @@ export function createFighter({
   if(['idle','walk','crouch','block'].includes(this.state))this.face=foe.x<this.x?-1:1;
   if(this.state==='atk'&&this.atk){const A=this.atk.A;
   if(c.pP){this.abuf=8;this.abufB='punch';}else if(c.pK){this.abuf=8;this.abufB=c.d?'sweep':'kick';}else if(this.abuf>0)this.abuf--;// 30.09: буфер атаки 8 кадров
-  if(this.st>A.wd&&this.st<=A.wd+A.ac&&!this.atk.hit&&foe.state!=='down'){const hb=this.atkBox();if(hb&&hitR(hb,foe.box)&&(!A.throw||(foe.onGround&&['idle','walk','block'].includes(foe.state)))){const res=resolveHit(this,foe,A.d,{launch:A.launch,low:A.low,overhead:A.overhead,throw:A.throw,knock:A.knock});this.atk.hit=1;this.atk.blocked=res==='block'?1:0;this.atk.connected=res==='hit'?1:0;}}
+  if(this.st>A.wd&&this.st<=A.wd+A.ac&&!this.atk.hit&&foe.state!=='down'){const hb=this.atkBox();if(hb&&hitR(hb,foe.box)&&(!A.throw||(foe.onGround&&['idle','walk','block'].includes(foe.state)))){const res=resolveHit(this,foe,A.d,{launch:A.launch,low:A.low,overhead:A.overhead,throw:A.throw,knock:A.knock,grab:A.grab});this.atk.hit=1;this.atk.blocked=res==='block'?1:0;this.atk.connected=res==='hit'||res==='grab'?1:0;this.atk.grabbed=res==='grab'?foe:0;}}
+  if(this.atk.t==='throw'&&this.atk.grabbed&&!this.atk.thrown&&this.st>=A.wd+A.ac+8)this.finishThrow(this.atk.grabbed);
   if(this.st===A.wd+A.ac&&!this.atk.hit){SFX.whiff();const hb=this.atkBox();S.fx.push({ty:'whiff',x:hb?hb.x+hb.w/2:this.x+this.face*22,y:hb?hb.y+hb.h/2:this.y-this.def.h*.6,face:this.face,t:0,life:12,col:this.def.acc||'#cfe8ff'});}// 30.09: свист промаха; 25.10: дуга воздуха
   if(this.atk.hit&&this.atk.connected&&!this.atk.blocked&&!this.atk.cancel&&!A.throw&&this.st>A.wd+A.ac&&this.st<=A.wd+A.ac+10&&this.onGround){if(this.ctrl.matchRel(d.spec,this.face,60)){this.atk.cancel=1;this.startSpec(foe);}else if(this.ctrl.matchRel(d.spec2,this.face,60)){this.atk.cancel=1;this.startSpec2(foe);}}// 24.10: special cancel только по попаданию
   if(this.state==='atk'&&this.st>A.wd+A.ac+A.rc){if(this.abuf>0&&this.onGround){this.abuf=0;this.startAtk(this.abufB);}// 30.09: чейнинг из буфера
@@ -73,6 +75,24 @@ export function createFighter({
   if(this.state==='frozen'){this.frozen--;if(this.frozen<=0)this.state='idle';}
   if(this.state==='net'){this.netT--;if(this.netT<=0)this.state='idle';}}
   atkBox(){if(!this.atk)return null;const A=this.atk.A,d=this.def;if(this.atk.t==='jkick')return{x:this.x+(this.face>0?4:-4-A.rng*d.bulk),y:this.y-d.h*.05,w:A.rng*d.bulk+6,h:d.h*.6};return{x:this.x+(this.face>0?4:-4-A.rng*d.bulk),y:this.y-d.h*A.hh-(this.atk.t==='sweep'?0:6),w:A.rng*d.bulk+6,h:this.atk.t==='sweep'?12:(this.atk.t==='upper'?34:14)};}
+  finishThrow(foe){const d=this.def,type=d.throwT||'slam',col=d.throwC||d.acc||'#f8d060',launch=type==='star';foe.grabbedBy=0;this.throwTarget=0;
+  const res=resolveHit(this,foe,d.throwD||10,{throw:1,knock:!launch,launch:launch?1:0});this.atk.thrown=1;this.atk.grabbed=0;if(res!=='hit')return;
+  foe.x=clamp(this.x+this.face*(launch?22:34),16,AW-16);foe.y=this.y-4;foe.vy=launch?-9:-3.6;foe.vx=this.face*(launch?4.5:5);this.x=clamp(this.x-this.face*3,16,AW-16);this.squash=.86;
+  S.shake=Math.max(S.shake,type==='slam'||type==='blast'||type==='royal'?7:4);S.fx.push({ty:'ring',x:foe.x,y:foe.y-foe.def.h*.55,t:0,col});S.fx.push({ty:'name',x:this.x+this.face*10,y:this.y-this.def.h-10,txt:d.throwN,col,life:60,t:0});
+  if(type==='fire'){SFX.fire();foe.poison=50;foe.poisonC=col;}
+  else if(type==='shadow'){SFX.tele();this.invis=24;smoke(this.x,this.y-30);}
+  else if(type==='shock'){SFX.zap();foe.blockStun=12;}
+  else if(type==='slam'){SFX.bone();}
+  else if(type==='claw'){SFX.slash();foe.poison=60;foe.poisonC=col;}
+  else if(type==='sand'){SFX.mirror();}
+  else if(type==='ice'){SFX.ice();S.fx.push({ty:'nova',x:foe.x,y:foe.y-30,t:0});}
+  else if(type==='blast'){SFX.boom();}
+  else if(type==='drain'){SFX.sting();this.hp=Math.min(100,this.hp+6);S.fx.push({ty:'drain',x:foe.x,y:foe.y,t:0});}
+  else if(type==='royal'){SFX.sting();S.flashS=Math.max(S.flashS,4);}
+  else if(type==='blood'){SFX.sting();foe.poison=70;foe.poisonC=col;blood(foe.x,foe.y-foe.def.h*.5,8,1.2);}
+  else if(type==='blade'){SFX.slash();blood(foe.x,foe.y-foe.def.h*.5,9,1.3);}
+  else if(type==='star'){SFX.cast2();}
+  for(let i=0;i<10;i++)P(foe.x+rnd(-12,12),foe.y-rnd(8,50),rnd(-2,2),rnd(-2.5,0),col,24,2,-.01);}
   startSpec(foe){this.state='cast';this.st=0;this.face=foe.x<this.x?-1:1;this.spec2go=0;SFX.cast();}
   startSpec2(foe){this.state='cast';this.st=0;this.face=foe.x<this.x?-1:1;this.spec2go=1;SFX.cast2();}// 08.09: второй спец — тот же каст, флаг spec2go выбирает ветку в fireSpec
   startSuper(){this.state='super';this.st=0;this.rage=0;this.armor=this.def.boss?20:12;this.supEv=[];this.invis=0;S.flashS=Math.max(S.flashS,4);S.shake=Math.max(S.shake,4);SFX.supwave();// 08.09: +пробивание невидимости; 25.10: у босса больше армора

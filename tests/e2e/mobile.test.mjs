@@ -34,7 +34,7 @@ before(async () => {
     stdio: ['ignore', 'pipe', 'pipe']
   });
   await ready();
-  browser = await chromium.launch({ headless: true });
+  browser = await chromium.launch({ headless: true, args: ['--mute-audio'] });
   page = await browser.newPage({ viewport: { width: 844, height: 390 }, hasTouch: true, isMobile: true });
   await page.addInitScript(() => {
     window.requestAnimationFrame = () => 0;
