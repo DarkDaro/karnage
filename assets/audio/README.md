@@ -11,7 +11,7 @@
 | `sfx/ui/interface` | клики, подтверждения, ошибки, глитчи | 40 |
 | `sfx/ui/kenney` | клики, rollover, переключатели | 49 |
 | `sfx/combat` | ножи, удары, металл, ткань | 14 |
-| `sfx/scifi` | лазеры, взрывы, силовое поле, двигатели | 35 |
+| `sfx/scifi` | лазеры, взрывы, силовое поле, двигатели | 37 |
 | `sfx/digital` | лазеры, zap, power-up, phase jump, тоны | 47 |
 
 Источники: [Impact Sounds](https://kenney.nl/assets/impact-sounds), [Interface Sounds](https://kenney.nl/assets/interface-sounds), [RPG Audio](https://kenney.nl/assets/rpg-audio), [Sci-fi Sounds](https://kenney.nl/assets/sci-fi-sounds), [UI Audio](https://kenney.nl/assets/ui-audio), [Digital Audio](https://kenney.nl/assets/digital-audio). Лицензия всех паков: CC0.

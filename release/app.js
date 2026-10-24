@@ -1932,8 +1932,6 @@
     }
     const shade = (h, k) => mix(h, "#000000", 1 - k);
     const arenaView = createArenaView({ g, RW, RH, FL, AR, assets: ARENA_IMG, shade, mix });
-    const SOUND_URL = new URLSearchParams(location.search).has("sound");
-    const FORCE_MUTE = !SOUND_URL;
     const OPT = { crt: true, blood: true, shake: true, reduce: false };
     try {
       const raw = JSON.parse(localStorage.karnageOpts || "{}");
@@ -1953,7 +1951,7 @@
       if (el) el.style.display = OPT.crt ? "block" : "none";
     };
     applyCrt();
-    const AU = { ctx: null, on: !FORCE_MUTE, voice: true, vol: 100 };
+    const AU = { ctx: null, on: true, voice: true, vol: 100, samples: {}, loading: {}, audioLoading: false, musicSrc: null, musicGain: null, musicTrack: "", lastSample: "" };
     try {
       if (localStorage.karnageVox !== void 0) AU.voice = localStorage.karnageVox === "1";
       if (localStorage.karnageVol !== void 0) {
@@ -1963,7 +1961,6 @@
       if (localStorage.karnageSnd !== void 0) AU.on = localStorage.karnageSnd === "1";
     } catch (e) {
     }
-    if (SOUND_URL) AU.on = true;
     const setVol = () => {
       if (AU.master) AU.master.gain.value = AU.on ? 0.9 * AU.vol / 100 : 0;
     };
@@ -2058,6 +2055,7 @@
         AU.mg.gain.value = 0.3;
         AU.mg.connect(AU.master);
         MU.next = AU.ctx.currentTime + 0.1;
+        loadAudio();
       } catch (e) {
       }
     }
@@ -2233,6 +2231,162 @@
         tone({ f: 1319, d: 0.18, t: "square", v: 0.12, w: 0.07 });
       }
     });
+    const AUDIO_BASE = "assets/audio/";
+    const SAMPLES = {
+      hit: [AUDIO_BASE + "sfx/impact/impactPunch_heavy_000.wav", AUDIO_BASE + "sfx/impact/impactPunch_heavy_001.wav", AUDIO_BASE + "sfx/impact/impactPunch_medium_000.wav"],
+      hitH: [AUDIO_BASE + "sfx/impact/impactSoft_heavy_000.wav", AUDIO_BASE + "sfx/impact/impactMetal_heavy_000.wav", AUDIO_BASE + "sfx/impact/impactPunch_heavy_002.wav"],
+      hitV: [AUDIO_BASE + "sfx/impact/impactPunch_medium_001.wav", AUDIO_BASE + "sfx/impact/impactPunch_medium_002.wav"],
+      upper: [AUDIO_BASE + "sfx/impact/impactPunch_heavy_003.wav", AUDIO_BASE + "sfx/impact/impactMetal_heavy_001.wav"],
+      block: [AUDIO_BASE + "sfx/impact/impactPlate_medium_000.wav", AUDIO_BASE + "sfx/impact/impactMetal_light_000.wav", AUDIO_BASE + "sfx/impact/impactPlate_light_000.wav"],
+      step: [AUDIO_BASE + "sfx/footsteps/footstep_concrete_000.wav", AUDIO_BASE + "sfx/footsteps/footstep_concrete_001.wav", AUDIO_BASE + "sfx/footsteps/footstep_wood_000.wav", AUDIO_BASE + "sfx/footsteps/footstep_snow_000.wav"],
+      land: [AUDIO_BASE + "sfx/impact/impactSoft_medium_000.wav", AUDIO_BASE + "sfx/impact/impactSoft_medium_001.wav"],
+      menu: [AUDIO_BASE + "sfx/ui/interface/interface_click_002.wav", AUDIO_BASE + "sfx/ui/kenney/ui_click1.wav"],
+      sel: [AUDIO_BASE + "sfx/ui/interface/interface_confirmation_002.wav", AUDIO_BASE + "sfx/ui/interface/interface_select_003.wav"],
+      tick: [AUDIO_BASE + "sfx/ui/interface/interface_tick_001.wav"],
+      zap: [AUDIO_BASE + "sfx/digital/zap1.wav", AUDIO_BASE + "sfx/digital/zap2.wav"],
+      shoot: [AUDIO_BASE + "sfx/scifi/laserSmall_000.wav", AUDIO_BASE + "sfx/scifi/laserLarge_000.wav", AUDIO_BASE + "sfx/scifi/laserRetro_000.wav"],
+      slash: [AUDIO_BASE + "sfx/combat/knifeSlice.wav", AUDIO_BASE + "sfx/combat/chop.wav"],
+      fire: [AUDIO_BASE + "sfx/scifi/thrusterFire_000.wav", AUDIO_BASE + "sfx/scifi/explosionCrunch_003.wav"],
+      ice: [AUDIO_BASE + "sfx/scifi/forceField_000.wav", AUDIO_BASE + "sfx/scifi/forceField_001.wav"],
+      net: [AUDIO_BASE + "sfx/scifi/forceField_002.wav", AUDIO_BASE + "sfx/scifi/forceField_003.wav"],
+      tele: [AUDIO_BASE + "sfx/digital/phaseJump1.wav", AUDIO_BASE + "sfx/digital/phaseJump2.wav"],
+      boom: [AUDIO_BASE + "sfx/scifi/explosionCrunch_000.wav", AUDIO_BASE + "sfx/scifi/explosionCrunch_001.wav"],
+      ko: [AUDIO_BASE + "sfx/scifi/explosionCrunch_002.wav", AUDIO_BASE + "sfx/scifi/lowFrequency_explosion_000.wav"],
+      rdy: [AUDIO_BASE + "sfx/digital/powerUp1.wav", AUDIO_BASE + "sfx/digital/powerUp2.wav"],
+      coin: [AUDIO_BASE + "music/jingles/8-Bit jingles/jingles_NES00.mp3"],
+      win: [AUDIO_BASE + "music/jingles/Hit jingles/jingles_HIT00.mp3"],
+      fatal: [AUDIO_BASE + "sfx/scifi/explosionCrunch_004.wav", AUDIO_BASE + "sfx/scifi/lowFrequency_explosion_001.wav"]
+    };
+    const MUSIC_TRACKS = {
+      menu: { src: AUDIO_BASE + "music/sector-0.mp3", vol: 0.22 },
+      battle: { src: AUDIO_BASE + "music/urgent-2.mp3", vol: 0.26 },
+      battle8: { src: AUDIO_BASE + "music/8bit-battle-loop.mp3", vol: 0.24 },
+      pause: { src: AUDIO_BASE + "music/airy-0.mp3", vol: 0.18 },
+      victory: { src: AUDIO_BASE + "music/victory-5.mp3", vol: 0.32, loop: false }
+    };
+    function loadBuffer(path) {
+      if (!AU.ctx) return Promise.resolve(null);
+      if (AU.samples[path]) return Promise.resolve(AU.samples[path]);
+      if (AU.loading[path]) return AU.loading[path];
+      const url = new URL(path, location.href).href;
+      AU.loading[path] = fetch(url, { cache: "force-cache" }).then((r) => {
+        if (!r.ok) throw new Error(r.status);
+        return r.arrayBuffer();
+      }).then((buf) => AU.ctx.decodeAudioData(buf)).then((buffer) => {
+        AU.samples[path] = buffer;
+        return buffer;
+      }).catch(() => null);
+      return AU.loading[path];
+    }
+    function loadAudio() {
+      if (!AU.ctx || AU.audioLoading) return;
+      AU.audioLoading = true;
+      const paths = [.../* @__PURE__ */ new Set([...Object.values(SAMPLES).flat(), ...Object.values(MUSIC_TRACKS).map((t) => t.src)])];
+      Promise.all(paths.map(loadBuffer)).finally(() => {
+        AU.audioLoading = false;
+      });
+    }
+    function playSample(key, volume = 0.5, pitch = 0.03) {
+      if (!AU.ctx || !AU.on || AU.vol <= 0) return false;
+      const list = SAMPLES[key];
+      if (!list) return false;
+      const ready = list.filter((path2) => AU.samples[path2]);
+      if (!ready.length) {
+        for (const path2 of list) loadBuffer(path2);
+        return false;
+      }
+      const path = ready[Math.random() * ready.length | 0];
+      const c = AU.ctx, src = c.createBufferSource(), gain = c.createGain();
+      src.buffer = AU.samples[path];
+      const rate = 1 + (pitch ? (Math.random() * 2 - 1) * pitch : 0);
+      src.playbackRate.value = rate;
+      const dur = Math.max(0.04, src.buffer.duration / rate), t = c.currentTime;
+      gain.gain.setValueAtTime(volume, t);
+      gain.gain.setValueAtTime(volume, Math.max(t, t + dur - 0.03));
+      gain.gain.linearRampToValueAtTime(1e-4, t + dur);
+      src.connect(gain);
+      gain.connect(AU.master);
+      src.start(t);
+      src.stop(t + dur + 0.02);
+      AU.lastSample = key;
+      return true;
+    }
+    function stopMusic() {
+      if (AU.musicSrc) {
+        try {
+          AU.musicSrc.onended = null;
+          AU.musicSrc.stop();
+        } catch (e) {
+        }
+      }
+      AU.musicSrc = null;
+      AU.musicGain = null;
+      AU.musicTrack = "";
+    }
+    function startMusic(name) {
+      const track = MUSIC_TRACKS[name];
+      if (!track) return false;
+      if (AU.musicTrack === name) return true;
+      if (!AU.samples[track.src]) {
+        loadBuffer(track.src);
+        return false;
+      }
+      stopMusic();
+      const c = AU.ctx, src = c.createBufferSource(), gain = c.createGain();
+      src.buffer = AU.samples[track.src];
+      src.loop = track.loop !== false;
+      gain.gain.value = track.vol;
+      src.connect(gain);
+      gain.connect(AU.master);
+      src.onended = () => {
+        if (AU.musicSrc === src) AU.musicSrc = null;
+      };
+      src.start();
+      AU.musicSrc = src;
+      AU.musicGain = gain;
+      AU.musicTrack = name;
+      return true;
+    }
+    function musicTrackFor(md) {
+      if (md === "fight") return S.battle && S.battle.mode === "arcade" ? "battle8" : "battle";
+      if (md === "menu") return "menu";
+      if (md === "vs") return "battle8";
+      if (md === "pause") return "pause";
+      if (md === "end") return S.GAME === "ending" ? "victory" : "pause";
+      return "";
+    }
+    const SYNTH_SFX = { ...SFX };
+    const SAMPLE_SFX = {
+      hit: ["hit", 0.6, 0.04],
+      hitH: ["hitH", 0.72, 0.03],
+      hitV: ["hitV", 0.55, 0.05],
+      block: ["block", 0.55, 0.02],
+      upper: ["upper", 0.65, 0.03],
+      step: ["step", 0.18, 0.12],
+      land: ["land", 0.45, 0.06],
+      menu: ["menu", 0.38, 0],
+      sel: ["sel", 0.48, 0],
+      tick: ["tick", 0.3, 0],
+      zap: ["zap", 0.5, 0.03],
+      shoot: ["shoot", 0.45, 0.03],
+      slash: ["slash", 0.55, 0.03],
+      fire: ["fire", 0.45, 0.03],
+      ice: ["ice", 0.4, 0.02],
+      net: ["net", 0.45, 0.02],
+      tele: ["tele", 0.45, 0.02],
+      boom: ["boom", 0.72, 0.02],
+      ko: ["ko", 0.85, 0.02],
+      rdy: ["rdy", 0.5, 0.02],
+      coin: ["coin", 0.42, 0],
+      win: ["win", 0.55, 0],
+      fatal: ["fatal", 0.8, 0.02]
+    };
+    for (const [name, spec] of Object.entries(SAMPLE_SFX)) {
+      const synth = SYNTH_SFX[name];
+      if (typeof synth === "function") SFX[name] = function() {
+        if (!playSample(spec[0], spec[1], spec[2])) synth();
+      };
+    }
     let VOICES = [];
     if (window.speechSynthesis) {
       try {
@@ -2264,13 +2418,18 @@
     const VBASS = [0, 0, 3, 5, 0, 0, 3, 2, 0, 0, 3, 5, 7, 5, 3, 2];
     const EBASS = [0, 4, 7, 12, 9, 7, 4, 0];
     function music() {
-      if (!AU.ctx || !AU.on) return;
+      if (!AU.ctx || !AU.on) {
+        stopMusic();
+        return;
+      }
       const c = AU.ctx;
       if (MU.next < c.currentTime - 0.25) {
         MU.next = c.currentTime + 0.05;
         MU.s = 0;
       }
       const md = S.GAME === "fight" && S.battle ? S.paused ? "pause" : "fight" : S.GAME === "vs" ? "vs" : S.GAME === "ending" || S.GAME === "continue" ? "end" : "menu";
+      const track = musicTrackFor(md);
+      if (track && startMusic(track)) return;
       const tr = md === "fight" ? S.battle.arena : 0;
       const dt = md === "pause" ? 0.28 : md === "vs" ? 0.11 : md === "fight" && S.battle.aiLvl >= 7 ? 0.115 : md === "end" ? 0.22 : md === "menu" ? 0.16 : 0.13;
       while (MU.next < c.currentTime + 0.15) {
@@ -6026,6 +6185,7 @@
         impactFx,
         toLobby,
         applyCrt,
+        SFX,
         step,
         render,
         newBattle,

@@ -24,14 +24,14 @@ function mix(a,b,t){const A=colorParts(a),B=colorParts(b);return'rgb('+(lerp(A[0
 const shade=(h,k)=>mix(h,'#000000',1-k);
 const arenaView=createArenaView({g,RW,RH,FL,AR,assets:ARENA_IMG,shade,mix});
 /* ЗВУК */
-const SOUND_URL=new URLSearchParams(location.search).has('sound');const FORCE_MUTE=!SOUND_URL;// временно: звук выключен по умолчанию, ?sound=1 включает
+// 25.10: звук включён по умолчанию; контекст создаётся после первого ввода
 const OPT={crt:true,blood:true,shake:true,reduce:false};
 try{const raw=JSON.parse(localStorage.karnageOpts||'{}');if(raw&&typeof raw==='object'){for(const k of['crt','blood','shake','reduce'])if(typeof raw[k]==='boolean')OPT[k]=raw[k];}}catch(e){}
 const saveOpts=()=>{try{localStorage.karnageOpts=JSON.stringify(OPT);}catch(e){}};
 const applyCrt=()=>{const el=document.getElementById('crt');if(el)el.style.display=OPT.crt?'block':'none';};
 applyCrt();
-const AU={ctx:null,on:!FORCE_MUTE,voice:true,vol:100};
-try{if(localStorage.karnageVox!==undefined)AU.voice=localStorage.karnageVox==='1';if(localStorage.karnageVol!==undefined){const v=parseFloat(localStorage.karnageVol);if(Number.isFinite(v))AU.vol=clamp(v,0,100);}if(localStorage.karnageSnd!==undefined)AU.on=localStorage.karnageSnd==='1';}catch(e){}if(SOUND_URL)AU.on=true;
+const AU={ctx:null,on:true,voice:true,vol:100,samples:{},loading:{},audioLoading:false,musicSrc:null,musicGain:null,musicTrack:'',lastSample:''};
+try{if(localStorage.karnageVox!==undefined)AU.voice=localStorage.karnageVox==='1';if(localStorage.karnageVol!==undefined){const v=parseFloat(localStorage.karnageVol);if(Number.isFinite(v))AU.vol=clamp(v,0,100);}if(localStorage.karnageSnd!==undefined)AU.on=localStorage.karnageSnd==='1';}catch(e){}
 const setVol=()=>{if(AU.master)AU.master.gain.value=AU.on ? .9*AU.vol/100 : 0;};// 08.09: применение громкости; 24.10: mute применяется сразу
 
 const saveSet=()=>{try{localStorage.karnageSnd=AU.on?1:0;localStorage.karnageVox=AU.voice?1:0;localStorage.karnageVol=AU.vol;}catch(e){}};// 08.09
@@ -46,7 +46,7 @@ function loadArcRun(){try{const run=JSON.parse(localStorage[ARC_KEY]||'null');re
 function saveArcRun(){try{if(!Number.isInteger(S.arcP1)||!S.ladder.length||!Number.isInteger(S.lStep))return;const run={v:ARC_VERSION,c1:S.arcP1,ladder:S.ladder.slice(),step:S.lStep};if(validArcRun(run))localStorage[ARC_KEY]=JSON.stringify(run);}catch(e){}}
 function clearArcRun(){try{localStorage.removeItem(ARC_KEY);}catch(e){}}
 function arcTotal(){return S.ladder.length?S.ladder.length+1:ARC_TOTAL;}
-function initA(){if(AU.ctx)return;try{AU.ctx=new(window.AudioContext||window.webkitAudioContext)();AU.master=AU.ctx.createGain();AU.master.gain.value=AU.on ? .9*AU.vol/100 : 0;AU.master.connect(AU.ctx.destination);AU.mg=AU.ctx.createGain();AU.mg.gain.value=.3;AU.mg.connect(AU.master);MU.next=AU.ctx.currentTime+.1;}catch(e){}}
+function initA(){if(AU.ctx)return;try{AU.ctx=new(window.AudioContext||window.webkitAudioContext)();AU.master=AU.ctx.createGain();AU.master.gain.value=AU.on ? .9*AU.vol/100 : 0;AU.master.connect(AU.ctx.destination);AU.mg=AU.ctx.createGain();AU.mg.gain.value=.3;AU.mg.connect(AU.master);MU.next=AU.ctx.currentTime+.1;loadAudio();}catch(e){}}
 addEventListener('pointerdown',()=>{initA();if(AU.ctx&&AU.ctx.state==='suspended')AU.ctx.resume();if(S.GAME==='title'){toLobby('menu');SFX.sel();}});// 08.09: клик мыши на титуле тоже открывает меню
 function tone(o){if(!AU.ctx||!AU.on)return;const c=AU.ctx,t=c.currentTime+(o.w||0);const os=c.createOscillator(),gn=c.createGain();os.type=o.t||'square';os.frequency.setValueAtTime(o.f,t);if(o.f2)os.frequency.exponentialRampToValueAtTime(Math.max(1,o.f2),t+(o.d||.1));gn.gain.setValueAtTime(o.v||.3,t);gn.gain.exponentialRampToValueAtTime(.001,t+(o.d||.1));os.connect(gn);gn.connect(o.m?AU.mg:AU.master);os.start(t);os.stop(t+(o.d||.1)+.02);}
 function nz(o){if(!AU.ctx||!AU.on)return;const c=AU.ctx,t=c.currentTime+(o.w||0),d=o.d||.1;const n=c.sampleRate*d|0,b=c.createBuffer(1,Math.max(1,n),c.sampleRate),ch=b.getChannelData(0);for(let i=0;i<n;i++)ch[i]=Math.random()*2-1;const s=c.createBufferSource();s.buffer=b;const f=c.createBiquadFilter();f.type=o.ft||'lowpass';f.frequency.setValueAtTime(o.fl||800,t);if(o.fl2)f.frequency.exponentialRampToValueAtTime(o.fl2,t+d);const gn=c.createGain();gn.gain.setValueAtTime(o.v||.3,t);gn.gain.exponentialRampToValueAtTime(.001,t+d);s.connect(f);f.connect(gn);gn.connect(o.m?AU.mg:AU.master);s.start(t);s.stop(t+d+.02);}
@@ -65,12 +65,120 @@ mirror:()=>{tone({f:880,f2:440,d:.16,t:'triangle',v:.12});tone({f:1320,f2:660,d:
 cbreak:()=>{tone({f:240,f2:120,d:.14,t:'sawtooth',v:.18});nz({d:.1,v:.14,ft:'highpass',fl:1200});},
 vsroar:()=>{nz({d:.8,v:.3,fl:300,fl2:60});tone({f:110,f2:55,d:.7,t:'sawtooth',v:.14});},
 coin:()=>{tone({f:988,d:.07,t:'square',v:.12});tone({f:1319,d:.18,t:'square',v:.12,w:.07});}});
+const AUDIO_BASE='assets/audio/';
+const SAMPLES={
+hit:[AUDIO_BASE+'sfx/impact/impactPunch_heavy_000.wav',AUDIO_BASE+'sfx/impact/impactPunch_heavy_001.wav',AUDIO_BASE+'sfx/impact/impactPunch_medium_000.wav'],
+hitH:[AUDIO_BASE+'sfx/impact/impactSoft_heavy_000.wav',AUDIO_BASE+'sfx/impact/impactMetal_heavy_000.wav',AUDIO_BASE+'sfx/impact/impactPunch_heavy_002.wav'],
+hitV:[AUDIO_BASE+'sfx/impact/impactPunch_medium_001.wav',AUDIO_BASE+'sfx/impact/impactPunch_medium_002.wav'],
+upper:[AUDIO_BASE+'sfx/impact/impactPunch_heavy_003.wav',AUDIO_BASE+'sfx/impact/impactMetal_heavy_001.wav'],
+block:[AUDIO_BASE+'sfx/impact/impactPlate_medium_000.wav',AUDIO_BASE+'sfx/impact/impactMetal_light_000.wav',AUDIO_BASE+'sfx/impact/impactPlate_light_000.wav'],
+step:[AUDIO_BASE+'sfx/footsteps/footstep_concrete_000.wav',AUDIO_BASE+'sfx/footsteps/footstep_concrete_001.wav',AUDIO_BASE+'sfx/footsteps/footstep_wood_000.wav',AUDIO_BASE+'sfx/footsteps/footstep_snow_000.wav'],
+land:[AUDIO_BASE+'sfx/impact/impactSoft_medium_000.wav',AUDIO_BASE+'sfx/impact/impactSoft_medium_001.wav'],
+menu:[AUDIO_BASE+'sfx/ui/interface/interface_click_002.wav',AUDIO_BASE+'sfx/ui/kenney/ui_click1.wav'],
+sel:[AUDIO_BASE+'sfx/ui/interface/interface_confirmation_002.wav',AUDIO_BASE+'sfx/ui/interface/interface_select_003.wav'],
+tick:[AUDIO_BASE+'sfx/ui/interface/interface_tick_001.wav'],
+zap:[AUDIO_BASE+'sfx/digital/zap1.wav',AUDIO_BASE+'sfx/digital/zap2.wav'],
+shoot:[AUDIO_BASE+'sfx/scifi/laserSmall_000.wav',AUDIO_BASE+'sfx/scifi/laserLarge_000.wav',AUDIO_BASE+'sfx/scifi/laserRetro_000.wav'],
+slash:[AUDIO_BASE+'sfx/combat/knifeSlice.wav',AUDIO_BASE+'sfx/combat/chop.wav'],
+fire:[AUDIO_BASE+'sfx/scifi/thrusterFire_000.wav',AUDIO_BASE+'sfx/scifi/explosionCrunch_003.wav'],
+ice:[AUDIO_BASE+'sfx/scifi/forceField_000.wav',AUDIO_BASE+'sfx/scifi/forceField_001.wav'],
+net:[AUDIO_BASE+'sfx/scifi/forceField_002.wav',AUDIO_BASE+'sfx/scifi/forceField_003.wav'],
+tele:[AUDIO_BASE+'sfx/digital/phaseJump1.wav',AUDIO_BASE+'sfx/digital/phaseJump2.wav'],
+boom:[AUDIO_BASE+'sfx/scifi/explosionCrunch_000.wav',AUDIO_BASE+'sfx/scifi/explosionCrunch_001.wav'],
+ko:[AUDIO_BASE+'sfx/scifi/explosionCrunch_002.wav',AUDIO_BASE+'sfx/scifi/lowFrequency_explosion_000.wav'],
+rdy:[AUDIO_BASE+'sfx/digital/powerUp1.wav',AUDIO_BASE+'sfx/digital/powerUp2.wav'],
+coin:[AUDIO_BASE+'music/jingles/8-Bit jingles/jingles_NES00.mp3'],
+win:[AUDIO_BASE+'music/jingles/Hit jingles/jingles_HIT00.mp3'],
+fatal:[AUDIO_BASE+'sfx/scifi/explosionCrunch_004.wav',AUDIO_BASE+'sfx/scifi/lowFrequency_explosion_001.wav']
+};
+const MUSIC_TRACKS={
+menu:{src:AUDIO_BASE+'music/sector-0.mp3',vol:.22},
+battle:{src:AUDIO_BASE+'music/urgent-2.mp3',vol:.26},
+battle8:{src:AUDIO_BASE+'music/8bit-battle-loop.mp3',vol:.24},
+pause:{src:AUDIO_BASE+'music/airy-0.mp3',vol:.18},
+victory:{src:AUDIO_BASE+'music/victory-5.mp3',vol:.32,loop:false}
+};
+function loadBuffer(path){
+ if(!AU.ctx)return Promise.resolve(null);
+ if(AU.samples[path])return Promise.resolve(AU.samples[path]);
+ if(AU.loading[path])return AU.loading[path];
+ const url=new URL(path,location.href).href;
+ AU.loading[path]=fetch(url,{cache:'force-cache'}).then(r=>{if(!r.ok)throw new Error(r.status);return r.arrayBuffer();}).then(buf=>AU.ctx.decodeAudioData(buf)).then(buffer=>{AU.samples[path]=buffer;return buffer;}).catch(()=>null);
+ return AU.loading[path];
+}
+function loadAudio(){
+ if(!AU.ctx||AU.audioLoading)return;
+ AU.audioLoading=true;
+ const paths=[...new Set([...Object.values(SAMPLES).flat(),...Object.values(MUSIC_TRACKS).map(t=>t.src)])];
+ Promise.all(paths.map(loadBuffer)).finally(()=>{AU.audioLoading=false;});
+}
+function playSample(key,volume=.5,pitch=.03){
+ if(!AU.ctx||!AU.on||AU.vol<=0)return false;
+ const list=SAMPLES[key];if(!list)return false;
+ const ready=list.filter(path=>AU.samples[path]);
+ if(!ready.length){for(const path of list)loadBuffer(path);return false;}
+ const path=ready[Math.random()*ready.length|0];
+ const c=AU.ctx,src=c.createBufferSource(),gain=c.createGain();
+ src.buffer=AU.samples[path];
+ const rate=1+(pitch?(Math.random()*2-1)*pitch:0);
+ src.playbackRate.value=rate;
+ const dur=Math.max(.04,src.buffer.duration/rate),t=c.currentTime;
+ gain.gain.setValueAtTime(volume,t);
+ gain.gain.setValueAtTime(volume,Math.max(t,t+dur-.03));
+ gain.gain.linearRampToValueAtTime(.0001,t+dur);
+ src.connect(gain);gain.connect(AU.master);
+ src.start(t);src.stop(t+dur+.02);
+ AU.lastSample=key;
+ return true;
+}
+function stopMusic(){
+ if(AU.musicSrc){try{AU.musicSrc.onended=null;AU.musicSrc.stop();}catch(e){}}
+ AU.musicSrc=null;AU.musicGain=null;AU.musicTrack='';
+}
+function startMusic(name){
+ const track=MUSIC_TRACKS[name];if(!track)return false;
+ if(AU.musicTrack===name)return true;
+ if(!AU.samples[track.src]){loadBuffer(track.src);return false;}
+ stopMusic();
+ const c=AU.ctx,src=c.createBufferSource(),gain=c.createGain();
+ src.buffer=AU.samples[track.src];src.loop=track.loop!==false;
+ gain.gain.value=track.vol;
+ src.connect(gain);gain.connect(AU.master);
+ src.onended=()=>{if(AU.musicSrc===src)AU.musicSrc=null;};
+ src.start();
+ AU.musicSrc=src;AU.musicGain=gain;AU.musicTrack=name;
+ return true;
+}
+function musicTrackFor(md){
+ if(md==='fight')return S.battle&&S.battle.mode==='arcade'?'battle8':'battle';
+ if(md==='menu')return 'menu';
+ if(md==='vs')return 'battle8';
+ if(md==='pause')return 'pause';
+ if(md==='end')return S.GAME==='ending'?'victory':'pause';
+ return '';
+}
+const SYNTH_SFX={...SFX};
+const SAMPLE_SFX={
+hit:['hit',.6,.04],hitH:['hitH',.72,.03],hitV:['hitV',.55,.05],
+block:['block',.55,.02],upper:['upper',.65,.03],step:['step',.18,.12],
+land:['land',.45,.06],menu:['menu',.38,0],sel:['sel',.48,0],
+tick:['tick',.3,0],zap:['zap',.5,.03],shoot:['shoot',.45,.03],
+slash:['slash',.55,.03],fire:['fire',.45,.03],ice:['ice',.4,.02],
+net:['net',.45,.02],tele:['tele',.45,.02],boom:['boom',.72,.02],
+ko:['ko',.85,.02],rdy:['rdy',.5,.02],coin:['coin',.42,0],
+win:['win',.55,0],fatal:['fatal',.8,.02]
+};
+for(const [name,spec] of Object.entries(SAMPLE_SFX)){
+ const synth=SYNTH_SFX[name];
+ if(typeof synth==='function')SFX[name]=function(){if(!playSample(spec[0],spec[1],spec[2]))synth();};
+}
 let VOICES=[];if(window.speechSynthesis){try{speechSynthesis.onvoiceschanged=()=>{VOICES=speechSynthesis.getVoices().filter(v=>v.lang&&v.lang.startsWith('en'));};speechSynthesis.getVoices();}catch(e){}}
 function say(t){if(!AU.on||!AU.voice||AU.vol<=0||!window.speechSynthesis)return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);const v=VOICES.find(v=>/david|daniel|fred|male|george/i.test(v.name));if(v)u.voice=v;u.pitch=.3;u.rate=.8;u.volume=AU.vol/100;u.lang='en-US';speechSynthesis.speak(u);}catch(e){}}
 const MU={s:0,next:0};const BASS=[0,0,3,0,-2,-2,3,5,0,0,3,0,-4,-4,-2,2];const MBASS=[0,0,-2,0,3,3,5,3,0,0,-2,0,-4,-4,0,3];const VBASS=[0,0,3,5,0,0,3,2,0,0,3,5,7,5,3,2];const EBASS=[0,4,7,12,9,7,4,0];// 30.09: темы VS и победы
-function music(){if(!AU.ctx||!AU.on)return;const c=AU.ctx;
+function music(){if(!AU.ctx||!AU.on){stopMusic();return;}const c=AU.ctx;
 if(MU.next<c.currentTime-.25){MU.next=c.currentTime+.05;MU.s=0;}
 const md=(S.GAME==='fight'&&S.battle)?(S.paused?'pause':'fight'):(S.GAME==='vs'?'vs':(S.GAME==='ending'||S.GAME==='continue'?'end':'menu'));// 30.09: +темы VS и финала
+const track=musicTrackFor(md);if(track&&startMusic(track))return;
 const tr=md==='fight'?S.battle.arena:0;
 const dt=md==='pause'?.28:md==='vs'?.11:(md==='fight'&&S.battle.aiLvl>=7)?.115:md==='end'?.22:md==='menu'?.16:.13;// 30.09: VS быстрее, финальный босс — темп выше
 while(MU.next<c.currentTime+.15){const s=MU.s%32,w=MU.next-c.currentTime;
@@ -915,6 +1023,7 @@ if (new URLSearchParams(location.search).has('debug')) {
     impactFx,
     toLobby,
     applyCrt,
+    SFX,
     step,
     render,
     newBattle,
