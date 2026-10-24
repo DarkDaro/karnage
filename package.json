@@ -1,4 +1,4 @@
-﻿{
+{
   "name": "karnage-game",
   "version": "0.1.0",
   "private": true,
@@ -17,6 +17,7 @@
     "pretest:e2e": "npm run build",
     "test:e2e": "node --test tests/e2e/smoke.test.mjs tests/e2e/release.test.mjs tests/e2e/regressions.test.mjs",
     "audit": "py -3.14 tools/audit.py --check",
+    "audit:fix-bom": "py -3.14 tools/audit.py --fix-bom",
     "audit:write-roster": "py -3.14 tools/audit.py --write-roster",
     "lint": "eslint tools tests",
     "check": "node tools/check.mjs && npm run lint && npm run audit"

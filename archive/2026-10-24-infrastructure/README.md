@@ -1,4 +1,4 @@
-﻿# Infrastructure snapshot 2026-10-24
+# Infrastructure snapshot 2026-10-24
 
 Снимок после выделения проекта, модульного входа и esbuild-сборки.
 

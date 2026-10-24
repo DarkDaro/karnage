@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import codecs
 import re
 import sys
 from pathlib import Path
@@ -171,6 +172,72 @@ def check_roster_doc(rows: list[dict[str, object]], errors: list[str]) -> None:
         fail("DEVNOTES.md: roster table is stale; run audit.py --write-roster", errors)
 
 
+TEXT_SUFFIXES = {".js", ".mjs", ".json", ".md", ".html", ".css", ".txt", ".py", ".yml", ".yaml"}
+TEXT_NAMES = {".gitignore", ".gitattributes", ".editorconfig"}
+
+
+def text_files() -> list[Path]:
+    skip = {"node_modules", ".git", "test-results"}
+    out: list[Path] = []
+    for path in ROOT.rglob("*"):
+        if any(part in skip for part in path.parts):
+            continue
+        if not path.is_file():
+            continue
+        if path.suffix.lower() in TEXT_SUFFIXES or path.name in TEXT_NAMES:
+            out.append(path)
+    return sorted(out)
+
+
+def check_encoding(errors: list[str]) -> None:
+    for path in text_files():
+        raw = path.read_bytes()
+        if raw.startswith(codecs.BOM_UTF8):
+            fail(f"{path.relative_to(ROOT)}: UTF-8 BOM is not allowed", errors)
+            continue
+        if raw.startswith(codecs.BOM_UTF16_LE) or raw.startswith(codecs.BOM_UTF16_BE):
+            fail(f"{path.relative_to(ROOT)}: UTF-16 is not allowed", errors)
+            continue
+        if b"\x00" in raw:
+            fail(f"{path.relative_to(ROOT)}: NUL byte in text file", errors)
+            continue
+        try:
+            text = raw.decode("utf-8")
+        except UnicodeDecodeError as exc:
+            fail(f"{path.relative_to(ROOT)}: invalid UTF-8: {exc}", errors)
+            continue
+        if "\ufffd" in text:
+            fail(f"{path.relative_to(ROOT)}: replacement character in text", errors)
+
+
+def fix_bom(errors: list[str]) -> None:
+    for path in text_files():
+        raw = path.read_bytes()
+        if raw.startswith(codecs.BOM_UTF8):
+            path.write_bytes(raw[len(codecs.BOM_UTF8):])
+            print(f"audit: removed UTF-8 BOM from {path.relative_to(ROOT)}")
+        elif raw.startswith(codecs.BOM_UTF16_LE) or raw.startswith(codecs.BOM_UTF16_BE):
+            fail(f"{path.relative_to(ROOT)}: UTF-16 must be converted manually", errors)
+
+
+def check_archive_checksums(errors: list[str]) -> None:
+    import hashlib
+
+    for sums in sorted((ROOT / "archive").rglob("SHA256SUMS.txt")):
+        base = sums.parent
+        for line in read_text(sums).splitlines():
+            if not line.strip():
+                continue
+            digest, rel = line.split("  ", 1)
+            path = base / rel
+            if not path.exists():
+                fail(f"{sums.relative_to(ROOT)}: missing {rel}", errors)
+                continue
+            actual = hashlib.sha256(path.read_bytes()).hexdigest()
+            if actual != digest:
+                fail(f"{sums.relative_to(ROOT)}: checksum mismatch for {rel}", errors)
+
+
 def check_assets(errors: list[str]) -> None:
     css = ROOT / "assets" / "styles" / "main.css"
     if not css.exists():
@@ -207,6 +274,7 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--check", action="store_true", help="run checks")
     parser.add_argument("--write-roster", action="store_true", help="update roster table in DEVNOTES")
+    parser.add_argument("--fix-bom", action="store_true", help="strip UTF-8 BOM from text files")
     args = parser.parse_args()
     if not args.check and not args.write_roster:
         args.check = True
@@ -217,12 +285,16 @@ def main() -> int:
 
     if args.write_roster:
         write_roster(rows)
+    if args.fix_bom:
+        fix_bom(errors)
 
     if args.check:
+        check_encoding(errors)
         check_roster(rows, errors)
         check_markers(errors)
         check_roster_doc(rows, errors)
         check_assets(errors)
+        check_archive_checksums(errors)
         check_service_files(errors)
         check_forbidden(errors)
         for path in js_sources():

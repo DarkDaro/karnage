@@ -7,7 +7,8 @@ npm test              сборка release + unit + e2e
 npm run test:unit     только unit
 npm run test:e2e      только e2e через dev-server
 npm run check         node --check + ESLint + audit.py
-npm run audit         UTF-8, скобки, ростер, документация
+npm run audit         UTF-8, BOM, скобки, ростер, документация
+npm run audit:fix-bom удалить UTF-8 BOM из текстовых файлов
 ```
 
 ## Детерминированный прогон

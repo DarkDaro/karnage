@@ -103,11 +103,13 @@ release                 собранная папка для запуска
 | `npm run test:unit` | Проверка данных роспера |
 | `npm run test:e2e` | Браузерные сценарии через dev-server |
 | `npm run check` | Синтаксис, ESLint и аудит |
-| `npm run audit` | UTF-8, скобки, ростер, документация |
+| `npm run audit` | UTF-8, BOM, скобки, ростер, документация |
+| `npm run audit:fix-bom` | Удаляет UTF-8 BOM из текстовых файлов |
 | `npm run audit:write-roster` | Обновляет таблицу роспера в `DEVNOTES.md` |
 
 ## Документация
 
+- `docs/STATUS.md` — текущее состояние, что сделано, что осталось и порядок работ.
 - `DEVNOTES.md` — архитектура, состояния, известные проблемы, правила правок.
 - `docs/ARCHITECTURE.md` — слои и контракты.
 - `docs/TESTING.md` — тесты и детерминированный прогон.

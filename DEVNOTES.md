@@ -5,6 +5,7 @@
 Данные: `src/data/characters.js`, `src/data/arenas.js`.
 Замороженная копия исходника: `src/legacy/karnage.js`.
 Концепт: `docs/karnage-concept.md`.
+Текущее состояние и очередь работ: `docs/STATUS.md`.
 Обновлено: 24.10.2026.
 
 ## Запуск
@@ -78,7 +79,8 @@
 - `npm run test:unit` — данные роспера.
 - `npm run test:e2e` — браузерные сценарии через dev-server.
 - `npm run check` — синтаксис, ESLint, аудит.
-- `npm run audit` — UTF-8, скобки, ростер, доки, комментарии.
+- `npm run audit` — UTF-8, BOM, скобки, ростер, доки, комментарии.
+- `npm run audit:fix-bom` — удалить UTF-8 BOM из текстовых файлов.
 - `npm run audit:write-roster` — обновить таблицу роспера в этом файле.
 
 Для детерминированных тестов:
@@ -109,6 +111,13 @@
 - нет настроек, touch, геймпада и паузы при скрытии вкладки;
 - нет stage-specific декора и кэша портретов/градиентов;
 - `TOP` санирован, но не хранит имя, сложность и дату.
+
+## Кодировка
+
+- Все текстовые файлы — UTF-8 без BOM.
+- `npm run audit` падает на BOM, UTF-16, NUL и битом UTF-8.
+- `npm run audit:fix-bom` удаляет UTF-8 BOM.
+- Не писать файлы через PowerShell `Set-Content -Encoding UTF8`: PowerShell 5.1 добавляет BOM. Использовать Node, Python с `encoding="utf-8"` или `UTF8Encoding(false)`.
 
 ## Правила правок
 
