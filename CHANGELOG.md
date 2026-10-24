@@ -34,6 +34,8 @@
 - Добавлены FX: block, smoke, dustRun, fireImpact, iceImpact, shadowImpact, explosion.
 - Добавлена арена «Кладбище» на ассетах GothicVania Cemetery с fallback.
 - Скачаны универсальные CC0-паки Kenney: particle, light masks, splat, UI, input prompts, items, pixel platformer, backgrounds.
+- Добавлен UI-кит: 9-slice панель из Kenney Fantasy UI, меню и выбор бойца используют новую рамку.
+- HUD и таймер получили 9-slice рамку.
 - Добавлен `docs/HANDOFF.md` для старта нового чата.
 - Снимок: `archive/2026-10-24-handoff`, `archive/2026-10-24-final-tails`.
 - GitHub Pages: https://darkdaro.github.io/karnage/ — страница запущена и проверена.

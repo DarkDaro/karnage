@@ -53,6 +53,7 @@
 - damage scaling, броски `P+K` и special cancel;
 - FX: block, smoke, dustRun, fireImpact, iceImpact, shadowImpact, explosion;
 - арена «Кладбище» на GothicVania с fallback;
+- UI: 9-slice панель из Kenney Fantasy UI, HUD и таймер в новой рамке;
 - Вега: женский силуэт, хвост с лентой, серьга, губы, ресницы и боевая юбка;
 - low/high-блок, пропуск фаталити/победы и таймер FINISH HIM;
 - P2 в выборе получает свои подписи, панель и нормальные шкалы;
@@ -82,7 +83,7 @@ npm run assets:build
 
 Приоритет:
 
-1. UI-кит: панели, рамки, кнопки, иконки на Kenney Fantasy UI/RPG.
+1. UI-кит: кнопки, иконки, экран настроек на Kenney Fantasy UI/RPG.
 2. Touch-управление и мобильный адаптив.
 3. Остальные арены на ассеты.
 4. Аркада: сохранение прогресса, дедупликация рекордов, финальный босс.

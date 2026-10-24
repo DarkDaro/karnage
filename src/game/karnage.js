@@ -1,9 +1,9 @@
 import { CH } from '../data/characters.js';
 import { AR, initArenas } from '../data/arenas.js';
 
-export function startKarnage(fxAssets = {}, arenaAssets = {}) {
+export function startKarnage(fxAssets = {}, arenaAssets = {}, uiAssets = {}) {
 const RW=424,RH=240,FL=206,AW=760,GR=8,OUT='#0e0b08';
-const FX=fxAssets||{},ARENA_IMG=arenaAssets||{};
+const FX=fxAssets||{},ARENA_IMG=arenaAssets||{},UI=uiAssets||{};
 const cv=document.getElementById('cv'),g=cv.getContext('2d');
 function fit(){let s=Math.min(innerWidth/RW,innerHeight/RH);s=s>=1?Math.floor(s):s;cv.style.width=s*RW+'px';cv.style.height=s*RH+'px';}
 addEventListener('resize',fit);fit();
@@ -564,8 +564,7 @@ function drawFake(i,px,py,sc,face){const fk=FAKES[i];fk.animT=FRAME;fk.face=face
 /* HUD */
 function drawHUD(b){const p1=b.p1,p2=b.p2;// 30.09: модернизированный HUD — градиентная панель, свечение, акценты цвета бойца
 const pg=g.createLinearGradient(0,6,0,40);pg.addColorStop(0,'rgba(28,22,14,.96)');pg.addColorStop(.5,'rgba(12,9,6,.96)');pg.addColorStop(1,'rgba(5,4,3,.96)');
-g.fillStyle=pg;g.fillRect(6,6,RW-12,34);
-g.strokeStyle='#c8a040';g.lineWidth=1;g.strokeRect(6.5,6.5,RW-13,33);
+g.fillStyle=pg;g.fillRect(6,6,RW-12,34);frame(6,6,RW-12,34);
 g.fillStyle='rgba(248,220,140,.28)';g.fillRect(7,7,RW-14,1);// световая кромка
 const bar=(f,x,dir)=>{const w=150,d=f.def;
 g.fillStyle='#1a0505';g.fillRect(x-1,12,w+2,10);
@@ -591,13 +590,14 @@ if(f.rage>=100&&blink()){g.fillStyle='#ff5030';g.font='7px "Russo One"';g.fillTe
 bar(p1,40,1);bar(p2,RW-190,-1);
 g.strokeStyle=p1.def.acc;g.lineWidth=1;g.strokeRect(14.5,7.5,19,31);g.strokeStyle=p2.def.acc;g.strokeRect(RW-33.5,7.5,19,31);// рамки портретов в цвете стихии
 drawPort(p1.def,24,23,.8);drawPort(p2.def,RW-24,23,.8);
-g.fillStyle='rgba(0,0,0,.78)';g.fillRect(RW/2-18,7,36,22);
-g.strokeStyle=b.timer<11?(blink()?'#ff5030':'#801818'):'#c8a040';g.lineWidth=1;g.strokeRect(RW/2-17.5,7.5,35,21);// таймер краснеет в конце
+g.fillStyle='rgba(0,0,0,.78)';g.fillRect(RW/2-18,7,36,22);frame(RW/2-18,7,36,22);
+if(b.timer<11){g.strokeStyle=blink()?'#ff5030':'#801818';g.lineWidth=1;g.strokeRect(RW/2-17.5,7.5,35,21);}// таймер краснеет в конце
 g.font='15px "Russo One"';g.fillStyle=(b.timer<11&&blink())?'#ff5030':'#f0e8d0';g.textAlign='center';g.fillText(''+Math.ceil(b.timer),RW/2,23);
 const pip=(x,y,on)=>{g.fillStyle=on?'#e04020':'#2a2522';g.beginPath();g.moveTo(x+3,y);g.lineTo(x+6,y+3);g.lineTo(x+3,y+6);g.lineTo(x,y+3);g.closePath();g.fill();if(on){g.fillStyle='rgba(255,140,110,.6)';g.fillRect(x+2,y+2,2,2);}};// ромбовидные пипсы побед
 for(let i=0;i<2;i++){pip(RW/2-45-i*9,10,i<p1.wins);pip(RW/2+39+i*9,10,i<p2.wins);}}
 function bigText(t,y,col,sc){g.save();g.translate(RW/2,y);g.scale(sc,sc);g.font='20px "Rubik Mono One","Russo One",sans-serif';g.textAlign='center';g.fillStyle='#000';for(let dx=-2;dx<=2;dx+=2)for(let dy=-2;dy<=2;dy+=2)g.fillText(t,dx,dy);g.fillStyle=col;g.fillText(t,0,0);g.restore();}// 08.09: заголовочный шрифт Rubik Mono One
-function panel(x,y,w,h){g.fillStyle='rgba(10,8,6,.93)';g.fillRect(x,y,w,h);g.strokeStyle='#c8a040';g.lineWidth=1;g.strokeRect(x+.5,y+.5,w-1,h-1);g.fillStyle='#c8a040';g.fillRect(x,y,3,3);g.fillRect(x+w-3,y,3,3);g.fillRect(x,y+h-3,3,3);g.fillRect(x+w-3,y+h-3,3,3);}
+function frame(x,y,w,h){const p=UI.panel;if(p&&p.ready){const sm=p.slice||12,dm=Math.min(sm,Math.max(2,Math.floor(Math.min(w,h)/2))),iw=p.image.width,ih=p.image.height,cw=iw-sm*2,ch=ih-sm*2;g.save();g.imageSmoothingEnabled=false;g.drawImage(p.image,0,0,sm,sm,x,y,dm,dm);g.drawImage(p.image,iw-sm,0,sm,sm,x+w-dm,y,dm,dm);g.drawImage(p.image,0,ih-sm,sm,sm,x,y+h-dm,dm,dm);g.drawImage(p.image,iw-sm,ih-sm,sm,sm,x+w-dm,y+h-dm,dm,dm);g.drawImage(p.image,sm,0,cw,sm,x+dm,y,w-dm*2,dm);g.drawImage(p.image,sm,ih-sm,cw,sm,x+dm,y+h-dm,w-dm*2,dm);g.drawImage(p.image,0,sm,sm,ch,x,y+dm,dm,h-dm*2);g.drawImage(p.image,iw-sm,sm,sm,ch,x+w-dm,y+dm,dm,h-dm*2);g.restore();return true;}g.strokeStyle='#c8a040';g.lineWidth=1;g.strokeRect(x+.5,y+.5,w-1,h-1);g.fillStyle='#c8a040';g.fillRect(x,y,3,3);g.fillRect(x+w-3,y,3,3);g.fillRect(x,y+h-3,3,3);g.fillRect(x+w-3,y+h-3,3,3);return false;}
+function panel(x,y,w,h){g.fillStyle='rgba(10,8,6,.93)';g.fillRect(x,y,w,h);frame(x,y,w,h);}
 const seqTxt=(s,p2)=>s.split('').map(x=>({D:'\u2193',U:'\u2191',L:'\u2190',R:'\u2192',P:p2?'I':'J',K:p2?'O':'K'})[x]).join(' ');
 /* ИИ */
 const RANGED=[0,2,3,6,7,8,9,10,12];// 30.09: +Кармин, +Вега
@@ -932,6 +932,7 @@ const gl2=.12+Math.sin(FRAME*.04)*.06;g.globalAlpha=Math.max(0,gl2);g.fillStyle=
 panel(36,62,196,140);
 const items=['АРКАДА','БОЙ ПРОТИВ CPU','БОЙ НА ДВОИХ','НАСТРОЙКИ','УПРАВЛЕНИЕ','ЗАЛ СЛАВЫ'];
 items.forEach((it,i)=>{const y=82+i*19,on=i===menuIdx;
+if(on){g.fillStyle='rgba(224,32,32,.08)';g.fillRect(46,y-13,176,18);}
 g.font=on?'12px "Russo One"':'10px "Russo One"';
 g.fillStyle=on?(blink()?'#fff':'#e02020'):'#c8a040';g.textAlign='center';g.fillText(it,134,y);
 if(on){g.fillStyle='#e02020';g.beginPath();g.moveTo(48,y-7);g.lineTo(55,y-3);g.lineTo(48,y+1);g.fill();}});
@@ -944,6 +945,7 @@ g.font='20px "Rubik Mono One","Russo One",sans-serif';g.textAlign='center';g.fil
 panel(30,50,RW-60,158);
 const items=settingsItems();const y0=70,step=16;
 items.forEach((it,i)=>{const y=y0+i*step,on=i===settingsIdx;
+if(on){g.fillStyle='rgba(224,32,32,.08)';g.fillRect(52,y-12,RW-104,15);}
 g.font=on?'9px "Russo One"':'8px "Russo One"';
 g.fillStyle=on?(blink()?'#fff':'#e02020'):'#c8a040';g.textAlign='center';g.fillText((on?'> ':'')+it,RW/2,y);});
 g.font='7px "Russo One"';g.fillStyle='#807850';g.textAlign='center';g.fillText('W/S — выбор · A/D — изменить · J — переключить · ESC — назад',RW/2,224);}
@@ -1048,6 +1050,7 @@ if (new URLSearchParams(location.search).has('debug')) {
     get keys() { return keys; },
     get fxAssets() { return FX; },
     get arenaAssets() { return ARENA_IMG; },
+    get uiAssets() { return UI; },
     get OPT() { return OPT; },
     get settingsIdx() { return settingsIdx; },
     autoHit,

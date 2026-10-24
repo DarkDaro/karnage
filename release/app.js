@@ -217,6 +217,38 @@
     return Object.fromEntries(entries);
   }
 
+  // src/assets/ui-manifest.js
+  var ui_manifest_default = {
+    "panel": {
+      "image": "panel.png",
+      "slice": 12
+    }
+  };
+
+  // src/assets/ui.js
+  var base3 = new URL("assets/ui/", location.href);
+  function loadImage3(src) {
+    return new Promise((resolve, reject) => {
+      const image = new Image();
+      image.onload = () => resolve(image);
+      image.onerror = reject;
+      image.src = src;
+    });
+  }
+  async function loadUiAssets() {
+    const entries = await Promise.all(
+      Object.entries(ui_manifest_default).map(async ([key, definition]) => {
+        try {
+          const image = await loadImage3(new URL(definition.image, base3).href);
+          return [key, { ...definition, image, ready: true }];
+        } catch {
+          return [key, { ...definition, ready: false }];
+        }
+      })
+    );
+    return Object.fromEntries(entries);
+  }
+
   // src/data/characters.js
   var CH = [
     { id: 0, name: "\u042D\u041C\u0411\u0415\u0420", en: "EMBER", skin: "#c8845a", suit: "#8a2418", acc: "#f0a032", hair: "#3a1408", gear: "hair", h: 60, bulk: 1, spd: 2, jmp: 8.4, dmg: 1, specN: "\u041E\u0433\u043D\u0435\u043D\u043D\u044B\u0439 \u0448\u0430\u0440", spec: "DRP", sup: "\u041C\u0435\u0442\u0435\u043E\u0440\u0438\u0442\u043D\u044B\u0439 \u0434\u043E\u0436\u0434\u044C", fat: "RRLP", arena: 6 },
@@ -297,9 +329,9 @@
   }
 
   // src/game/karnage.js
-  function startKarnage(fxAssets = {}, arenaAssets = {}) {
+  function startKarnage(fxAssets = {}, arenaAssets = {}, uiAssets = {}) {
     const RW = 424, RH = 240, FL = 206, AW = 760, GR = 8, OUT = "#0e0b08";
-    const FX = fxAssets || {}, ARENA_IMG = arenaAssets || {};
+    const FX = fxAssets || {}, ARENA_IMG = arenaAssets || {}, UI = uiAssets || {};
     const cv = document.getElementById("cv"), g = cv.getContext("2d");
     function fit() {
       let s = Math.min(innerWidth / RW, innerHeight / RH);
@@ -2009,11 +2041,11 @@
       for (const f of fx) {
         const x = f.x - cam2;
         if (f.ty === "sprite") {
-          const frame = Math.min(f.frames - 1, Math.floor(f.t / f.dur * f.frames));
+          const frame2 = Math.min(f.frames - 1, Math.floor(f.t / f.dur * f.frames));
           g.save();
           g.globalCompositeOperation = f.blend;
           g.globalAlpha = f.alpha;
-          g.drawImage(f.img, frame * f.frameW, 0, f.frameW, f.frameH, x - f.anchor[0] * f.scale, f.y - f.anchor[1] * f.scale, f.frameW * f.scale, f.frameH * f.scale);
+          g.drawImage(f.img, frame2 * f.frameW, 0, f.frameW, f.frameH, x - f.anchor[0] * f.scale, f.y - f.anchor[1] * f.scale, f.frameW * f.scale, f.frameH * f.scale);
           g.restore();
         } else if (f.ty === "rock") {
           const h = Math.min(30, f.t * 4);
@@ -3152,9 +3184,7 @@
       pg.addColorStop(1, "rgba(5,4,3,.96)");
       g.fillStyle = pg;
       g.fillRect(6, 6, RW - 12, 34);
-      g.strokeStyle = "#c8a040";
-      g.lineWidth = 1;
-      g.strokeRect(6.5, 6.5, RW - 13, 33);
+      frame(6, 6, RW - 12, 34);
       g.fillStyle = "rgba(248,220,140,.28)";
       g.fillRect(7, 7, RW - 14, 1);
       const bar = (f, x, dir) => {
@@ -3223,9 +3253,12 @@
       drawPort(p2.def, RW - 24, 23, 0.8);
       g.fillStyle = "rgba(0,0,0,.78)";
       g.fillRect(RW / 2 - 18, 7, 36, 22);
-      g.strokeStyle = b.timer < 11 ? blink() ? "#ff5030" : "#801818" : "#c8a040";
-      g.lineWidth = 1;
-      g.strokeRect(RW / 2 - 17.5, 7.5, 35, 21);
+      frame(RW / 2 - 18, 7, 36, 22);
+      if (b.timer < 11) {
+        g.strokeStyle = blink() ? "#ff5030" : "#801818";
+        g.lineWidth = 1;
+        g.strokeRect(RW / 2 - 17.5, 7.5, 35, 21);
+      }
       g.font = '15px "Russo One"';
       g.fillStyle = b.timer < 11 && blink() ? "#ff5030" : "#f0e8d0";
       g.textAlign = "center";
@@ -3261,9 +3294,23 @@
       g.fillText(t, 0, 0);
       g.restore();
     }
-    function panel(x, y, w, h) {
-      g.fillStyle = "rgba(10,8,6,.93)";
-      g.fillRect(x, y, w, h);
+    function frame(x, y, w, h) {
+      const p = UI.panel;
+      if (p && p.ready) {
+        const sm = p.slice || 12, dm = Math.min(sm, Math.max(2, Math.floor(Math.min(w, h) / 2))), iw = p.image.width, ih = p.image.height, cw = iw - sm * 2, ch = ih - sm * 2;
+        g.save();
+        g.imageSmoothingEnabled = false;
+        g.drawImage(p.image, 0, 0, sm, sm, x, y, dm, dm);
+        g.drawImage(p.image, iw - sm, 0, sm, sm, x + w - dm, y, dm, dm);
+        g.drawImage(p.image, 0, ih - sm, sm, sm, x, y + h - dm, dm, dm);
+        g.drawImage(p.image, iw - sm, ih - sm, sm, sm, x + w - dm, y + h - dm, dm, dm);
+        g.drawImage(p.image, sm, 0, cw, sm, x + dm, y, w - dm * 2, dm);
+        g.drawImage(p.image, sm, ih - sm, cw, sm, x + dm, y + h - dm, w - dm * 2, dm);
+        g.drawImage(p.image, 0, sm, sm, ch, x, y + dm, dm, h - dm * 2);
+        g.drawImage(p.image, iw - sm, sm, sm, ch, x + w - dm, y + dm, dm, h - dm * 2);
+        g.restore();
+        return true;
+      }
       g.strokeStyle = "#c8a040";
       g.lineWidth = 1;
       g.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
@@ -3272,6 +3319,12 @@
       g.fillRect(x + w - 3, y, 3, 3);
       g.fillRect(x, y + h - 3, 3, 3);
       g.fillRect(x + w - 3, y + h - 3, 3, 3);
+      return false;
+    }
+    function panel(x, y, w, h) {
+      g.fillStyle = "rgba(10,8,6,.93)";
+      g.fillRect(x, y, w, h);
+      frame(x, y, w, h);
     }
     const seqTxt = (s, p2) => s.split("").map((x) => ({ D: "\u2193", U: "\u2191", L: "\u2190", R: "\u2192", P: p2 ? "I" : "J", K: p2 ? "O" : "K" })[x]).join(" ");
     const RANGED = [0, 2, 3, 6, 7, 8, 9, 10, 12];
@@ -4575,6 +4628,10 @@
       const items = ["\u0410\u0420\u041A\u0410\u0414\u0410", "\u0411\u041E\u0419 \u041F\u0420\u041E\u0422\u0418\u0412 CPU", "\u0411\u041E\u0419 \u041D\u0410 \u0414\u0412\u041E\u0418\u0425", "\u041D\u0410\u0421\u0422\u0420\u041E\u0419\u041A\u0418", "\u0423\u041F\u0420\u0410\u0412\u041B\u0415\u041D\u0418\u0415", "\u0417\u0410\u041B \u0421\u041B\u0410\u0412\u042B"];
       items.forEach((it, i) => {
         const y = 82 + i * 19, on = i === menuIdx;
+        if (on) {
+          g.fillStyle = "rgba(224,32,32,.08)";
+          g.fillRect(46, y - 13, 176, 18);
+        }
         g.font = on ? '12px "Russo One"' : '10px "Russo One"';
         g.fillStyle = on ? blink() ? "#fff" : "#e02020" : "#c8a040";
         g.textAlign = "center";
@@ -4615,6 +4672,10 @@
       const y0 = 70, step2 = 16;
       items.forEach((it, i) => {
         const y = y0 + i * step2, on = i === settingsIdx;
+        if (on) {
+          g.fillStyle = "rgba(224,32,32,.08)";
+          g.fillRect(52, y - 12, RW - 104, 15);
+        }
         g.font = on ? '9px "Russo One"' : '8px "Russo One"';
         g.fillStyle = on ? blink() ? "#fff" : "#e02020" : "#c8a040";
         g.textAlign = "center";
@@ -4966,6 +5027,9 @@
         get arenaAssets() {
           return ARENA_IMG;
         },
+        get uiAssets() {
+          return UI;
+        },
         get OPT() {
           return OPT;
         },
@@ -5049,6 +5113,7 @@
   // src/main.js
   Promise.all([
     loadFxAssets().catch(() => ({})),
-    loadArenaAssets().catch(() => ({}))
-  ]).then(([fxAssets, arenaAssets]) => startKarnage(fxAssets, arenaAssets)).catch(() => startKarnage({}, {}));
+    loadArenaAssets().catch(() => ({})),
+    loadUiAssets().catch(() => ({}))
+  ]).then(([fxAssets, arenaAssets, uiAssets]) => startKarnage(fxAssets, arenaAssets, uiAssets)).catch(() => startKarnage({}, {}, {}));
 })();

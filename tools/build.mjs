@@ -10,7 +10,7 @@ const args = new Set(process.argv.slice(2));
 const minify = args.has('--minify');
 
 await mkdir(release, { recursive: true });
-for (const assetDir of ['fonts', 'styles', 'fx', 'arenas']) {
+for (const assetDir of ['fonts', 'styles', 'fx', 'arenas', 'ui']) {
   try {
     await cp(join(root, 'assets', assetDir), join(release, 'assets', assetDir), { recursive: true });
   } catch (error) {

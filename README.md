@@ -13,6 +13,7 @@
 - Damage scaling в длинных комбо.
 - CC0-эффекты: `hitLight`, `hitHeavy`, `dust`, `block`, `smoke`, `dustRun`, `fireImpact`, `iceImpact`, `shadowImpact`, `explosion`.
 - Арена «Кладбище» на ассетах GothicVania; остальные — процедурные.
+- UI: 9-slice панели из Kenney Fantasy UI.
 - Локальные шрифты, без CDN.
 - Настройки в главном меню: звук, голос, громкость, CRT, кровь, тряска и reduce motion.
 - Звук по умолчанию выключен; настройки или `?sound=1` включают его.

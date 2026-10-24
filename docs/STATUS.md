@@ -125,6 +125,7 @@
 - Персонажи остаются процедурными; спрайт-лист Аямэ не подключается.
 - Подключено 10 FX: `hitLight`, `hitHeavy`, `dust`, `block`, `smoke`, `dustRun`, `fireImpact`, `iceImpact`, `shadowImpact`, `explosion`.
 - Арена «Кладбище» собрана из GothicVania Cemetery, fallback на процедурную.
+- UI: 9-slice панель `assets/ui/panel.png` из Kenney Fantasy UI, подключена в `panel()` и `frame()`; HUD и таймер уже в новой рамке.
 - Исходники: `assets/vendor` (zip + лицензии), распакованные `extracted/` вне git.
 - Скачаны универсальные Kenney-паки: particle, light masks, splat, UI, input prompts, items, pixel platformer, backgrounds.
 - Снимок: `archive/2026-10-24-fx-pilot`, `archive/2026-10-24-final-tails`.
@@ -184,7 +185,7 @@ npm run dev
 
 ## Следующий порядок работ
 
-1. Собрать UI-кит на Kenney Fantasy UI/RPG.
+1. Доработать UI-кит: кнопки, иконки, экран настроек.
 2. Добавить touch-управление и мобильный адаптив.
 3. Перенести остальные арены на ассеты.
 4. Добавить сохранение аркады, рекорды и финального босса.
