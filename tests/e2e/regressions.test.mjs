@@ -366,9 +366,9 @@ test('arcade leaderboard keeps one best entry per fighter', async () => {
       { id: 0, step: 5 }
     ]);
     const top = K.TOP();
-    K.addTop(0, 4);
+    K.addTop(0, 4, '2026-10-25');
     const lower = K.TOP();
-    K.addTop(2, 7);
+    K.addTop(2, 7, '2026-10-26');
     const added = K.TOP();
     localStorage.removeItem('karnageTop');
     return { top, lower, added };
@@ -379,7 +379,7 @@ test('arcade leaderboard keeps one best entry per fighter', async () => {
   ]);
   assert.deepEqual(result.lower, result.top);
   assert.deepEqual(result.added, [
-    { id: 2, step: 7 },
+    { id: 2, step: 7, date: '2026-10-26' },
     { id: 0, step: 5 },
     { id: 1, step: 3 }
   ]);
@@ -448,6 +448,35 @@ test('arcade saves progress, resumes and ends with final boss', async () => {
     savedStep: 11
   });
 
+  const bossMoves = await page.evaluate(() => {
+    const K = window.KARNAGE;
+    const battle = K.battle;
+    K.setDebug({ GAME: 'fight', paused: false });
+    battle.phase = 'fight';
+    battle.phaseT = 200;
+    const boss = battle.p2;
+    const foe = battle.p1;
+    const count = () => K.snapshot().projs;
+    const beforeSpec = count();
+    boss.fireSpec(foe);
+    const spec = count() - beforeSpec;
+    const beforeSpec2 = count();
+    boss.fireSpec2(foe);
+    const spec2 = count() - beforeSpec2;
+    const beforeSuper = count();
+    boss.startSuper();
+    for (let i = 0; i < 80; i += 1) {
+      boss.st += 1;
+      boss.updSuper();
+    }
+    const superCount = count() - beforeSuper;
+    const armor = boss.armor;
+    boss.state = 'idle';
+    boss.st = 0;
+    return { spec, spec2, superCount, armor };
+  });
+  assert.deepEqual(bossMoves, { spec: 3, spec2: 5, superCount: 8, armor: 20 });
+
   const finish = await page.evaluate(() => {
     const K = window.KARNAGE;
     K.setDebug({ GAME: 'fight', paused: false });
@@ -470,7 +499,8 @@ test('arcade saves progress, resumes and ends with final boss', async () => {
   });
   assert.equal(finish.game, 'ending');
   assert.equal(finish.saved, null);
-  assert.deepEqual(finish.top, [{ id: 0, step: 12 }]);
+  assert.deepEqual(finish.top.map(({ id, step }) => ({ id, step })), [{ id: 0, step: 12 }]);
+  assert.match(finish.top[0].date, /^\d{4}-\d{2}-\d{2}$/);
   assert.equal(finish.arc, '12');
 });
 

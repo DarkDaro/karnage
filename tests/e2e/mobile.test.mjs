@@ -81,3 +81,43 @@ test('touch controls navigate the menu and hold fight buttons', async () => {
   assert.equal(held, 1);
   assert.equal(released, 0);
 });
+
+test('portrait touch layout keeps controls inside the viewport', async () => {
+  const portrait = await browser.newPage({
+    viewport: { width: 390, height: 844 },
+    hasTouch: true,
+    isMobile: true,
+    deviceScaleFactor: 3
+  });
+  await portrait.addInitScript(() => {
+    window.requestAnimationFrame = () => 0;
+  });
+  try {
+    await portrait.goto(entry, { waitUntil: 'load' });
+    await portrait.waitForFunction(() => Boolean(window.KARNAGE));
+    const layout = await portrait.evaluate(() => {
+      const rect = (selector) => {
+        const box = document.querySelector(selector).getBoundingClientRect();
+        return { left: box.left, top: box.top, right: box.right, bottom: box.bottom, width: box.width, height: box.height };
+      };
+      return {
+        body: document.body.className,
+        viewport: { width: window.innerWidth, height: window.innerHeight },
+        canvas: rect('#cv'),
+        controls: ['l', 'r', 'u', 'd', 'P', 'K', 'B', 'pause'].map((key) => rect(`[data-key="${key}"]`)),
+        overflow: document.documentElement.scrollWidth - window.innerWidth
+      };
+    });
+    assert.match(layout.body, /touch/);
+    assert.match(layout.body, /portrait/);
+    assert.ok(layout.canvas.width <= layout.viewport.width);
+    assert.ok(layout.overflow <= 1);
+    for (const control of layout.controls) {
+      assert.ok(control.width >= 36 && control.height >= 36, JSON.stringify(control));
+      assert.ok(control.left >= 0 && control.top >= 0, JSON.stringify(control));
+      assert.ok(control.right <= layout.viewport.width && control.bottom <= layout.viewport.height, JSON.stringify(control));
+    }
+  } finally {
+    await portrait.close();
+  }
+});

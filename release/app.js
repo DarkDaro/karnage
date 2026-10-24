@@ -512,6 +512,9 @@
     boss: true,
     name: "\u041A\u0410\u0419\u0417\u0415\u0420-\u041F\u0420\u0410\u0419\u041C",
     en: "PRIME KAISER",
+    specN: "\u041A\u043E\u0440\u043E\u043D\u0430-\u0437\u0430\u043B\u043F",
+    spec2N: "\u041C\u0435\u0442\u0435\u043E\u0440\u0438\u0442\u043D\u044B\u0439 \u043F\u0440\u0438\u0433\u043E\u0432\u043E\u0440",
+    sup: "\u041E\u0440\u0431\u0438\u0442\u0430\u043B\u044C\u043D\u0430\u044F \u043A\u043E\u0440\u043E\u043D\u0430",
     skin: "#e0b484",
     suit: "#181820",
     acc: "#f0c850",
@@ -1280,7 +1283,7 @@
         this.state = "super";
         this.st = 0;
         this.rage = 0;
-        this.armor = 12;
+        this.armor = this.def.boss ? 20 : 12;
         this.supEv = [];
         this.invis = 0;
         S.flashS = Math.max(S.flashS, 4);
@@ -1295,7 +1298,23 @@
         const me = this;
         const E = (t, fn) => this.supEv.push({ t, fn, done: 0 });
         const id = this.def.id;
-        if (id === 0) {
+        if (this.def.boss) {
+          SFX.fire();
+          SFX.boom();
+          S.shake = 6;
+          for (let i = 0; i < 8; i++) E(14 + i * 7, () => {
+            S.projs.push({ ty: "meteor", x: clamp2(me.foe.x + rnd(-54, 54), 20, AW - 20), y: -10, vx: 0, vy: 5.8, o: me, d: 3.4, l: 120 });
+            SFX.shoot();
+          });
+          E(74, () => {
+            S.shake = 8;
+            S.flashS = Math.max(S.flashS, 4);
+            for (let i = 0; i < 18; i++) {
+              const a = i / 18 * Math.PI * 2;
+              P(me.x + Math.cos(a) * 8, me.y - 30 + Math.sin(a) * 8, Math.cos(a) * rnd(1, 3), Math.sin(a) * rnd(1, 3), "#f0c850", 30, 2, -0.02);
+            }
+          });
+        } else if (id === 0) {
           SFX.fire();
           for (let i = 0; i < 10; i++) E(14 + i * 7, () => {
             S.projs.push({ ty: "meteor", x: me.foe.x + rnd(-34, 34), y: -10, vx: 0, vy: 5.5, o: me, d: 2.6, l: 120 });
@@ -1430,6 +1449,12 @@
         const d = this.def;
         this.face = foe.x < this.x ? -1 : 1;
         const x = this.x + this.face * 14, y = this.y - d.h * 0.62;
+        if (d.boss) {
+          SFX.boom();
+          S.shake = 6;
+          for (let i = -1; i <= 1; i++) S.projs.push({ ty: "shard", c: "#f0c850", x, y: y + i * 8, vx: this.face * (5.2 + Math.abs(i) * 0.6), vy: i * 0.8, o: this, d: 5, l: 100, s: 6, k: 1 });
+          return;
+        }
         switch (d.id) {
           case 0:
             S.projs.push({ ty: "fire", x, y, vx: this.face * 4, vy: 0, o: this, d: 7, l: 110 });
@@ -1512,6 +1537,12 @@
         const d = this.def;
         this.face = foe.x < this.x ? -1 : 1;
         const x = this.x + this.face * 14, y = this.y - d.h * 0.62;
+        if (d.boss) {
+          SFX.bone();
+          S.shake = 5;
+          for (let i = 0; i < 5; i++) S.projs.push({ ty: "meteor", x: clamp2(foe.x + rnd(-52, 52), 20, AW - 20), y: -10 - i * 22, vx: 0, vy: 5.6, o: this, d: 4, l: 120 });
+          return;
+        }
         switch (d.id) {
           case 0:
             SFX.fire();
@@ -1927,6 +1958,10 @@
       } catch (e) {
       }
     };
+    const dayStamp = () => {
+      const d = /* @__PURE__ */ new Date();
+      return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+    };
     const topRaw = () => {
       try {
         const raw = JSON.parse(localStorage.karnageTop || "[]");
@@ -1940,21 +1975,22 @@
       const best = /* @__PURE__ */ new Map();
       for (const e of topRaw()) {
         const cur = best.get(e.id);
-        if (!cur || e.step > cur.step) best.set(e.id, { id: e.id, step: e.step });
+        if (!cur || e.step > cur.step) best.set(e.id, { id: e.id, step: e.step, ...typeof e.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(e.date) ? { date: e.date } : {} });
       }
       return [...best.values()].sort((a, b) => b.step - a.step || a.id - b.id);
     };
     const TOP = () => topBest().slice(0, 5);
-    const addTop = (id, step2) => {
+    const addTop = (id, step2, date) => {
       try {
         if (!Number.isInteger(id) || id < 0 || id >= CH.length || !Number.isFinite(step2) || step2 < 0) return;
+        const day = typeof date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : dayStamp();
         const best = /* @__PURE__ */ new Map();
         for (const e of topRaw()) {
           const cur2 = best.get(e.id);
-          if (!cur2 || e.step > cur2.step) best.set(e.id, { id: e.id, step: e.step });
+          if (!cur2 || e.step > cur2.step) best.set(e.id, { id: e.id, step: e.step, ...typeof e.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(e.date) ? { date: e.date } : {} });
         }
         const cur = best.get(id);
-        if (!cur || step2 > cur.step) best.set(id, { id, step: step2 });
+        if (!cur || step2 > cur.step) best.set(id, { id, step: step2, date: day });
         localStorage.karnageTop = JSON.stringify([...best.values()].sort((a, b) => b.step - a.step || a.id - b.id).slice(0, 5));
       } catch (e) {
       }
@@ -5357,6 +5393,11 @@
         g.textAlign = "right";
         g.fillStyle = "#c8a040";
         g.fillText(e.step + " / " + ARC_TOTAL, 300, y);
+        if (e.date) {
+          g.font = '7px "Russo One"';
+          g.fillStyle = "#807850";
+          g.fillText(e.date.slice(8, 10) + "." + e.date.slice(5, 7) + "." + e.date.slice(2, 4), 300, y + 9);
+        }
       });
       if (blink()) {
         g.font = '8px "Russo One"';

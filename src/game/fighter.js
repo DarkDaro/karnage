@@ -75,10 +75,11 @@ export function createFighter({
   atkBox(){if(!this.atk)return null;const A=this.atk.A,d=this.def;if(this.atk.t==='jkick')return{x:this.x+(this.face>0?4:-4-A.rng*d.bulk),y:this.y-d.h*.05,w:A.rng*d.bulk+6,h:d.h*.6};return{x:this.x+(this.face>0?4:-4-A.rng*d.bulk),y:this.y-d.h*A.hh-(this.atk.t==='sweep'?0:6),w:A.rng*d.bulk+6,h:this.atk.t==='sweep'?12:(this.atk.t==='upper'?34:14)};}
   startSpec(foe){this.state='cast';this.st=0;this.face=foe.x<this.x?-1:1;this.spec2go=0;SFX.cast();}
   startSpec2(foe){this.state='cast';this.st=0;this.face=foe.x<this.x?-1:1;this.spec2go=1;SFX.cast2();}// 08.09: второй спец — тот же каст, флаг spec2go выбирает ветку в fireSpec
-  startSuper(){this.state='super';this.st=0;this.rage=0;this.armor=12;this.supEv=[];this.invis=0;S.flashS=Math.max(S.flashS,4);S.shake=Math.max(S.shake,4);SFX.supwave();// 08.09: +пробивание невидимости
+  startSuper(){this.state='super';this.st=0;this.rage=0;this.armor=this.def.boss?20:12;this.supEv=[];this.invis=0;S.flashS=Math.max(S.flashS,4);S.shake=Math.max(S.shake,4);SFX.supwave();// 08.09: +пробивание невидимости; 25.10: у босса больше армора
   const sy=this.y-this.def.h*.55;S.fx.push({ty:'super',x:this.x,y:sy,gy:this.y,t:0,life:26,col:this.def.acc||'#e8c040'});for(let i=0;i<18;i++){const a=i/18*Math.PI*2;P(this.x+Math.cos(a)*7,sy+Math.sin(a)*7,Math.cos(a)*rnd(1.2,3),Math.sin(a)*rnd(1.2,3),i%2?this.def.acc:'#f8e8b0',26,2,-.02);}// 25.10: вспышка ауры супера
   const me=this;const E=(t,fn)=>this.supEv.push({t,fn,done:0});const id=this.def.id;
-  if(id===0){SFX.fire();for(let i=0;i<10;i++)E(14+i*7,()=>{S.projs.push({ty:'meteor',x:me.foe.x+rnd(-34,34),y:-10,vx:0,vy:5.5,o:me,d:2.6,l:120});SFX.shoot();});}
+  if(this.def.boss){SFX.fire();SFX.boom();S.shake=6;for(let i=0;i<8;i++)E(14+i*7,()=>{S.projs.push({ty:'meteor',x:clamp(me.foe.x+rnd(-54,54),20,AW-20),y:-10,vx:0,vy:5.8,o:me,d:3.4,l:120});SFX.shoot();});E(74,()=>{S.shake=8;S.flashS=Math.max(S.flashS,4);for(let i=0;i<18;i++){const a=i/18*Math.PI*2;P(me.x+Math.cos(a)*8,me.y-30+Math.sin(a)*8,Math.cos(a)*rnd(1,3),Math.sin(a)*rnd(1,3),'#f0c850',30,2,-.02);}});}// 25.10: «Орбитальная корона» — метеоры вокруг цели
+  else if(id===0){SFX.fire();for(let i=0;i<10;i++)E(14+i*7,()=>{S.projs.push({ty:'meteor',x:me.foe.x+rnd(-34,34),y:-10,vx:0,vy:5.5,o:me,d:2.6,l:120});SFX.shoot();});}
   else if(id===1){E(10,()=>{me.x=clamp(me.foe.x-me.foe.face*26,20,AW-20);smoke(me.x,me.y-30);SFX.tele();});for(let i=0;i<8;i++)E(20+i*6,()=>{autoHit(me,3);SFX.slash();});E(78,()=>resolveHit(me,me.foe,8,{launch:1}));}
   else if(id===2){for(let i=0;i<6;i++)E(14+i*9,()=>{S.projs.push({ty:'bolt',x:me.foe.x+rnd(-30,30),y:FL,vx:0,vy:0,o:me,d:3.4,l:14});SFX.zap();});}
   else if(id===3){for(let i=0;i<6;i++)E(14+i*10,()=>{const rx=me.foe.x+rnd(-24,24);S.fx.push({ty:'rock',x:rx,t:0});SFX.bone();S.shake=6;if(Math.abs(me.foe.x-rx)<26&&me.foe.onGround&&me.foe.state!=='down')resolveHit(me,me.foe,4,{});});}
@@ -96,6 +97,7 @@ export function createFighter({
   else{for(let i=0;i<6;i++)E(14+i*8,()=>{S.projs.push({ty:'rocket',x:me.foe.x+rnd(-30,30),y:-8,vx:0,vy:4.6,o:me,d:4,l:120});SFX.shoot();});}
   this.superDur=110;}
   fireSpec(foe){const d=this.def;this.face=foe.x<this.x?-1:1;const x=this.x+this.face*14,y=this.y-d.h*.62;
+  if(d.boss){SFX.boom();S.shake=6;for(let i=-1;i<=1;i++)S.projs.push({ty:'shard',c:'#f0c850',x,y:y+i*8,vx:this.face*(5.2+Math.abs(i)*.6),vy:i*.8,o:this,d:5,l:100,s:6,k:1});return;}// 25.10: «Корона-залп» — три золотых лезвия
   switch(d.id){
   case 0:S.projs.push({ty:'fire',x,y,vx:this.face*4,vy:0,o:this,d:7,l:110});SFX.fire();break;// 08.09: баланс — снаряды слабее ударов в упор
   case 1:this.x=clamp(foe.x-foe.face*30,20,AW-20);smoke(this.x,this.y-30);SFX.tele();break;
@@ -113,6 +115,7 @@ export function createFighter({
   case 12:this.marks=this.marks||[];if(this.marks.length>=2)this.marks.shift();this.marks.push({x:clamp(this.x+this.face*46,20,AW-20),y:this.y});SFX.cast2();for(let i=0;i<6;i++)P(this.x+this.face*46+rnd(-8,8),this.y-rnd(0,40),0,rnd(-.5,-.1),'#b89aff',26,2,0);break;// 30.09: Звёздная метка — до двух на арене
   default:S.projs.push({ty:'wave',x:this.x+this.face*18,y:FL+GR-12,vx:this.face*4,vy:0,o:this,d:9,l:90});SFX.boom();S.shake=5;break;}}// 08.09: то же для Кайзера; баланс 10→9
   fireSpec2(foe){const d=this.def;this.face=foe.x<this.x?-1:1;const x=this.x+this.face*14,y=this.y-d.h*.62;// 08.09: вторые спецприёмы — по одному на бойца
+  if(d.boss){SFX.bone();S.shake=5;for(let i=0;i<5;i++)S.projs.push({ty:'meteor',x:clamp(foe.x+rnd(-52,52),20,AW-20),y:-10-i*22,vx:0,vy:5.6,o:this,d:4,l:120});return;}// 25.10: «Метеоритный приговор» — пять метеоров
   switch(d.id){
   case 0:SFX.fire();for(let i=-1;i<=1;i++)S.projs.push({ty:'shard',c:'#f06020',x,y,vx:this.face*4.5,vy:i*1.1,o:this,d:4,l:90,s:4});break;// Огненный веер
   case 1:this.x=clamp(foe.x-foe.face*28,20,AW-20);this.face=foe.face;this.invis=40;smoke(this.x,this.y-30);SFX.tele();this.startAtk('kick');break;// Хватка тени — телепорт за спину, лицом к затылку врага
