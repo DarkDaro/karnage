@@ -29,7 +29,7 @@
 - Процедурные бойцы; спрайты Аямэ не подключены.
 - CC0-эффекты: `hitLight`, `hitHeavy`, `dust`.
 - Звук по умолчанию выключен; настройки или `?sound=1` включают, выбор сохраняется.
-- Тесты: 32 сценария (unit + Playwright).
+- Тесты: 33 сценария (unit + Playwright).
 - `npm run check`: синтаксис, ESLint, UTF-8/BOM, ростер, checksums архивов.
 
 ## Текущий технический проход
@@ -53,8 +53,8 @@
 - touch-управление, safe-area и мобильный canvas;
 - damage scaling, броски `P+K` и special cancel;
 - FX: block, smoke, dustRun, fireImpact, iceImpact, shadowImpact, explosion;
-- арена «Кладбище» на GothicVania с fallback;
-- UI: 9-slice панель и кнопка из Kenney; HUD/таймер и выбранные строки в новой рамке;
+- арены «Кладбище» и «Додзё клинка» на ассетах с fallback;
+- UI: 9-slice панель и кнопка из Kenney; HUD/таймер, строки и иконки настроек;
 - Вега: женский силуэт, хвост с лентой, серьга, губы, ресницы и боевая юбка;
 - low/high-блок, пропуск фаталити/победы и таймер FINISH HIM;
 - P2 в выборе получает свои подписи, панель и нормальные шкалы;
@@ -147,7 +147,7 @@ npm run assets:build
 1. `git status --short` — нет случайных файлов, `node_modules` и `test-results` не в индексе.
 2. `npm run assets:build` — если менялись `assets/vendor` или `assets/fx`.
 3. `npm run build` — обновить `release/app.js` и `release/assets/fx`.
-4. `npm test` — 32/32.
+4. `npm test` — 33/33.
 5. `npm run check` — ESLint и audit без ошибок.
 6. Открыть `index.html` двойным кликом: титул, меню, бой, эффект удара.
 7. Проверить `release/index.html` отдельно, как переносимую папку.

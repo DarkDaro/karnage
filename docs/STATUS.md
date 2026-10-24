@@ -68,7 +68,7 @@
 
 ### Тесты и аудит
 
-- `npm test` — 32 теста: unit + Playwright.
+- `npm test` — 33 теста: unit + Playwright.
 - `npm run test:unit` — ростер, комбинации, фаталити, арены.
 - `npm run test:e2e` — экраны, все бойцы, все фаталити, root/release с диска.
 - Регрессии: относительный ввод, finish lock, KO lock, двойной KO, лимит раундов, `netT`/`autoHit`, битый зал славы, `spec2go`.
@@ -125,8 +125,8 @@
 - `docs/ASSETS.md` — бриф по окружению и эффектам.
 - Персонажи остаются процедурными; спрайт-лист Аямэ не подключается.
 - Подключено 10 FX: `hitLight`, `hitHeavy`, `dust`, `block`, `smoke`, `dustRun`, `fireImpact`, `iceImpact`, `shadowImpact`, `explosion`.
-- Арена «Кладбище» собрана из GothicVania Cemetery, fallback на процедурную.
-- UI: 9-slice панель и кнопка из Kenney; рамки HUD/таймера, выбранные строки меню и настроек.
+- Арены «Кладбище» и «Додзё клинка» собраны из GothicVania/Superpowers, fallback на процедурную.
+- UI: 9-slice панель и кнопка из Kenney; рамки HUD/таймера, выбранные строки и иконки настроек.
 - Исходники: `assets/vendor` (zip + лицензии), распакованные `extracted/` вне git.
 - Скачаны универсальные Kenney-паки: particle, light masks, splat, UI, input prompts, items, pixel platformer, backgrounds.
 - Снимок: `archive/2026-10-24-fx-pilot`, `archive/2026-10-24-final-tails`.

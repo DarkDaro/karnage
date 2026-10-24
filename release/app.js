@@ -1,6 +1,10 @@
 (() => {
   // src/assets/arena-manifest.js
   var arena_manifest_default = {
+    "4": {
+      "image": "4/bg.png",
+      "props": "4/props.png"
+    },
     "9": {
       "image": "9/bg.png",
       "props": "9/props.png"
@@ -401,7 +405,7 @@
     }
     if (SOUND_URL) AU.on = true;
     const setVol = () => {
-      if (AU.master) AU.master.gain.value = 0.9 * AU.vol / 100;
+      if (AU.master) AU.master.gain.value = AU.on ? 0.9 * AU.vol / 100 : 0;
     };
     const saveSet = () => {
       try {
@@ -434,7 +438,7 @@
       try {
         AU.ctx = new (window.AudioContext || window.webkitAudioContext)();
         AU.master = AU.ctx.createGain();
-        AU.master.gain.value = 0.9 * AU.vol / 100;
+        AU.master.gain.value = AU.on ? 0.9 * AU.vol / 100 : 0;
         AU.master.connect(AU.ctx.destination);
         AU.mg = AU.ctx.createGain();
         AU.mg.gain.value = 0.3;
@@ -3955,6 +3959,7 @@
     function settingsChange(i, dir) {
       if (i === 0) {
         AU.on = !AU.on;
+        setVol();
         if (!AU.on) {
           try {
             speechSynthesis.cancel();
@@ -4003,6 +4008,7 @@
     function onKey(k) {
       if (k === "KeyM") {
         AU.on = !AU.on;
+        setVol();
         if (!AU.on) {
           try {
             speechSynthesis.cancel();
@@ -4070,6 +4076,7 @@
             battle.p2.ctrl.clear();
           } else if (pauseIdx === 1) {
             AU.on = !AU.on;
+            setVol();
             saveSet();
           } else if (pauseIdx === 2) {
             AU.voice = !AU.voice;
@@ -4711,6 +4718,62 @@
         g.fillText("W/S \u2014 \u0432\u044B\u0431\u043E\u0440 \xB7 J \u2014 \u043F\u043E\u0434\u0442\u0432\u0435\u0440\u0434\u0438\u0442\u044C \xB7 M \u2014 \u0437\u0432\u0443\u043A", RW / 2, 212);
       }
     }
+    function settingsIcon(kind, x, y, on) {
+      g.save();
+      g.translate(x, y);
+      const c = on ? "#f0e8d0" : "#c8a040";
+      g.fillStyle = c;
+      g.strokeStyle = c;
+      g.lineWidth = 1;
+      if (kind === "sound") {
+        g.fillRect(0, 3, 2, 4);
+        g.beginPath();
+        g.moveTo(2, 5);
+        g.lineTo(5, 2);
+        g.lineTo(5, 8);
+        g.closePath();
+        g.fill();
+        g.beginPath();
+        g.arc(6, 5, 2, -0.8, 0.8);
+        g.stroke();
+      } else if (kind === "voice") {
+        g.fillRect(2, 0, 4, 5);
+        g.fillRect(3, 5, 2, 2);
+        g.fillRect(1, 7, 6, 1);
+      } else if (kind === "volume") {
+        for (let i = 0; i < 4; i++) g.fillRect(i * 2, 7 - i * 2, 1, 2 + i * 2);
+      } else if (kind === "crt") {
+        g.strokeRect(0, 1, 8, 6);
+        g.fillRect(1, 2, 6, 1);
+        g.fillRect(1, 4, 6, 1);
+        g.fillRect(1, 6, 6, 1);
+      } else if (kind === "blood") {
+        g.beginPath();
+        g.moveTo(4, 0);
+        g.lineTo(7, 5);
+        g.quadraticCurveTo(4, 9, 1, 5);
+        g.closePath();
+        g.fill();
+      } else if (kind === "shake") {
+        g.fillRect(0, 3, 8, 1);
+        g.fillRect(0, 5, 8, 1);
+        g.fillRect(0, 3, 2, 3);
+        g.fillRect(6, 3, 2, 3);
+      } else if (kind === "motion") {
+        g.beginPath();
+        g.ellipse(4, 4, 4, 2, 0, 0, 7);
+        g.stroke();
+        g.fillRect(3, 3, 2, 2);
+      } else {
+        g.fillRect(1, 3, 5, 1);
+        g.beginPath();
+        g.moveTo(6, 1);
+        g.lineTo(8, 4);
+        g.lineTo(6, 7);
+        g.fill();
+      }
+      g.restore();
+    }
     function drawSettings() {
       bgFill();
       g.font = '20px "Rubik Mono One","Russo One",sans-serif';
@@ -4720,7 +4783,7 @@
       g.fillStyle = "#e02020";
       g.fillText("\u041D\u0410\u0421\u0422\u0420\u041E\u0419\u041A\u0418", RW / 2, 36);
       panel(30, 50, RW - 60, 158);
-      const items = settingsItems();
+      const items = settingsItems(), kinds = ["sound", "voice", "volume", "crt", "blood", "shake", "motion", "back"];
       const y0 = 70, step2 = 16;
       items.forEach((it, i) => {
         const y = y0 + i * step2, on = i === settingsIdx;
@@ -4729,6 +4792,7 @@
           g.fillRect(64, y - 12, RW - 128, 15);
           frame(64, y - 12, RW - 128, 15, "button");
         }
+        settingsIcon(kinds[i], 69, y - 8, on);
         g.font = on ? '9px "Russo One"' : '8px "Russo One"';
         g.fillStyle = on ? blink() ? "#fff" : "#e02020" : "#c8a040";
         g.textAlign = "center";

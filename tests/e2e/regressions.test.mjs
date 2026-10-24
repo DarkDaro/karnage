@@ -539,6 +539,22 @@ test('special cancel works only after a connected hit', async () => {
   assert.equal(result.whiff, 'atk');
 });
 
+test('sound setting toggles and persists', async () => {
+  const result = await page.evaluate(() => {
+    const K = window.KARNAGE;
+    K.toLobby('settings');
+    const before = K.AU.on;
+    K.onKey('Enter');
+    const after = K.AU.on;
+    const saved = localStorage.karnageSnd;
+    K.onKey('Enter');
+    return { before, after, saved, restored: K.AU.on };
+  });
+  assert.notEqual(result.after, result.before);
+  assert.equal(result.saved, result.after ? '1' : '0');
+  assert.equal(result.restored, result.before);
+});
+
 test('settings load from storage on reload', async () => {
   await page.evaluate(() => {
     localStorage.setItem('karnageOpts', JSON.stringify({ crt: false, blood: false, shake: false, reduce: true }));

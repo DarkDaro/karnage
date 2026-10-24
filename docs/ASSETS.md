@@ -283,11 +283,13 @@ tools/ui_import.py             сборка UI
 Загрузчик: `src/assets/fx.js`.
 Тест: `tests/e2e/fx.test.mjs`.
 
-Арена-пилот:
+Арены на ассетах:
 
-- `assets/arenas/9/bg.png` — фон и кладбище;
+- `assets/arenas/9/bg.png` — кладбище GothicVania;
 - `assets/arenas/9/props.png` — деревья и статуя;
-- `assets/arenas/9/arena.json`;
+- `assets/arenas/4/bg.png` — бамбук Superpowers;
+- `assets/arenas/4/props.png` — кусты Kenney;
+- `arena.json` у обеих;
 - `tools/arenas_import.py`;
 - `src/assets/arena-manifest.js`, `src/assets/arena.js`.
 
@@ -295,8 +297,8 @@ tools/ui_import.py             сборка UI
 
 - `hitHeavy` используется только при уроне > 15, чтобы не перекрывать обычный удар.
 - `dust` пока только при приземлении.
-- `fx.whiff`, `fx.super` и остальные арены ещё не подключены.
-- Арена «Кладбище» пока без параллакса слоёв: фон собран в один `bg.png`.
+- `fx.whiff`, `fx.super` и остальные 8 арен ещё не подключены.
+- Арены пока без параллакса слоёв: фон собран в один `bg.png`.
 
 ## Порядок
 

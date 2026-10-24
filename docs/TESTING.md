@@ -12,7 +12,7 @@ npm run audit:fix-bom удалить UTF-8 BOM из текстовых файл�
 npm run assets:build  пересобрать FX-атласы из assets/vendor
 ```
 
-Сейчас `npm test` — 32 сценария: 4 unit и 28 Playwright.
+Сейчас `npm test` — 33 сценария: 4 unit и 29 Playwright.
 Тесты FX проверяют загрузку атласов, sprite-эффекты удара и приземления.
 Тесты боя проверяют low/high-блок, damage scaling, броски, special cancel и пропуск фаталити.
 Тесты настроек проверяют вход из меню, сохранение переключателей и загрузку после reload.

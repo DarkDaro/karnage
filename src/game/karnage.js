@@ -23,11 +23,11 @@ const applyCrt=()=>{const el=document.getElementById('crt');if(el)el.style.displ
 applyCrt();
 const AU={ctx:null,on:!FORCE_MUTE,voice:true,vol:100};
 try{if(localStorage.karnageVox!==undefined)AU.voice=localStorage.karnageVox==='1';if(localStorage.karnageVol!==undefined){const v=parseFloat(localStorage.karnageVol);if(Number.isFinite(v))AU.vol=clamp(v,0,100);}if(localStorage.karnageSnd!==undefined)AU.on=localStorage.karnageSnd==='1';}catch(e){}if(SOUND_URL)AU.on=true;
-const setVol=()=>{if(AU.master)AU.master.gain.value=.9*AU.vol/100;};// 08.09: применение громкости
+const setVol=()=>{if(AU.master)AU.master.gain.value=AU.on?.9*AU.vol/100:0;};// 08.09: применение громкости; 24.10: mute применяется сразу
 const saveSet=()=>{try{localStorage.karnageSnd=AU.on?1:0;localStorage.karnageVox=AU.voice?1:0;localStorage.karnageVol=AU.vol;}catch(e){}};// 08.09
 const TOP=()=>{try{const raw=JSON.parse(localStorage.karnageTop||'[]');if(!Array.isArray(raw))return[];return raw.filter(e=>e&&Number.isInteger(e.id)&&e.id>=0&&e.id<CH.length&&Number.isFinite(e.step)&&e.step>=0).slice(0,5);}catch(e){return[]}};
 const addTop=(id,step)=>{try{const tp=TOP();tp.push({id,step});tp.sort((a,b)=>b.step-a.step);localStorage.karnageTop=JSON.stringify(tp.slice(0,5));}catch(e){}};
-function initA(){if(AU.ctx)return;try{AU.ctx=new(window.AudioContext||window.webkitAudioContext)();AU.master=AU.ctx.createGain();AU.master.gain.value=.9*AU.vol/100;AU.master.connect(AU.ctx.destination);AU.mg=AU.ctx.createGain();AU.mg.gain.value=.3;AU.mg.connect(AU.master);MU.next=AU.ctx.currentTime+.1;}catch(e){}}
+function initA(){if(AU.ctx)return;try{AU.ctx=new(window.AudioContext||window.webkitAudioContext)();AU.master=AU.ctx.createGain();AU.master.gain.value=AU.on?.9*AU.vol/100:0;AU.master.connect(AU.ctx.destination);AU.mg=AU.ctx.createGain();AU.mg.gain.value=.3;AU.mg.connect(AU.master);MU.next=AU.ctx.currentTime+.1;}catch(e){}}
 addEventListener('pointerdown',()=>{initA();if(AU.ctx&&AU.ctx.state==='suspended')AU.ctx.resume();if(GAME==='title'){toLobby('menu');SFX.sel();}});// 08.09: клик мыши на титуле тоже открывает меню
 function tone(o){if(!AU.ctx||!AU.on)return;const c=AU.ctx,t=c.currentTime+(o.w||0);const os=c.createOscillator(),gn=c.createGain();os.type=o.t||'square';os.frequency.setValueAtTime(o.f,t);if(o.f2)os.frequency.exponentialRampToValueAtTime(Math.max(1,o.f2),t+(o.d||.1));gn.gain.setValueAtTime(o.v||.3,t);gn.gain.exponentialRampToValueAtTime(.001,t+(o.d||.1));os.connect(gn);gn.connect(o.m?AU.mg:AU.master);os.start(t);os.stop(t+(o.d||.1)+.02);}
 function nz(o){if(!AU.ctx||!AU.on)return;const c=AU.ctx,t=c.currentTime+(o.w||0),d=o.d||.1;const n=c.sampleRate*d|0,b=c.createBuffer(1,Math.max(1,n),c.sampleRate),ch=b.getChannelData(0);for(let i=0;i<n;i++)ch[i]=Math.random()*2-1;const s=c.createBufferSource();s.buffer=b;const f=c.createBiquadFilter();f.type=o.ft||'lowpass';f.frequency.setValueAtTime(o.fl||800,t);if(o.fl2)f.frequency.exponentialRampToValueAtTime(o.fl2,t+d);const gn=c.createGain();gn.gain.setValueAtTime(o.v||.3,t);gn.gain.exponentialRampToValueAtTime(.001,t+d);s.connect(f);f.connect(gn);gn.connect(o.m?AU.mg:AU.master);s.start(t);s.stop(t+d+.02);}
@@ -735,7 +735,7 @@ battle.mode='arcade';battle.p2.ctrl.ai=true;battle.aiLvl=Math.min(7,lStep+(lStep
 function pauseItems(){return['ПРОДОЛЖИТЬ','ЗВУК: '+(AU.on?'ВКЛ':'ВЫКЛ'),'ГОЛОС ДИКТОРА: '+(AU.voice?'ВКЛ':'ВЫКЛ'),'ГРОМКОСТЬ: '+AU.vol+'%','В МЕНЮ'];}// 08.09: +громкость
 function settingsItems(){return['ЗВУК: '+(AU.on?'ВКЛ':'ВЫКЛ'),'ГОЛОС: '+(AU.voice?'ВКЛ':'ВЫКЛ'),'ГРОМКОСТЬ: '+AU.vol+'%','CRT-ФИЛЬТР: '+(OPT.crt?'ВКЛ':'ВЫКЛ'),'КРОВЬ: '+(OPT.blood?'ВКЛ':'ВЫКЛ'),'ТРЯСКА: '+(OPT.shake?'ВКЛ':'ВЫКЛ'),'МЕНЬШЕ ДВИЖЕНИЯ: '+(OPT.reduce?'ВКЛ':'ВЫКЛ'),'НАЗАД'];}
 function settingsChange(i,dir){
-if(i===0){AU.on=!AU.on;if(!AU.on){try{speechSynthesis.cancel();}catch(e){}}else SFX.menu();saveSet();}
+if(i===0){AU.on=!AU.on;setVol();if(!AU.on){try{speechSynthesis.cancel();}catch(e){}}else SFX.menu();saveSet();}
 else if(i===1){AU.voice=!AU.voice;if(!AU.voice){try{speechSynthesis.cancel();}catch(e){}}saveSet();SFX.menu();}
 else if(i===2){AU.vol=clamp(AU.vol+(dir<0?-10:10),0,100);setVol();saveSet();SFX.menu();}
 else if(i===3){OPT.crt=!OPT.crt;applyCrt();saveOpts();SFX.menu();}
@@ -743,7 +743,7 @@ else if(i===4){OPT.blood=!OPT.blood;saveOpts();SFX.menu();}
 else if(i===5){OPT.shake=!OPT.shake;saveOpts();SFX.menu();}
 else if(i===6){OPT.reduce=!OPT.reduce;if(OPT.reduce){shake=0;flashS=0;}saveOpts();SFX.menu();}}
 function onKey(k){
-if(k==='KeyM'){AU.on=!AU.on;if(!AU.on){try{speechSynthesis.cancel();}catch(e){}}else SFX.menu();saveSet();return;}// 08.09: +сохранение настройки
+if(k==='KeyM'){AU.on=!AU.on;setVol();if(!AU.on){try{speechSynthesis.cancel();}catch(e){}}else SFX.menu();saveSet();return;}// 08.09: +сохранение настройки
 if(GAME==='fight'&&!paused&&battle&&(k==='KeyJ'||k==='Enter'||k==='Space')){if(battle.phase==='fatal'&&battle.phaseT>30){endBattle(battle.winner);return;}if(battle.phase==='over'&&battle.phaseT>30){afterBattle();return;}}
 if(GAME==='fight'&&!paused&&k==='Escape'){paused=true;pauseIdx=0;SFX.menu();return;}// 08.09: пауза не активировалась — Escape не ставил paused
 if(GAME==='title'){toLobby('menu');SFX.sel();say('Karnage');return;}
@@ -755,7 +755,7 @@ if((k==='KeyA'||k==='ArrowLeft')&&pauseIdx===3){AU.vol=Math.max(0,AU.vol-10);set
 if(k==='Escape'){paused=false;SFX.menu();battle.p1.ctrl.clear();battle.p2.ctrl.clear();return;}// 08.09: сброс буфера ввода при выходе из паузы
 if(k==='KeyJ'||k==='Enter'||k==='Space'){SFX.sel();
 if(pauseIdx===0){paused=false;battle.p1.ctrl.clear();battle.p2.ctrl.clear();}// 08.09: сброс буфера при продолжении
-else if(pauseIdx===1){AU.on=!AU.on;saveSet();}// 08.09: +сохранение
+else if(pauseIdx===1){AU.on=!AU.on;setVol();saveSet();}// 08.09: +сохранение
 else if(pauseIdx===2){AU.voice=!AU.voice;if(!AU.voice){try{speechSynthesis.cancel();}catch(e){}}saveSet();}// 08.09: +сохранение
 else if(pauseIdx===3){AU.vol=AU.vol>=100?0:AU.vol+25;setVol();saveSet();}// 08.09: громкость J — цикл 0/25/50/75/100
 else toLobby('menu');}
@@ -943,12 +943,14 @@ panel(252,66,136,116);
 const si=FRAME/300%CH.length|0;drawFake(si,320,158,1.15,-1);
 g.font='8px "Russo One"';g.fillStyle='#e8e0c0';g.textAlign='center';g.fillText(CH[si].name,320,172);
 if(blink()){g.font='8px "Russo One"';g.fillStyle='#807850';g.textAlign='center';g.fillText('W/S — выбор · J — подтвердить · M — звук',RW/2,212);}}
+function settingsIcon(kind,x,y,on){g.save();g.translate(x,y);const c=on?'#f0e8d0':'#c8a040';g.fillStyle=c;g.strokeStyle=c;g.lineWidth=1;if(kind==='sound'){g.fillRect(0,3,2,4);g.beginPath();g.moveTo(2,5);g.lineTo(5,2);g.lineTo(5,8);g.closePath();g.fill();g.beginPath();g.arc(6,5,2,-.8,.8);g.stroke();}else if(kind==='voice'){g.fillRect(2,0,4,5);g.fillRect(3,5,2,2);g.fillRect(1,7,6,1);}else if(kind==='volume'){for(let i=0;i<4;i++)g.fillRect(i*2,7-i*2,1,2+i*2);}else if(kind==='crt'){g.strokeRect(0,1,8,6);g.fillRect(1,2,6,1);g.fillRect(1,4,6,1);g.fillRect(1,6,6,1);}else if(kind==='blood'){g.beginPath();g.moveTo(4,0);g.lineTo(7,5);g.quadraticCurveTo(4,9,1,5);g.closePath();g.fill();}else if(kind==='shake'){g.fillRect(0,3,8,1);g.fillRect(0,5,8,1);g.fillRect(0,3,2,3);g.fillRect(6,3,2,3);}else if(kind==='motion'){g.beginPath();g.ellipse(4,4,4,2,0,0,7);g.stroke();g.fillRect(3,3,2,2);}else{g.fillRect(1,3,5,1);g.beginPath();g.moveTo(6,1);g.lineTo(8,4);g.lineTo(6,7);g.fill();}g.restore();}
 function drawSettings(){bgFill();
 g.font='20px "Rubik Mono One","Russo One",sans-serif';g.textAlign='center';g.fillStyle='#000';g.fillText('НАСТРОЙКИ',RW/2+2,38);g.fillStyle='#e02020';g.fillText('НАСТРОЙКИ',RW/2,36);
 panel(30,50,RW-60,158);
-const items=settingsItems();const y0=70,step=16;
+const items=settingsItems(),kinds=['sound','voice','volume','crt','blood','shake','motion','back'];const y0=70,step=16;
 items.forEach((it,i)=>{const y=y0+i*step,on=i===settingsIdx;
 if(on){g.fillStyle='rgba(224,32,32,.08)';g.fillRect(64,y-12,RW-128,15);frame(64,y-12,RW-128,15,'button');}
+settingsIcon(kinds[i],69,y-8,on);
 g.font=on?'9px "Russo One"':'8px "Russo One"';
 g.fillStyle=on?(blink()?'#fff':'#e02020'):'#c8a040';g.textAlign='center';g.fillText((on?'> ':'')+it,RW/2,y);});
 g.font='7px "Russo One"';g.fillStyle='#807850';g.textAlign='center';g.fillText('W/S — выбор · A/D — изменить · J — переключить · ESC — назад',RW/2,224);}
