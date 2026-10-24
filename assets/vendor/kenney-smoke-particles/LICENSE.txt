@@ -1,0 +1,7 @@
+CC0 1.0 Universal
+https://creativecommons.org/publicdomain/zero/1.0/
+
+Smoke particle pack by Kenney Vleugels (www.kenney.nl).
+Personal and commercial use allowed. Credit is not mandatory.
+
+Source: https://kenney.nl/assets/smoke-particles

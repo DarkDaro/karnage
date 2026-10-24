@@ -1,4 +1,77 @@
 (() => {
+  // src/assets/fx-manifest.js
+  var fx_manifest_default = {
+    "hitLight": {
+      "image": "hit-light.png",
+      "frameWidth": 48,
+      "frameHeight": 48,
+      "frames": 8,
+      "fps": 30,
+      "loop": false,
+      "anchor": [
+        24,
+        24
+      ],
+      "blend": "lighter",
+      "scale": 1,
+      "alpha": 0.9
+    },
+    "hitHeavy": {
+      "image": "hit-heavy.png",
+      "frameWidth": 48,
+      "frameHeight": 48,
+      "frames": 9,
+      "fps": 22,
+      "loop": false,
+      "anchor": [
+        24,
+        24
+      ],
+      "blend": "lighter",
+      "scale": 1.25,
+      "alpha": 0.75
+    },
+    "dust": {
+      "image": "dust.png",
+      "frameWidth": 32,
+      "frameHeight": 32,
+      "frames": 9,
+      "fps": 15,
+      "loop": false,
+      "anchor": [
+        16,
+        30
+      ],
+      "blend": "source-over",
+      "scale": 0.8,
+      "alpha": 0.45
+    }
+  };
+
+  // src/assets/fx.js
+  var base = new URL("assets/fx/", location.href);
+  function loadImage(src) {
+    return new Promise((resolve, reject) => {
+      const image = new Image();
+      image.onload = () => resolve(image);
+      image.onerror = reject;
+      image.src = src;
+    });
+  }
+  async function loadFxAssets() {
+    const entries = await Promise.all(
+      Object.entries(fx_manifest_default).map(async ([key, definition]) => {
+        try {
+          const image = await loadImage(new URL(definition.image, base).href);
+          return [key, { ...definition, image, ready: true }];
+        } catch {
+          return [key, { ...definition, ready: false }];
+        }
+      })
+    );
+    return Object.fromEntries(entries);
+  }
+
   // src/data/characters.js
   var CH = [
     { id: 0, name: "\u042D\u041C\u0411\u0415\u0420", en: "EMBER", skin: "#c8845a", suit: "#8a2418", acc: "#f0a032", hair: "#3a1408", gear: "hair", h: 60, bulk: 1, spd: 2, jmp: 8.4, dmg: 1, specN: "\u041E\u0433\u043D\u0435\u043D\u043D\u044B\u0439 \u0448\u0430\u0440", spec: "DRP", sup: "\u041C\u0435\u0442\u0435\u043E\u0440\u0438\u0442\u043D\u044B\u0439 \u0434\u043E\u0436\u0434\u044C", fat: "RRLP", arena: 6 },
@@ -79,9 +152,9 @@
   }
 
   // src/game/karnage.js
-  function startKarnage() {
-    "use strict";
+  function startKarnage(fxAssets = {}) {
     const RW = 424, RH = 240, FL = 206, AW = 760, GR = 8, OUT = "#0e0b08";
+    const FX = fxAssets || {};
     const cv = document.getElementById("cv"), g = cv.getContext("2d");
     function fit() {
       let s = Math.min(innerWidth / RW, innerHeight / RH);
@@ -103,24 +176,28 @@
       };
     }
     initArenas({ mul, RW, RH, FL, GR });
-    function hex(h) {
-      return [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
+    function colorParts(c) {
+      if (c[0] === "#") return [parseInt(c.slice(1, 3), 16), parseInt(c.slice(3, 5), 16), parseInt(c.slice(5, 7), 16)];
+      const m = /^rgba?\((\d+),\s*(\d+),\s*(\d+)/.exec(c);
+      return m ? [+m[1], +m[2], +m[3]] : [0, 0, 0];
     }
     function mix(a, b, t) {
-      const A = hex(a), B = hex(b);
+      const A = colorParts(a), B = colorParts(b);
       return "rgb(" + (lerp(A[0], B[0], t) | 0) + "," + (lerp(A[1], B[1], t) | 0) + "," + (lerp(A[2], B[2], t) | 0) + ")";
     }
     const shade = (h, k) => mix(h, "#000000", 1 - k);
-    const AU = { ctx: null, on: true, voice: true, vol: 100 };
+    const FORCE_MUTE = !new URLSearchParams(location.search).has("sound");
+    const AU = { ctx: null, on: !FORCE_MUTE, voice: true, vol: 100 };
     try {
-      if (localStorage.karnageSnd !== void 0) AU.on = localStorage.karnageSnd === "1";
       if (localStorage.karnageVox !== void 0) AU.voice = localStorage.karnageVox === "1";
       if (localStorage.karnageVol !== void 0) {
         const v = parseFloat(localStorage.karnageVol);
         if (Number.isFinite(v)) AU.vol = clamp(v, 0, 100);
       }
+      if (!FORCE_MUTE && localStorage.karnageSnd !== void 0) AU.on = localStorage.karnageSnd === "1";
     } catch (e) {
     }
+    if (FORCE_MUTE) AU.on = false;
     const setVol = () => {
       if (AU.master) AU.master.gain.value = 0.9 * AU.vol / 100;
     };
@@ -420,6 +497,19 @@
     });
     addEventListener("blur", () => {
       for (const k in keys) keys[k] = false;
+      if (GAME === "fight" && !paused) {
+        paused = true;
+        pauseIdx = 0;
+      }
+    });
+    addEventListener("visibilitychange", () => {
+      if (document.hidden) {
+        for (const k in keys) keys[k] = false;
+        if (GAME === "fight" && !paused) {
+          paused = true;
+          pauseIdx = 0;
+        }
+      }
     });
     const KM1 = { l: "KeyA", r: "KeyD", u: "KeyW", d: "KeyS", P: "KeyJ", K: "KeyK", B: "KeyL" };
     const KM2 = { l: "ArrowLeft", r: "ArrowRight", u: "ArrowUp", d: "ArrowDown", P: "KeyI", K: "KeyO", B: "KeyP" };
@@ -666,6 +756,15 @@
       }
     }
     let parts = [], projs = [], decals = [], fx = [];
+    function spriteFx(name, x, y, opts) {
+      const a = FX[name];
+      if (!a || !a.ready) return false;
+      opts = opts || {};
+      const frames = a.frames || 1;
+      const fps = a.fps || 30;
+      fx.push({ ty: "sprite", img: a.image, x, y, t: 0, dur: Math.max(1, Math.round(frames * 60 / fps)), frames, frameW: a.frameWidth, frameH: a.frameHeight, anchor: a.anchor || [a.frameWidth / 2, a.frameHeight / 2], blend: a.blend || "source-over", scale: opts.scale ?? a.scale ?? 1, alpha: opts.alpha ?? a.alpha ?? 1 });
+      return true;
+    }
     function P(x, y, vx, vy, c, l, s, gv) {
       parts.push({ x, y, vx, vy, c, l: l || 30, s: s || 2, gv: gv === void 0 ? 0.3 : gv });
     }
@@ -730,6 +829,7 @@
         this.frozen = 0;
         this.netT = 0;
         this.invis = 0;
+        this.invuln = 0;
         this.poison = 0;
         this.charred = 0;
         this.hidden = 0;
@@ -778,6 +878,8 @@
       // 08.09: атака пробивает невидимость
       update(FR, foe) {
         const d = this.def, c = battle && battle.phase === "intro" ? ZEROC : this.ctrl;
+        const stunned = this.blockStun > 0;
+        if (stunned) this.blockStun--;
         this.animT++;
         this.st++;
         this.flash = Math.max(0, this.flash - 1);
@@ -795,6 +897,7 @@
           if (this.poison % 9 === 0) P(this.x, this.y - d.h * 0.6, rnd(-0.5, 0.5), rnd(-1.5, -0.3), this.poisonC || "#7ac83a", 20, 2);
         }
         if (this.invis > 0) this.invis--;
+        if (this.invuln > 0) this.invuln--;
         if (this.armor > 0) this.armor--;
         if (GAME === "fight" && !this.hidden) {
           if (d.id === 0 && FR % 9 === 0) P(this.x + rnd(-4, 4), this.y - d.h - 4, rnd(-0.3, 0.3), rnd(-1.2, -0.5), pick(["#f06020", "#f0a030"]), 26, 1, -0.02);
@@ -820,7 +923,7 @@
         if (M) {
           if (this.state === "super" || this.state === "cast" || this.state === "atk") this.running = 0;
           let mv = 0;
-          if (["idle", "walk", "jump"].includes(this.state)) {
+          if (!stunned && ["idle", "walk", "jump"].includes(this.state)) {
             if (c.l && !c.r) mv = -1;
             else if (c.r && !c.l) mv = 1;
           }
@@ -848,7 +951,7 @@
           if (!mv && this.state === "walk") this.state = "idle";
           if (this.onGround && c.d && ["idle", "walk"].includes(this.state)) this.state = "crouch";
           if (this.state === "crouch" && !c.d) this.state = "idle";
-          if (this.onGround && c.pu && ["idle", "walk"].includes(this.state)) {
+          if (!stunned && this.onGround && c.pu && ["idle", "walk"].includes(this.state)) {
             this.vy = -d.jmp;
             this.state = "jump";
             SFX.jump();
@@ -856,7 +959,7 @@
           else if (this.jbuf > 0) this.jbuf--;
           if (this.onGround && c.B && ["idle", "walk", "crouch"].includes(this.state)) this.state = "block";
           else if (this.state === "block" && !c.B) this.state = c.d ? "crouch" : "idle";
-          if (["idle", "walk", "crouch", "block"].includes(this.state) && this.onGround && (c.pP || c.pK)) {
+          if (!stunned && ["idle", "walk", "crouch", "block"].includes(this.state) && this.onGround && (c.pP || c.pK)) {
             const btn = c.pP ? "P" : "K";
             if (this.rage >= 100 && this.ctrl.match("DDP", 60)) this.startSuper();
             else if (this.ctrl.matchRel(d.spec, this.face, 60)) this.startSpec(foe);
@@ -884,6 +987,7 @@
           if (this.st > 40) {
             this.state = "getup";
             this.st = 0;
+            this.invuln = 8;
           }
         } else if (this.state === "getup") {
           this.tilt = lerp(this.tilt, 0, 0.15);
@@ -898,6 +1002,7 @@
         if (this.y > FL + GR) {
           if (this.vy > 3) {
             SFX.land();
+            spriteFx("dust", this.x, FL + GR, { scale: 1, alpha: 0.55 });
             for (let i = 0; i < 5; i++) P(this.x + rnd(-8, 8), FL + GR - 2, rnd(-1, 1), rnd(-1.2, -0.2), "#9a9080", 20, 2, 0.05);
             this.squash = 0.82;
           }
@@ -977,6 +1082,7 @@
       atkBox() {
         if (!this.atk) return null;
         const A = this.atk.A, d = this.def;
+        if (this.atk.t === "jkick") return { x: this.x + (this.face > 0 ? 4 : -4 - A.rng * d.bulk), y: this.y - d.h * 0.05, w: A.rng * d.bulk + 6, h: d.h * 0.6 };
         return { x: this.x + (this.face > 0 ? 4 : -4 - A.rng * d.bulk), y: this.y - d.h * A.hh - (this.atk.t === "sweep" ? 0 : 6), w: A.rng * d.bulk + 6, h: this.atk.t === "sweep" ? 12 : this.atk.t === "upper" ? 34 : 14 };
       }
       startSpec(foe) {
@@ -1345,6 +1451,7 @@
       if (!f || f.hidden || f.dodging || f.defeated) return;
       if (!battle || battle.phase !== "fight") return;
       if (f.state === "down" || f.state === "victim") return;
+      if (f.invuln > 0) return;
       if (Math.abs(f.x - a.x) >= 48) return;
       if (f.armor > 0) {
         f.armor--;
@@ -1376,6 +1483,7 @@
       f.invis = 0;
       f.netT = 0;
       f.combo = 0;
+      f.blockStun = 0;
       if (f.frozen > 0) f.frozen = 0;
       a.rage = Math.min(100, a.rage + 2);
       f.rage = Math.min(100, f.rage + d * 0.9);
@@ -1407,6 +1515,7 @@
         return;
       }
       if (def.state === "super" && def.st < 20) def.rage = Math.min(100, def.rage + 50);
+      if (def.invuln > 0) return;
       if (def.dodging) {
         for (let i = 0; i < 5; i++) P(def.x + rnd(-6, 6), def.y - rnd(8, 44), -att.face * rnd(0.6, 1.6), rnd(-1, -0.2), "#9a9080", 14, 2, 0.03);
         SFX.whiff();
@@ -1414,12 +1523,14 @@
       }
       if (def.state === "block") {
         def.hp = Math.max(1, def.hp - 1);
+        def.blockStun = 6;
         def.damageTaken = (def.damageTaken || 0) + 1;
         SFX.block();
         att.rage = Math.min(100, att.rage + 1);
         def.rage = Math.min(100, def.rage + 1);
         def.vx = att.face * 2;
         def.hvx = 0;
+        spriteFx("hitLight", def.x + def.face * 8, def.y - def.def.h * 0.55, { scale: 0.65, alpha: 0.8 });
         for (let i = 0; i < 4; i++) P(def.x + def.face * 8, def.y - def.def.h * 0.55, rnd(-1.5, 1.5), rnd(-2, 0), "#fff", 10, 2, 0);
         return;
       }
@@ -1431,6 +1542,7 @@
       }
       def.hp = Math.max(0, def.hp - d);
       if (def.hp <= 0) freeze = Math.max(freeze, 12);
+      def.blockStun = 0;
       def.damageTaken = (def.damageTaken || 0) + d;
       def.netT = 0;
       def.spec2go = 0;
@@ -1454,6 +1566,7 @@
         bstat["c" + k] = Math.max(bstat["c" + k], att.combo || 0);
       }
       blood(def.x, def.y - def.def.h * 0.55, Math.min(14, 3 + d), d > 10 ? 1.6 : 1);
+      spriteFx(d > 15 ? "hitHeavy" : "hitLight", def.x, def.y - def.def.h * 0.55, { scale: d > 15 ? 1 : 0.65, alpha: d > 15 ? 0.45 : 0.65 });
       for (let i = 0; i < 6; i++) P(def.x - att.face * 8, def.y - def.def.h * 0.55, rnd(-2.5, 2.5), rnd(-2.5, 1), pick(["#fff", "#f8d060", "#f0a030"]), 10, rnd(1, 2), 0.05);
       freeze = def.hp <= 0 ? Math.max(freeze, 12) : Math.max(freeze, Math.min(6, 2 + d * 0.25));
       if (opts.launch) {
@@ -1665,14 +1778,25 @@
       for (let i = fx.length; i--; ) {
         const f = fx[i];
         f.t++;
-        if (f.t > 80 || f.ty === "rock" && f.t > 26 || f.ty === "boom" && f.t > 22 || f.ty === "nova" && f.t > 26 || f.ty === "slash" && f.t > 10 || f.ty === "boltfx" && f.t > 8 || f.ty === "ring" && f.t > 14 || f.ty === "castbolt" && f.t > 9) fx.splice(i, 1);
+        if (f.ty === "boom" && f.t % 3 === 0) {
+          const r = f.t * 1.6;
+          P(f.x + rnd(-r, r), f.y + rnd(-r, r) * 0.4, rnd(-1, 1), rnd(-2, 0), "#f06020", 16, 2);
+        }
+        if (f.t > 80 || f.ty === "rock" && f.t > 26 || f.ty === "boom" && f.t > 22 || f.ty === "nova" && f.t > 26 || f.ty === "slash" && f.t > 10 || f.ty === "boltfx" && f.t > 8 || f.ty === "ring" && f.t > 14 || f.ty === "castbolt" && f.t > 9 || f.ty === "sprite" && f.t > f.dur) fx.splice(i, 1);
         if (fx.length > 200) fx.splice(0, fx.length - 200);
       }
     }
     function drawFx(cam2) {
       for (const f of fx) {
         const x = f.x - cam2;
-        if (f.ty === "rock") {
+        if (f.ty === "sprite") {
+          const frame = Math.min(f.frames - 1, Math.floor(f.t / f.dur * f.frames));
+          g.save();
+          g.globalCompositeOperation = f.blend;
+          g.globalAlpha = f.alpha;
+          g.drawImage(f.img, frame * f.frameW, 0, f.frameW, f.frameH, x - f.anchor[0] * f.scale, f.y - f.anchor[1] * f.scale, f.frameW * f.scale, f.frameH * f.scale);
+          g.restore();
+        } else if (f.ty === "rock") {
           const h = Math.min(30, f.t * 4);
           g.fillStyle = "#6a5a44";
           g.fillRect(x - 10, FL + GR - h, 20, h);
@@ -1689,7 +1813,6 @@
           g.beginPath();
           g.arc(x, f.y, r, 0, 7);
           g.stroke();
-          if (f.t % 3 === 0) P(f.x + rnd(-r, r), f.y + rnd(-r, r) * 0.4, rnd(-1, 1), rnd(-2, 0), "#f06020", 16, 2);
         } else if (f.ty === "nova") {
           g.strokeStyle = "#c8ecff";
           g.lineWidth = 2;
@@ -1734,7 +1857,7 @@
       g.stroke();
       return [ex, ey];
     }
-    const lite = (c, t) => c[0] === "#" ? mix(c, "#ffffff", t) : null;
+    const lite = (c, t) => mix(c, "#ffffff", t);
     function limb(x, y, a1, a2, l1, l2, w, c) {
       g.lineCap = "round";
       g.strokeStyle = OUT;
@@ -2312,9 +2435,11 @@
       g.fillRect(hx + 2, expr === 2 ? hy - 7 : hy - 6, 4, 1);
       drawGear(f, hx, hy);
       if (f.flash > 0) {
-        g.globalAlpha = 0.7;
+        g.globalAlpha = 0.12;
         g.fillStyle = "#fff";
-        g.fillRect(-14, -d.h - 4, 28, d.h + 6);
+        g.beginPath();
+        g.ellipse(0, -d.h * 0.5, 12, d.h * 0.42, 0, 0, 7);
+        g.fill();
         g.globalAlpha = 1;
       }
       g.restore();
@@ -3594,6 +3719,7 @@
       const move = (slot, d) => {
         if (d) {
           s[slot] = clamp(s[slot] + d, 0, CH.length - 1);
+          s.last = slot;
           SFX.menu();
         }
       };
@@ -3700,7 +3826,8 @@
         g.fillStyle = "#3868c8";
         g.fillText((s.mode === "2p" ? "P2" : "CPU") + ": " + CH[s.c2].name, 12, 192);
       }
-      const cur = s.mode === "2p" ? s.c1 : s.mode === "cpu" ? s.ph === 0 ? s.c1 : s.c2 : s.c1;
+      const cur = s.mode === "2p" ? s.last === "c2" ? s.c2 : s.c1 : s.mode === "cpu" ? s.ph === 0 ? s.c1 : s.c2 : s.c1;
+      const showP2 = s.mode === "2p" ? cur === s.c2 : s.mode === "cpu" && s.ph === 1;
       const d = CH[cur];
       panel(200, 34, 216, 150);
       g.fillStyle = d.acc;
@@ -3731,10 +3858,10 @@
       g.font = '7px "Russo One"';
       g.fillStyle = "#e8c040";
       g.fillText("\u0421\u041F\u0415\u0426: " + d.specN, 292, 114);
-      g.fillText("[" + seqTxt(d.spec) + "]", 292, 123);
+      g.fillText("[" + seqTxt(d.spec, showP2) + "]", 292, 123);
       g.fillStyle = "#c8a040";
       g.fillText("\u0421\u041F\u0415\u04262: " + d.spec2N, 292, 134);
-      g.fillText("[" + seqTxt(d.spec2) + "]", 292, 143);
+      g.fillText("[" + seqTxt(d.spec2, showP2) + "]", 292, 143);
       if (s.ph !== 2) {
         g.fillText("\u0421\u0423\u041F\u0415\u0420: " + d.sup, 292, 155);
         g.fillStyle = "#807850";
@@ -3922,7 +4049,6 @@
     function drawTitle() {
       bgFill();
       drawSkull(RW / 2, 58 + Math.sin(titleT * 0.03) * 3, 4.2);
-      titleT++;
       g.font = '42px "Russo One"';
       g.textAlign = "center";
       g.fillStyle = "#000";
@@ -4097,8 +4223,11 @@
         contT--;
         if (contT <= 0) toLobby("gameover");
       }
-      if (announce) announce.t++;
-      if (wipe > 0) wipe--;
+      if (GAME === "fight") {
+        if (announce) announce.t++;
+        if (wipe > 0) wipe--;
+      }
+      if (GAME === "title") titleT++;
       if (GAME === "vs" || GAME === "select") vsT++;
       if (vsEscT > 0) vsEscT--;
     }
@@ -4290,6 +4419,12 @@
         get fx() {
           return fx;
         },
+        get wipe() {
+          return wipe;
+        },
+        get announce() {
+          return announce;
+        },
         get MU() {
           return MU;
         },
@@ -4298,6 +4433,9 @@
         },
         get keys() {
           return keys;
+        },
+        get fxAssets() {
+          return FX;
         },
         autoHit,
         step,
@@ -4368,5 +4506,5 @@
   }
 
   // src/main.js
-  startKarnage();
+  loadFxAssets().then((assets) => startKarnage(assets)).catch(() => startKarnage({}));
 })();

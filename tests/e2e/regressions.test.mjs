@@ -253,6 +253,39 @@ test('three drawn rounds end the match without round four', async () => {
   assert.equal(result.wins, 2);
 });
 
+test('round curtain waits for the fight screen', async () => {
+  const result = await page.evaluate(() => {
+    const K = window.KARNAGE;
+    K.setDebug({ GAME: 'vs', paused: false });
+    K.newBattle(0, new K.Ctrl(K.KM1), 1, new K.Ctrl(K.KM2), 9);
+    K.setDebug({ GAME: 'vs' });
+    const before = { wipe: K.wipe, announce: K.announce?.t };
+    for (let i = 0; i < 30; i += 1) K.step();
+    const held = { wipe: K.wipe, announce: K.announce?.t };
+    K.setDebug({ GAME: 'fight' });
+    K.step();
+    const after = { wipe: K.wipe, announce: K.announce?.t };
+    return { before, held, after };
+  });
+  assert.deepEqual(result.before, { wipe: 24, announce: 0 });
+  assert.deepEqual(result.held, { wipe: 24, announce: 0 });
+  assert.ok(result.after.wipe < 24);
+  assert.ok(result.after.announce > 0);
+});
+
+test('render does not spawn explosion particles', async () => {
+  const result = await page.evaluate(() => {
+    const K = window.KARNAGE;
+    K.setDebug({ GAME: 'fight', paused: true });
+    K.fx.length = 0;
+    K.fx.push({ ty: 'boom', x: 300, y: 100, t: 3 });
+    const before = K.parts.length;
+    for (let i = 0; i < 20; i += 1) K.render();
+    return { before, after: K.parts.length };
+  });
+  assert.deepEqual(result, { before: 0, after: 0 });
+});
+
 test('bad leaderboard storage does not break the screen', async () => {
   const result = await page.evaluate(() => {
     localStorage.karnageTop = JSON.stringify([

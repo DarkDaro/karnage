@@ -57,6 +57,7 @@ test('loads title without page errors', async () => {
   const state = await page.evaluate(() => window.KARNAGE.snapshot());
   assert.equal(state.GAME, 'title');
   assert.equal(state.FRAME, 0);
+  assert.equal(await page.evaluate(() => window.KARNAGE.AU.on), false);
   const roster = await page.evaluate(() => ({
     fighters: window.KARNAGE.CH.length,
     arenas: window.KARNAGE.AR.length,

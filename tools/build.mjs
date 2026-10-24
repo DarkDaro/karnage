@@ -10,7 +10,13 @@ const args = new Set(process.argv.slice(2));
 const minify = args.has('--minify');
 
 await mkdir(release, { recursive: true });
-await cp(join(root, 'assets'), join(release, 'assets'), { recursive: true });
+for (const assetDir of ['fonts', 'styles', 'fx', 'arenas']) {
+  try {
+    await cp(join(root, 'assets', assetDir), join(release, 'assets', assetDir), { recursive: true });
+  } catch (error) {
+    if (error.code !== 'ENOENT') throw error;
+  }
+}
 
 const bundle = await build({
   entryPoints: [entry],

@@ -3,21 +3,24 @@
 ## Текущее состояние
 
 `index.html` — готовый запуск, он читает `release/app.js`. `dev.html` —
-модульный вход для `npm run dev`: `src/main.js` вызывает `startKarnage()` из
+модульный вход для `npm run dev`: `src/main.js` загружает FX через
+`src/assets/fx.js` и вызывает `startKarnage(assets)` из
 `src/game/karnage.js`. Бойцы и арены уже вынесены в `src/data`, HTML/CSS/шрифты
 — в `assets`. Основная логика пока остаётся в обёртке монолита;
 `src/legacy/karnage.js` — замороженная копия для сравнения. `tools/build.mjs`
-собирает `src/main.js` через esbuild в `release/app.js`, релиз запускается как
+собирает `src/main.js` через esbuild в `release/app.js`, копирует только
+`assets/fonts`, `styles`, `fx` и `arenas` (без `vendor`), релиз запускается как
 папка `release/index.html`.
 
 ## Слои, к которым идём
 
 1. `src/core` — цикл, ввод, звук, сохранения, RNG, математика, цвета, debug.
 2. `src/data` — бойцы, арены, приёмы, строки, сложность.
-3. `src/game` — боец, урон, снаряды, статусы, ИИ, матч, аркада, суперы, фаталити.
-4. `src/render` — арены, бойцы, гир, портреты, эффекты, HUD, слои.
-5. `src/screens` — титул, меню, выбор, VS, бой, пауза, зал славы, финал.
-6. `src/ui` — touch, геймпад, доступность.
+3. `src/assets` — загрузчик FX и статический манифест.
+4. `src/game` — боец, урон, снаряды, статусы, ИИ, матч, аркада, суперы, фаталити.
+5. `src/render` — арены, бойцы, гир, портреты, эффекты, HUD, слои.
+6. `src/screens` — титул, меню, выбор, VS, бой, пауза, зал славы, финал.
+7. `src/ui` — touch, геймпад, доступность.
 
 Порядок разборки — от чистых функций к рендеру, чтобы не тянуть циклические
 зависимости. После каждого слоя прогоняются parity-тесты.
@@ -37,14 +40,17 @@
 
 - Фаталити не прерывается уроном; жертва в `finish` неуязвима для обычных атак.
 - Побеждённый не встаёт до `startRound`.
-- `reset()` очищает `combo`, `comboT`, `spec2go`, `pale`, `netT`, `frozen`.
+- `reset()` очищает `combo`, `comboT`, `spec2go`, `pale`, `netT`, `frozen`,
+  `defeated`, `damageTaken`, `armor`, `invuln`, `blockStun`.
 - Спецприёмы читают направления относительно взгляда.
-- `autoHit` проходит через общий `applyHit`: блок, рывок, hitstun, статистика.
+- `autoHit` учитывает блок, рывок и hitstun; общий `applyHit` — следующий шаг.
 - `render()` не меняет `parts`, `fx`, `projs`.
+- `drawFx` рисует sprite-эффекты из `FX`; `updFx` двигает кадры и спавнит частицы.
 - Отсутствие ветки персонажа — ошибка, а не `default`-заглушка.
 
 ## Сборка
 
-`tools/build.mjs` копирует `assets/`, собирает `src/main.js` через esbuild в
-`release/app.js` и подставляет его в `release/index.html`. Формат релиза —
-папка, а не один HTML.
+`tools/build.mjs` копирует `assets/fonts`, `assets/styles`, `assets/fx` и
+`assets/arenas`, собирает `src/main.js` через esbuild в `release/app.js` и
+подставляет его в `release/index.html`. Формат релиза — папка, а не один HTML.
+`assets/vendor` остаётся в репозитории, но не попадает в релиз.

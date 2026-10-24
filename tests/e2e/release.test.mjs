@@ -29,9 +29,10 @@ for (const [name, entry] of Object.entries(entries)) {
       const state = await page.evaluate(() => ({
         game: window.KARNAGE.snapshot().GAME,
         fighters: window.KARNAGE.CH.length,
-        arenas: window.KARNAGE.AR.length
+        arenas: window.KARNAGE.AR.length,
+        fx: Object.values(window.KARNAGE.fxAssets).filter((asset) => asset.ready).length
       }));
-      assert.deepEqual(state, { game: 'title', fighters: 13, arenas: 10 });
+      assert.deepEqual(state, { game: 'title', fighters: 13, arenas: 10, fx: 3 });
       assert.deepEqual(errors, []);
     } finally {
       await browser.close();

@@ -9,7 +9,12 @@ npm run test:e2e      только e2e через dev-server
 npm run check         node --check + ESLint + audit.py
 npm run audit         UTF-8, BOM, скобки, ростер, документация
 npm run audit:fix-bom удалить UTF-8 BOM из текстовых файлов
+npm run assets:build  пересобрать FX-атласы из assets/vendor
 ```
+
+Сейчас `npm test` — 22 сценария: 4 unit и 18 Playwright.
+Тесты FX проверяют загрузку атласов, sprite-эффекты удара и приземления.
+`release/` тестируется отдельно с диска через `file://`.
 
 ## Детерминированный прогон
 
@@ -21,8 +26,9 @@ npm run audit:fix-bom удалить UTF-8 BOM из текстовых файл�
 - `setSeed(number)` — подменить `Math.random`;
 - `snapshot()` — состояние без ссылок на объекты.
 
-Для тестов rAF отключается через `page.addInitScript`, звук и речь — через
-`AU.on = false` / `AU.voice = false`. Кадры гоняются вручную, без `setInterval`.
+Для тестов rAF отключается через `page.addInitScript`; звук по умолчанию уже
+выключен. Кадры гоняются вручную, без `setInterval`. Для проверки звука
+использовать `?sound=1`.
 
 ## Что проверяем
 
@@ -30,6 +36,8 @@ npm run audit:fix-bom удалить UTF-8 BOM из текстовых файл�
 - все экраны: title, menu, select, vs, fight, pause, top, ending, gameover;
 - все 13 бойцов: отрисовка, спец, спец2, супер, фаталити;
 - finish lock, KO lock, статусы, `spec2go`, `netT`;
+- двойной KO, лимит раундов, announce/wipe, render без мутаций;
+- FX-атласы и sprite-эффекты;
 - битый localStorage;
 - мобильный viewport и touch (после этапа UI);
 - parity: старый baseline и новая сборка дают одинаковое состояние на

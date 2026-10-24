@@ -220,6 +220,29 @@ def fix_bom(errors: list[str]) -> None:
             fail(f"{path.relative_to(ROOT)}: UTF-16 must be converted manually", errors)
 
 
+def check_fx_assets(errors: list[str]) -> None:
+    import json
+
+    manifest = ROOT / "assets" / "fx" / "fx.json"
+    if not manifest.exists():
+        return
+    try:
+        data = json.loads(read_text(manifest))
+    except json.JSONDecodeError as exc:
+        fail(f"assets/fx/fx.json: {exc}", errors)
+        return
+    for key, definition in data.items():
+        path = manifest.parent / definition.get("image", "")
+        if not path.exists() or path.stat().st_size == 0:
+            fail(f"assets/fx: missing image for {key}", errors)
+    for vendor in (ROOT / "assets" / "vendor").iterdir():
+        if not vendor.is_dir():
+            continue
+        for name in ("LICENSE.txt", "SOURCE.md"):
+            if not (vendor / name).exists():
+                fail(f"assets/vendor/{vendor.name}: missing {name}", errors)
+
+
 def check_archive_checksums(errors: list[str]) -> None:
     import hashlib
 
@@ -294,6 +317,7 @@ def main() -> int:
         check_markers(errors)
         check_roster_doc(rows, errors)
         check_assets(errors)
+        check_fx_assets(errors)
         check_archive_checksums(errors)
         check_service_files(errors)
         check_forbidden(errors)

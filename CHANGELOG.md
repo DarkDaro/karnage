@@ -19,3 +19,11 @@
 - Двойной KO и лимит трёх раундов.
 - Исправлены `spec2go`, `netT`, `TOP`, громкость, речь, веер Кармин, бомбы, тень.
 - Регрессионные e2e-тесты на эти сценарии.
+- Добавлен `docs/ASSETS.md`: бриф по окружению, эффектам, лицензиям и пайплайну.
+- Пилот CC0-эффектов: `hitLight` (CodeManu), `hitHeavy` и `dust` (Kenney).
+- Добавлены `tools/assets_import.py`, `assets/fx`, `src/assets/fx.js`, `tests/e2e/fx.test.mjs`.
+- Снимок: `archive/2026-10-24-fx-pilot`.
+- На время разработки звук по умолчанию выключен; `?sound=1` включает.
+- Технический проход: announce/wipe, drawFx, drawTitle, rgb-цвета, jkick, blockstun, wakeup, P2-выбор, пауза при blur.
+- Добавлен `docs/HANDOFF.md` для старта нового чата.
+- Снимок: `archive/2026-10-24-handoff`.
