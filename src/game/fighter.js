@@ -64,7 +64,7 @@ export function createFighter({
   if(this.state==='atk'&&this.atk){const A=this.atk.A;
   if(c.pP){this.abuf=8;this.abufB='punch';}else if(c.pK){this.abuf=8;this.abufB=c.d?'sweep':'kick';}else if(this.abuf>0)this.abuf--;// 30.09: буфер атаки 8 кадров
   if(this.st>A.wd&&this.st<=A.wd+A.ac&&!this.atk.hit&&foe.state!=='down'){const hb=this.atkBox();if(hb&&hitR(hb,foe.box)&&(!A.throw||(foe.onGround&&['idle','walk','block'].includes(foe.state)))){const res=resolveHit(this,foe,A.d,{launch:A.launch,low:A.low,overhead:A.overhead,throw:A.throw,knock:A.knock});this.atk.hit=1;this.atk.blocked=res==='block'?1:0;this.atk.connected=res==='hit'?1:0;}}
-  if(this.st===A.wd+A.ac&&!this.atk.hit)SFX.whiff();// 30.09: свист промаха
+  if(this.st===A.wd+A.ac&&!this.atk.hit){SFX.whiff();const hb=this.atkBox();S.fx.push({ty:'whiff',x:hb?hb.x+hb.w/2:this.x+this.face*22,y:hb?hb.y+hb.h/2:this.y-this.def.h*.6,face:this.face,t:0,life:12,col:this.def.acc||'#cfe8ff'});}// 30.09: свист промаха; 25.10: дуга воздуха
   if(this.atk.hit&&this.atk.connected&&!this.atk.blocked&&!this.atk.cancel&&!A.throw&&this.st>A.wd+A.ac&&this.st<=A.wd+A.ac+10&&this.onGround){if(this.ctrl.matchRel(d.spec,this.face,60)){this.atk.cancel=1;this.startSpec(foe);}else if(this.ctrl.matchRel(d.spec2,this.face,60)){this.atk.cancel=1;this.startSpec2(foe);}}// 24.10: special cancel только по попаданию
   if(this.state==='atk'&&this.st>A.wd+A.ac+A.rc){if(this.abuf>0&&this.onGround){this.abuf=0;this.startAtk(this.abufB);}// 30.09: чейнинг из буфера
   else{this.state='idle';this.atk=null;}}}
@@ -76,6 +76,7 @@ export function createFighter({
   startSpec(foe){this.state='cast';this.st=0;this.face=foe.x<this.x?-1:1;this.spec2go=0;SFX.cast();}
   startSpec2(foe){this.state='cast';this.st=0;this.face=foe.x<this.x?-1:1;this.spec2go=1;SFX.cast2();}// 08.09: второй спец — тот же каст, флаг spec2go выбирает ветку в fireSpec
   startSuper(){this.state='super';this.st=0;this.rage=0;this.armor=12;this.supEv=[];this.invis=0;S.flashS=Math.max(S.flashS,4);S.shake=Math.max(S.shake,4);SFX.supwave();// 08.09: +пробивание невидимости
+  const sy=this.y-this.def.h*.55;S.fx.push({ty:'super',x:this.x,y:sy,gy:this.y,t:0,life:26,col:this.def.acc||'#e8c040'});for(let i=0;i<18;i++){const a=i/18*Math.PI*2;P(this.x+Math.cos(a)*7,sy+Math.sin(a)*7,Math.cos(a)*rnd(1.2,3),Math.sin(a)*rnd(1.2,3),i%2?this.def.acc:'#f8e8b0',26,2,-.02);}// 25.10: вспышка ауры супера
   const me=this;const E=(t,fn)=>this.supEv.push({t,fn,done:0});const id=this.def.id;
   if(id===0){SFX.fire();for(let i=0;i<10;i++)E(14+i*7,()=>{S.projs.push({ty:'meteor',x:me.foe.x+rnd(-34,34),y:-10,vx:0,vy:5.5,o:me,d:2.6,l:120});SFX.shoot();});}
   else if(id===1){E(10,()=>{me.x=clamp(me.foe.x-me.foe.face*26,20,AW-20);smoke(me.x,me.y-30);SFX.tele();});for(let i=0;i<8;i++)E(20+i*6,()=>{autoHit(me,3);SFX.slash();});E(78,()=>resolveHit(me,me.foe,8,{launch:1}));}

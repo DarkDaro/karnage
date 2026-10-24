@@ -142,3 +142,41 @@ test('block, smoke and run dust use their own atlases', async () => {
   assert.ok(result.run.includes(64), JSON.stringify(result.run));
   assert.deepEqual(result.impacts, [384, 384, 384, 576]);
 });
+
+test('whiff and super spawn their own effects', async () => {
+  const result = await page.evaluate(() => {
+    const K = window.KARNAGE;
+    K.setDebug({ GAME: 'fight', paused: false });
+    K.newBattle(0, new K.Ctrl(K.KM1), 1, new K.Ctrl(K.KM2), 9);
+    const battle = K.battle;
+    battle.mode = '2p';
+    battle.phase = 'fight';
+    battle.phaseT = 200;
+    battle.p1.x = 260;
+    battle.p2.x = 330;
+    battle.p1.startAtk('kick');
+    for (let i = 0; i < 20; i += 1) K.step();
+    const whiffs = K.fx.filter((effect) => effect.ty === 'whiff');
+    K.fx.length = 0;
+    battle.p1.x = 300;
+    battle.p2.x = 360;
+    battle.p1.startSuper();
+    const supers = K.fx.filter((effect) => effect.ty === 'super');
+    for (let i = 0; i < 30; i += 1) {
+      K.step();
+      K.render();
+    }
+    return {
+      whiffs: whiffs.length,
+      supers: supers.length,
+      whiffLife: whiffs[0]?.life,
+      superLife: supers[0]?.life,
+      remaining: K.fx.filter((effect) => effect.ty === 'whiff' || effect.ty === 'super').length
+    };
+  });
+  assert.equal(result.whiffs, 1);
+  assert.equal(result.supers, 1);
+  assert.equal(result.whiffLife, 12);
+  assert.equal(result.superLife, 26);
+  assert.equal(result.remaining, 0);
+});

@@ -1197,7 +1197,11 @@
               this.atk.connected = res === "hit" ? 1 : 0;
             }
           }
-          if (this.st === A.wd + A.ac && !this.atk.hit) SFX.whiff();
+          if (this.st === A.wd + A.ac && !this.atk.hit) {
+            SFX.whiff();
+            const hb = this.atkBox();
+            S.fx.push({ ty: "whiff", x: hb ? hb.x + hb.w / 2 : this.x + this.face * 22, y: hb ? hb.y + hb.h / 2 : this.y - this.def.h * 0.6, face: this.face, t: 0, life: 12, col: this.def.acc || "#cfe8ff" });
+          }
           if (this.atk.hit && this.atk.connected && !this.atk.blocked && !this.atk.cancel && !A.throw && this.st > A.wd + A.ac && this.st <= A.wd + A.ac + 10 && this.onGround) {
             if (this.ctrl.matchRel(d.spec, this.face, 60)) {
               this.atk.cancel = 1;
@@ -1264,6 +1268,12 @@
         S.flashS = Math.max(S.flashS, 4);
         S.shake = Math.max(S.shake, 4);
         SFX.supwave();
+        const sy = this.y - this.def.h * 0.55;
+        S.fx.push({ ty: "super", x: this.x, y: sy, gy: this.y, t: 0, life: 26, col: this.def.acc || "#e8c040" });
+        for (let i = 0; i < 18; i++) {
+          const a = i / 18 * Math.PI * 2;
+          P(this.x + Math.cos(a) * 7, sy + Math.sin(a) * 7, Math.cos(a) * rnd(1.2, 3), Math.sin(a) * rnd(1.2, 3), i % 2 ? this.def.acc : "#f8e8b0", 26, 2, -0.02);
+        }
         const me = this;
         const E = (t, fn) => this.supEv.push({ t, fn, done: 0 });
         const id = this.def.id;
@@ -2685,7 +2695,7 @@
           const r = f.t * 1.6;
           P(f.x + rnd(-r, r), f.y + rnd(-r, r) * 0.4, rnd(-1, 1), rnd(-2, 0), "#f06020", 16, 2);
         }
-        if (f.t > 80 || f.ty === "rock" && f.t > 26 || f.ty === "boom" && f.t > 22 || f.ty === "nova" && f.t > 26 || f.ty === "slash" && f.t > 10 || f.ty === "boltfx" && f.t > 8 || f.ty === "ring" && f.t > 14 || f.ty === "castbolt" && f.t > 9 || f.ty === "sprite" && f.t > f.dur) S.fx.splice(i, 1);
+        if (f.t > 80 || f.life && f.t > f.life || f.ty === "rock" && f.t > 26 || f.ty === "boom" && f.t > 22 || f.ty === "nova" && f.t > 26 || f.ty === "slash" && f.t > 10 || f.ty === "boltfx" && f.t > 8 || f.ty === "ring" && f.t > 14 || f.ty === "castbolt" && f.t > 9 || f.ty === "sprite" && f.t > f.dur) S.fx.splice(i, 1);
         if (S.fx.length > 200) S.fx.splice(0, S.fx.length - 200);
       }
     }
@@ -2698,6 +2708,75 @@
           g.globalCompositeOperation = f.blend;
           g.globalAlpha = f.alpha;
           g.drawImage(f.img, frame2 * f.frameW, 0, f.frameW, f.frameH, x - f.anchor[0] * f.scale, f.y - f.anchor[1] * f.scale, f.frameW * f.scale, f.frameH * f.scale);
+          g.restore();
+        } else if (f.ty === "whiff") {
+          const p = f.t / f.life, a = 1 - p;
+          g.save();
+          g.translate(x, f.y);
+          g.scale(f.face || 1, 1);
+          g.globalCompositeOperation = "screen";
+          g.globalAlpha = a;
+          g.strokeStyle = "rgba(220,238,255,.9)";
+          g.lineWidth = 2 - p;
+          g.beginPath();
+          g.arc(0, 0, 9 + p * 10, -1, 0.45);
+          g.stroke();
+          g.globalAlpha = a * 0.5;
+          g.lineWidth = 1;
+          g.beginPath();
+          g.arc(0, 0, 5 + p * 6, -1.25, 0.7);
+          g.stroke();
+          g.globalAlpha = a * 0.6;
+          g.strokeStyle = f.col;
+          g.beginPath();
+          g.moveTo(-2, 0);
+          g.lineTo(-10 - p * 4, 0);
+          g.stroke();
+          g.restore();
+        } else if (f.ty === "super") {
+          const p = f.t / f.life, a = 1 - p;
+          g.save();
+          g.globalCompositeOperation = "lighter";
+          g.translate(x, f.y);
+          g.globalAlpha = a * 0.35;
+          const rad = 8 + p * 40, gr = g.createRadialGradient(0, 0, 2, 0, 0, rad);
+          gr.addColorStop(0, "rgba(255,255,255,.9)");
+          gr.addColorStop(0.35, f.col);
+          gr.addColorStop(1, "rgba(0,0,0,0)");
+          g.fillStyle = gr;
+          g.beginPath();
+          g.arc(0, 0, rad, 0, 7);
+          g.fill();
+          g.globalAlpha = a;
+          g.strokeStyle = f.col;
+          g.lineWidth = 3;
+          g.beginPath();
+          g.arc(0, 0, 6 + p * 44, 0, 7);
+          g.stroke();
+          g.globalAlpha = a * 0.7;
+          g.strokeStyle = "#fff";
+          g.lineWidth = 1.5;
+          g.beginPath();
+          g.arc(0, 0, 3 + p * 30, 0, 7);
+          g.stroke();
+          for (let i = 0; i < 10; i++) {
+            const an = i * Math.PI / 5 + p * 0.3, r0 = 5 + p * 8, r1 = 12 + p * 40;
+            g.beginPath();
+            g.moveTo(Math.cos(an) * r0, Math.sin(an) * r0);
+            g.lineTo(Math.cos(an) * r1, Math.sin(an) * r1);
+            g.stroke();
+          }
+          g.globalAlpha = a * 0.55;
+          g.strokeStyle = f.col;
+          g.lineWidth = 2;
+          g.beginPath();
+          g.ellipse(0, f.gy - f.y, 10 + p * 34, 3 + p * 7, 0, 0, 7);
+          g.stroke();
+          g.globalAlpha = a;
+          g.fillStyle = "#fff";
+          g.beginPath();
+          g.arc(0, 0, Math.max(0, 5 * (1 - p)), 0, 7);
+          g.fill();
           g.restore();
         } else if (f.ty === "rock") {
           const h = Math.min(30, f.t * 4);
