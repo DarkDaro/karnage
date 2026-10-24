@@ -3708,19 +3708,23 @@
         g.fillRect(hx - 1, hy - 3, 3, 1);
       }
     }
+    function portraitTop(d) {
+      return d.gear === "halo" ? -25 : d.gear === "horn" || d.gear === "corona" ? -19 : -15;
+    }
     function drawPort(d, x, y, s) {
       g.save();
       g.lineCap = "round";
       g.translate(x, y);
       g.scale(s, s);
-      const bg2 = g.createLinearGradient(0, -15, 0, 15);
+      const top = portraitTop(d), ph = 15 - top;
+      const bg2 = g.createLinearGradient(0, top, 0, 15);
       bg2.addColorStop(0, shade(d.suit, 0.45));
       bg2.addColorStop(1, "#0c0a08");
       g.fillStyle = bg2;
-      g.fillRect(-12, -15, 24, 30);
+      g.fillRect(-12, top, 24, ph);
       g.strokeStyle = "#c8a040";
       g.lineWidth = 1;
-      g.strokeRect(-11.5, -14.5, 23, 29);
+      g.strokeRect(-11.5, top + 0.5, 23, ph - 1);
       g.fillStyle = OUT;
       g.fillRect(-4, 3, 8, 13);
       g.fillStyle = shade(d.skin, 0.7);
@@ -3895,13 +3899,14 @@
       };
       bar(p1, 40, 1);
       bar(p2, RW - 190, -1);
+      drawPort(p1.def, 24, 26.5, 0.8);
+      drawPort(p2.def, RW - 24, 26.5, 0.8);
+      const pt1 = portraitTop(p1.def), pt2 = portraitTop(p2.def);
       g.strokeStyle = p1.def.acc;
       g.lineWidth = 1;
-      g.strokeRect(14.5, 7.5, 19, 31);
+      g.strokeRect(14.5, 26 + pt1 * 0.8, 19, (15 - pt1) * 0.8 + 1);
       g.strokeStyle = p2.def.acc;
-      g.strokeRect(RW - 33.5, 7.5, 19, 31);
-      drawPort(p1.def, 24, 23, 0.8);
-      drawPort(p2.def, RW - 24, 23, 0.8);
+      g.strokeRect(RW - 33.5, 26 + pt2 * 0.8, 19, (15 - pt2) * 0.8 + 1);
       g.fillStyle = "rgba(0,0,0,.78)";
       g.fillRect(RW / 2 - 18, 7, 36, 22);
       frame(RW / 2 - 18, 7, 36, 22);
@@ -4973,7 +4978,7 @@
         g.strokeStyle = "#3a3128";
         g.lineWidth = 1;
         g.strokeRect(x + 0.5, y + 0.5, 33, 41);
-        drawPort(CH[i], x + 17, y + 24, 0.95);
+        drawPort(CH[i], x + 17, y + 24.5, 0.94);
         if (s.c1 === i) {
           g.strokeStyle = "#e02020";
           g.lineWidth = 2;
@@ -5120,7 +5125,7 @@
       g.textAlign = "center";
       g.fillText("\u041F\u041E\u0411\u0415\u0414\u0418\u0422\u0415\u041B\u042C \u0422\u0423\u0420\u041D\u0418\u0420\u0410", RW / 2, 31);
       const d = CH[S.arcP1];
-      drawPort(d, RW / 2, 92, 2.4);
+      drawPort(d, RW / 2, 94, 2.1);
       g.font = '16px "Russo One"';
       g.fillStyle = "#e8e0c0";
       g.fillText(d.name, RW / 2, 146);

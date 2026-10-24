@@ -361,10 +361,12 @@ else if(d.gear==='corona'){g.fillStyle=OUT;g.fillRect(hx-7,hy-11,14,4);g.fillSty
 else{if(d.id===0){for(let i=0;i<3;i++){const fx2=hx-3+i*3,hg=4+Math.sin(S.FRAME*.3+i*2)*2;g.fillStyle='#f06020';g.beginPath();g.moveTo(fx2-1,hy-8);g.lineTo(fx2+1,hy-9-hg);g.lineTo(fx2+3,hy-8);g.fill();g.fillStyle='#f8d060';g.beginPath();g.moveTo(fx2,hy-8);g.lineTo(fx2+1,hy-8-hg*.5);g.lineTo(fx2+2,hy-8);g.fill();}}
 else{g.fillStyle=OUT;g.fillRect(hx-6,hy-11,12,5);g.fillStyle=d.hair;g.fillRect(hx-5,hy-11,11,4);g.fillRect(hx-5,hy-8,3,5);g.fillStyle=mix(d.hair,'#ffffff',.22);g.fillRect(hx-5,hy-11,11,1);g.fillRect(hx-5,hy-8,1,4);}// 30.09: блик волос
 g.fillStyle='#141414';g.fillRect(hx-1,hy-6,3,2);g.fillStyle=shade(d.skin,.85);g.fillRect(hx-1,hy-3,3,1);}}// 30.09: нос
+function portraitTop(d){return d.gear==='halo'?-25:(d.gear==='horn'||d.gear==='corona')?-19:-15;}
 function drawPort(d,x,y,s){g.save();g.lineCap='round';g.translate(x,y);g.scale(s,s);
-const bg2=g.createLinearGradient(0,-15,0,15);bg2.addColorStop(0,shade(d.suit,.45));bg2.addColorStop(1,'#0c0a08');// 30.09: фон в цвете бойца
-g.fillStyle=bg2;g.fillRect(-12,-15,24,30);
-g.strokeStyle='#c8a040';g.lineWidth=1;g.strokeRect(-11.5,-14.5,23,29);
+const top=portraitTop(d),ph=15-top;
+const bg2=g.createLinearGradient(0,top,0,15);bg2.addColorStop(0,shade(d.suit,.45));bg2.addColorStop(1,'#0c0a08');// 30.09: фон в цвете бойца
+g.fillStyle=bg2;g.fillRect(-12,top,24,ph);
+g.strokeStyle='#c8a040';g.lineWidth=1;g.strokeRect(-11.5,top+.5,23,ph-1);
 g.fillStyle=OUT;g.fillRect(-4,3,8,13);g.fillStyle=shade(d.skin,.7);g.fillRect(-3,4,6,12);// шея
 g.fillStyle=OUT;g.beginPath();g.moveTo(-11,15);g.lineTo(-8,1);g.lineTo(8,1);g.lineTo(11,15);g.closePath();g.fill();
 const tg2=g.createLinearGradient(-8,0,8,0);tg2.addColorStop(0,shade(d.suit,.55));tg2.addColorStop(.5,d.suit);tg2.addColorStop(1,shade(d.suit,.85));
@@ -408,8 +410,9 @@ if(f.rage>=100){g.fillStyle='rgba(255,96,64,.35)';g.fillRect(dir>0?x:x+w-w,40,w,
 g.fillStyle='#3a3418';g.fillRect(x,44,w,2);g.fillStyle='#c8b040';g.fillRect(dir>0?x:x+w-w*f.run/100,44,w*f.run/100,2);
 if(f.rage>=100&&blink()){g.fillStyle='#ff5030';g.font='7px "Russo One"';g.fillText('СУПЕР ГОТОВ',dir>0?x+2:x+w-2,52);}};
 bar(p1,40,1);bar(p2,RW-190,-1);
-g.strokeStyle=p1.def.acc;g.lineWidth=1;g.strokeRect(14.5,7.5,19,31);g.strokeStyle=p2.def.acc;g.strokeRect(RW-33.5,7.5,19,31);// рамки портретов в цвете стихии
-drawPort(p1.def,24,23,.8);drawPort(p2.def,RW-24,23,.8);
+drawPort(p1.def,24,26.5,.8);drawPort(p2.def,RW-24,26.5,.8);
+const pt1=portraitTop(p1.def),pt2=portraitTop(p2.def);// рамки портретов в цвете стихии, с запасом под рога/нимб/корону
+g.strokeStyle=p1.def.acc;g.lineWidth=1;g.strokeRect(14.5,26+pt1*.8,19,(15-pt1)*.8+1);g.strokeStyle=p2.def.acc;g.strokeRect(RW-33.5,26+pt2*.8,19,(15-pt2)*.8+1);
 g.fillStyle='rgba(0,0,0,.78)';g.fillRect(RW/2-18,7,36,22);frame(RW/2-18,7,36,22);
 if(b.timer<11){g.strokeStyle=blink()?'#ff5030':'#801818';g.lineWidth=1;g.strokeRect(RW/2-17.5,7.5,35,21);}// таймер краснеет в конце
 g.font='15px "Russo One"';g.fillStyle=(b.timer<11&&blink())?'#ff5030':'#f0e8d0';g.textAlign='center';g.fillText(''+Math.ceil(b.timer),RW/2,23);
@@ -664,7 +667,7 @@ const hdr=s.mode==='arcade'?'ВЫБЕРИ СВОЕГО БОЙЦА — '+(CH.leng
 g.fillText(hdr,RW/2,27);
 for(let i=0;i<CH.length;i++){const x=12+(i%5)*37,y=36+((i/5)|0)*46;
 g.fillStyle='#100d0a';g.fillRect(x,y,34,42);g.strokeStyle='#3a3128';g.lineWidth=1;g.strokeRect(x+.5,y+.5,33,41);
-drawPort(CH[i],x+17,y+24,.95);
+drawPort(CH[i],x+17,y+24.5,.94);
 if(s.c1===i){g.strokeStyle='#e02020';g.lineWidth=2;g.strokeRect(x-1,y-1,36,44);}
 if((s.mode==='2p'||(s.mode==='cpu'&&s.ph===1))&&s.c2===i){g.strokeStyle='#3868c8';g.lineWidth=2;g.strokeRect(x+1,y+1,32,40);}}
 g.font='7px "Russo One"';g.textAlign='left';
@@ -712,7 +715,7 @@ g.fillText('АРЕНА: '+AR[S.battle.arena].n,RW/2,170);
 if(S.vsEscT>0&&blink()){g.font='8px "Russo One"';g.fillStyle='#e04020';g.fillText('ЕЩЁ РАЗ ESC — ПОКИНУТЬ ТУРНИР',RW/2,200);}else if(S.vsT>50&&blink()){g.font='9px "Russo One"';g.fillStyle='#e8e0c0';g.fillText('J — НАЧАТЬ БОЙ',RW/2,214);}}// 08.09: подтверждение выхода
 function drawEnd(){bgFill();
 panel(112,14,200,26);g.font='10px "Russo One"';g.fillStyle='#e8c040';g.textAlign='center';g.fillText('ПОБЕДИТЕЛЬ ТУРНИРА',RW/2,31);
-const d=CH[S.arcP1];drawPort(d,RW/2,92,2.4);
+const d=CH[S.arcP1];drawPort(d,RW/2,94,2.1);
 g.font='16px "Russo One"';g.fillStyle='#e8e0c0';g.fillText(d.name,RW/2,146);
 if(blink()){g.fillStyle='#807850';g.font='8px "Russo One"';g.fillText('J — в меню',RW/2,228);}}
 function drawTop(){bgFill();// 08.09: зал славы — топ-5 аркады
