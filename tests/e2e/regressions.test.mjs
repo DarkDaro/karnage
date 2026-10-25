@@ -893,3 +893,57 @@ test('settings load from storage on reload', async () => {
     localStorage.removeItem('karnageSnd');
   });
 });
+
+test('several CPU fights finish without stalls', async () => {
+  const matches = await page.evaluate(() => {
+    const K = window.KARNAGE;
+    const pairs = [[0, 3], [1, 4], [2, 12], [5, 6], [7, 9], [8, 10], [11, 0]];
+    const out = [];
+    for (const [a, b] of pairs) {
+      K.setDebug({ GAME: 'fight', paused: false });
+      K.newBattle(a, new K.Ctrl(K.KM1), b, new K.Ctrl(K.KM2), 9);
+      const battle = K.battle;
+      battle.mode = 'cpu';
+      battle.aiLvl = 4;
+      battle.phase = 'fight';
+      battle.phaseT = 200;
+      battle.timer = 20;
+      battle.p1.ctrl.ai = true;
+      battle.p2.ctrl.ai = true;
+      battle.p1.wins = 0;
+      battle.p2.wins = 0;
+      battle.p1.x = 180;
+      battle.p2.x = 580;
+      battle.p1.face = 1;
+      battle.p2.face = -1;
+      battle.p1.state = 'idle';
+      battle.p2.state = 'idle';
+      battle.p1.st = 0;
+      battle.p2.st = 0;
+      battle.p1.atk = null;
+      battle.p2.atk = null;
+      let frames = 0;
+      while (battle.phase === 'fight' && frames < 1800) {
+        K.step();
+        frames += 1;
+      }
+      out.push({
+        pair: `${a}-${b}`,
+        frames,
+        phase: battle.phase,
+        hp1: battle.p1.hp,
+        hp2: battle.p2.hp,
+        damage: (battle.p1.damageTaken || 0) + (battle.p2.damageTaken || 0),
+        timer: battle.timer
+      });
+    }
+    return out;
+  });
+  assert.equal(matches.length, 7);
+  for (const match of matches) {
+    assert.notEqual(match.phase, 'fight', `${match.pair}: CPU fight did not finish`);
+    assert.ok(match.frames < 1800, `${match.pair}: too many frames`);
+    assert.ok(Number.isFinite(match.hp1) && Number.isFinite(match.hp2), `${match.pair}: hp is not finite`);
+  }
+  assert.ok(matches.some((match) => match.damage > 0), 'CPU fights did not trade damage');
+});

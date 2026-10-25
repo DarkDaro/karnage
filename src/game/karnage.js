@@ -593,8 +593,9 @@ g.fillStyle='#e8e0c0';g.fillText('СУПЕР: '+d.sup,x,141);
 g.fillStyle='#c8a040';g.fillText('['+seqTxt('DDP',p2,f.face)+'] при ярости 100',x,150);
 g.fillStyle='#e8e0c0';g.fillText('ФАТАЛИТИ: ['+seqTxt(d.fat,p2,f.face)+']',x,161);
 g.fillStyle='#e8e0c0';g.fillText('БРОСОК: '+(d.throwN||'ЗАХВАТ'),x,172,118);
-g.fillStyle='#c8a040';g.fillText('НИЗКИЙ: '+(p2?'[S+I+O]':'[S+J+K]'),x,183);
-g.fillStyle='#e8e0c0';g.fillText('ЦЕПЬ: '+d.target.seq.split('').join('+'),x,194);};
+g.fillStyle='#c8a040';g.fillText('ЗАХВАТ: '+seqTxt('DPK',p2,f.face).replace(/ /g,'')+(d.grappler?' · '+seqTxt('RPK',p2,f.face).replace(/ /g,''):''),x,183);
+g.fillStyle='#e8e0c0';g.fillText('ЦЕПЬ: '+d.target.seq.split('').join('+'),x,194);
+g.font='6px "Russo One"';g.fillStyle='#807850';g.fillText('P '+Math.round(d.norm.punch.d*d.dmg)+'/'+Math.round(d.norm.punch.rng*d.bulk)+' · K '+Math.round(d.norm.kick.d*d.dmg)+'/'+Math.round(d.norm.kick.rng*d.bulk)+' · RH '+Math.round(d.norm.rh.d*d.dmg)+'/'+Math.round(d.norm.rh.rng*d.bulk),x,205);};
 ab(S.battle.p1,209);ab(S.battle.p2,341);
 uiHint(isTouchUI()?'P — ВЫБОР/ГРОМКОСТЬ · B — ЗАКРЫТЬ':'J — ВЫБОР · A/D — ГРОМКОСТЬ · ESC — ЗАКРЫТЬ',228);}
 /* ГЛАВНЫЙ ЦИКЛ */

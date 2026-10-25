@@ -562,7 +562,7 @@
     0: { startup: 0.98, active: 1, recovery: 0.96, reach: 1.02, box: 1, kb: 1 },
     1: { startup: 0.88, active: 1, recovery: 0.9, reach: 0.98, box: 0.95, kb: 0.9 },
     2: { startup: 1, active: 1.05, recovery: 1, reach: 1, box: 1, kb: 1 },
-    3: { startup: 1.24, active: 1.15, recovery: 1.2, reach: 1.12, box: 1.15, kb: 1.35 },
+    3: { startup: 1.24, active: 1.15, recovery: 1.2, reach: 0.92, box: 1.15, kb: 1.35 },
     4: { startup: 0.9, active: 1.1, recovery: 0.92, reach: 0.98, box: 0.95, kb: 0.9 },
     5: { startup: 0.82, active: 1, recovery: 0.88, reach: 0.96, box: 0.9, kb: 0.85 },
     6: { startup: 1, active: 1, recovery: 1, reach: 1.04, box: 1, kb: 1 },
@@ -608,7 +608,7 @@
     0: { norm: { punch: { d: 7 }, kick: { d: 8 }, upper: { d: 16 }, sweep: { d: 9 }, rh: { d: 13 }, jkick: { d: 10 } }, cmd: { fP: { n: "\u041F\u041B\u0410\u041C\u0415\u041D\u041D\u042B\u0419 \u041F\u0420\u042F\u041C\u041E\u0419", d: 9 }, fK: { n: "\u041E\u0413\u041D\u0415\u041D\u041D\u042B\u0419 \u041F\u0418\u041D\u041E\u041A", d: 12 }, bP: { n: "\u041F\u0415\u041F\u0415\u041B\u042C\u041D\u042B\u0419 \u041A\u041E\u041D\u0422\u0420", d: 8 } } },
     1: { norm: { punch: { d: 5, rng: 30 }, kick: { d: 8, rng: 38 }, upper: { d: 14 }, sweep: { d: 9 }, rh: { d: 11 }, jkick: { d: 11 } }, cmd: { fP: { n: "\u0422\u0415\u041D\u0415\u0412\u041E\u0419 \u041F\u0420\u042F\u041C\u041E\u0419", d: 7, rng: 33 }, fK: { n: "\u0421\u041A\u041E\u041B\u042C\u0417\u042F\u0429\u0418\u0419 \u041F\u0418\u041D\u041E\u041A", d: 10, rng: 41 }, bP: { n: "\u041E\u0411\u0420\u0410\u0422\u041D\u042B\u0419 \u041A\u041E\u041D\u0422\u0420", d: 6, rng: 30 } } },
     2: { norm: { punch: { d: 6, rng: 30 }, kick: { d: 8 }, upper: { d: 15 }, sweep: { d: 9 }, rh: { d: 12 }, jkick: { d: 10 } }, cmd: { fP: { n: "\u0420\u0410\u0417\u0420\u042F\u0414\u041D\u042B\u0419 \u041F\u0420\u042F\u041C\u041E\u0419", d: 8, rng: 33 }, fK: { n: "\u0413\u0420\u041E\u0417\u041E\u0412\u041E\u0419 \u041F\u0418\u041D\u041E\u041A", d: 11 }, bP: { n: "\u042D\u041B\u0415\u041A\u0422\u0420\u041E\u041A\u041E\u041D\u0422\u0420", d: 7, rng: 29 } } },
-    3: { norm: { punch: { d: 8, wd: 6 }, kick: { d: 11, wd: 8 }, upper: { d: 18, wd: 8 }, sweep: { d: 12, wd: 8 }, rh: { d: 15, wd: 10 }, jkick: { d: 12, wd: 6 } }, cmd: { fP: { n: "\u041A\u0410\u041C\u0415\u041D\u041D\u042B\u0419 \u041F\u0420\u042F\u041C\u041E\u0419", d: 10, wd: 7 }, fK: { n: "\u0422\u042F\u0416\u0401\u041B\u042B\u0419 \u041F\u0418\u041D\u041E\u041A", d: 14, wd: 9 }, bP: { n: "\u0413\u041E\u0420\u041D\u042B\u0419 \u041A\u041E\u041D\u0422\u0420", d: 9, wd: 6 } } },
+    3: { norm: { punch: { d: 8, wd: 6 }, kick: { d: 11, wd: 8 }, upper: { d: 16, wd: 8 }, sweep: { d: 12, wd: 8 }, rh: { d: 14, wd: 10 }, jkick: { d: 12, wd: 6 } }, cmd: { fP: { n: "\u041A\u0410\u041C\u0415\u041D\u041D\u042B\u0419 \u041F\u0420\u042F\u041C\u041E\u0419", d: 10, wd: 7 }, fK: { n: "\u0422\u042F\u0416\u0401\u041B\u042B\u0419 \u041F\u0418\u041D\u041E\u041A", d: 13, wd: 9 }, bP: { n: "\u0413\u041E\u0420\u041D\u042B\u0419 \u041A\u041E\u041D\u0422\u0420", d: 9, wd: 6 } } },
     4: { norm: { punch: { d: 5, rng: 29 }, kick: { d: 7, rng: 38 }, upper: { d: 13 }, sweep: { d: 8 }, rh: { d: 10 }, jkick: { d: 9 } }, cmd: { fP: { n: "\u041A\u041E\u0413\u0422\u0415\u0412\u041E\u0419 \u041F\u0420\u042F\u041C\u041E\u0419", d: 7, rng: 32 }, fK: { n: "\u042F\u0414\u041E\u0412\u0418\u0422\u042B\u0419 \u041F\u0418\u041D\u041E\u041A", d: 9, rng: 40 }, bP: { n: "\u0417\u0410\u0421\u0410\u0414\u041D\u042B\u0419 \u041A\u041E\u041D\u0422\u0420", d: 6, rng: 30 } } },
     5: { norm: { punch: { d: 5, rng: 30 }, kick: { d: 7, rng: 38 }, upper: { d: 12 }, sweep: { d: 9 }, rh: { d: 10 }, jkick: { d: 9 } }, cmd: { fP: { n: "\u041F\u0415\u0421\u0427\u0410\u041D\u042B\u0419 \u041F\u0420\u042F\u041C\u041E\u0419", d: 7, rng: 33 }, fK: { n: "\u0412\u0418\u0425\u0420\u0415\u0412\u041E\u0419 \u041F\u0418\u041D\u041E\u041A", d: 9, rng: 41 }, bP: { n: "\u041C\u0418\u0420\u0410\u0416\u041D\u042B\u0419 \u041A\u041E\u041D\u0422\u0420", d: 6, rng: 30 } } },
     6: { norm: { punch: { d: 6, rng: 30 }, kick: { d: 8, rng: 38 }, upper: { d: 15 }, sweep: { d: 10 }, rh: { d: 12 }, jkick: { d: 10 } }, cmd: { fP: { n: "\u041B\u0415\u0414\u042F\u041D\u041E\u0419 \u041F\u0420\u042F\u041C\u041E\u0419", d: 8, rng: 33 }, fK: { n: "\u0421\u0422\u0423\u0414\u0401\u041D\u042B\u0419 \u041F\u0418\u041D\u041E\u041A", d: 11 }, bP: { n: "\u041C\u041E\u0420\u041E\u0417\u041D\u042B\u0419 \u041A\u041E\u041D\u0422\u0420", d: 7 } } },
@@ -7617,9 +7617,12 @@
         g.fillStyle = "#e8e0c0";
         g.fillText("\u0411\u0420\u041E\u0421\u041E\u041A: " + (d.throwN || "\u0417\u0410\u0425\u0412\u0410\u0422"), x, 172, 118);
         g.fillStyle = "#c8a040";
-        g.fillText("\u041D\u0418\u0417\u041A\u0418\u0419: " + (p2 ? "[S+I+O]" : "[S+J+K]"), x, 183);
+        g.fillText("\u0417\u0410\u0425\u0412\u0410\u0422: " + seqTxt("DPK", p2, f.face).replace(/ /g, "") + (d.grappler ? " \xB7 " + seqTxt("RPK", p2, f.face).replace(/ /g, "") : ""), x, 183);
         g.fillStyle = "#e8e0c0";
         g.fillText("\u0426\u0415\u041F\u042C: " + d.target.seq.split("").join("+"), x, 194);
+        g.font = '6px "Russo One"';
+        g.fillStyle = "#807850";
+        g.fillText("P " + Math.round(d.norm.punch.d * d.dmg) + "/" + Math.round(d.norm.punch.rng * d.bulk) + " \xB7 K " + Math.round(d.norm.kick.d * d.dmg) + "/" + Math.round(d.norm.kick.rng * d.bulk) + " \xB7 RH " + Math.round(d.norm.rh.d * d.dmg) + "/" + Math.round(d.norm.rh.rng * d.bulk), x, 205);
       };
       ab(S.battle.p1, 209);
       ab(S.battle.p2, 341);
