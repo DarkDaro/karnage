@@ -1,7 +1,11 @@
 export function createParticles({ g, state, options, FL, GR, rnd }) {
+  const pool = [];// 25.10: переиспользование частиц снижает нагрузку GC в бою
   function P(x, y, vx, vy, c, l, s, gv) {
     if (!options.blood && c === '#b01818') return;
-    state.parts.push({ x, y, vx, vy, c, l: l || 30, s: s || 2, gv: gv === undefined ? .3 : gv });
+    const p = pool.pop() || {};
+    p.x = x; p.y = y; p.vx = vx; p.vy = vy; p.c = c; p.l = l || 30; p.s = s || 2; p.gv = gv === undefined ? .3 : gv;
+    p.line = p.horiz = p.kf = 0;
+    state.parts.push(p);
   }
 
   function blood(x, y, n, pw) {
@@ -12,14 +16,16 @@ export function createParticles({ g, state, options, FL, GR, rnd }) {
   }
 
   function updParts() {
-    for (let i = state.parts.length; i--;) {
-      const p = state.parts[i];
+    const parts = state.parts;
+    let w = 0;
+    for (let i = 0; i < parts.length; i++) {
+      const p = parts[i];
       p.x += p.vx;
       p.y += p.vy;
       p.vy += p.gv;
       p.l--;
       if (p.kf && p.y > FL + GR) {
-        state.parts.splice(i, 1);
+        pool.push(p);
         continue;
       }
       if (!p.line && p.y >= FL + GR - 1 && p.gv > 0) {
@@ -30,15 +36,27 @@ export function createParticles({ g, state, options, FL, GR, rnd }) {
         p.vy *= -.3;
         p.vx *= .6;
       }
-      if (p.l <= 0) state.parts.splice(i, 1);
+      if (p.l <= 0) {
+        pool.push(p);
+        continue;
+      }
+      parts[w++] = p;
     }
-    for (let i = state.decals.length; i--;) {
-      const d = state.decals[i];
+    parts.length = w;
+    const decals = state.decals;
+    w = 0;
+    for (let i = 0; i < decals.length; i++) {
+      const d = decals[i];
       d.t++;
-      if (d.t > d.l) state.decals.splice(i, 1);
+      if (d.t <= d.l) decals[w++] = d;
     }
-    if (state.decals.length > 240) state.decals.splice(0, state.decals.length - 240);
-    if (state.parts.length > 400) state.parts.splice(0, state.parts.length - 400);
+    decals.length = w;
+    if (decals.length > 240) decals.splice(0, decals.length - 240);
+    if (parts.length > 400) {
+      const drop = parts.length - 400;
+      for (let i = 0; i < drop; i++) pool.push(parts[i]);
+      parts.splice(0, drop);
+    }
   }
 
   function drawParts(cam) {

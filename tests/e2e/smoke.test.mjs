@@ -135,6 +135,50 @@ test('adaptive scale drops hard on sustained slowdown and ignores one spike', as
   await page.evaluate(() => window.dispatchEvent(new window.Event('resize')));
 });
 
+test('quick tap between frames reaches the input buffer', async () => {
+  const result = await page.evaluate(() => {
+    const K = window.KARNAGE;
+    K.newBattle(0, new K.Ctrl(K.KM1), 1, new K.Ctrl(K.KM2), 6);
+    K.battle.mode = '2p';
+    K.battle.phase = 'fight';
+    K.battle.phaseT = 200;
+    K.setDebug({ GAME: 'fight', paused: false });
+    const ctrl = K.battle.p1.ctrl;
+    ctrl.clear();
+    for (const key of Object.keys(K.keys)) K.keys[key] = false;
+    window.dispatchEvent(new window.KeyboardEvent('keydown', { code: 'KeyJ' }));
+    window.dispatchEvent(new window.KeyboardEvent('keyup', { code: 'KeyJ' }));
+    const before = ctrl.buf.length;
+    K.step();
+    return { before, after: ctrl.buf.map((entry) => entry.k), pressed: ctrl.pP };
+  });
+  assert.equal(result.before, 0);
+  assert.deepEqual(result.after, ['P']);
+  assert.equal(result.pressed, true);
+});
+
+test('stale menu press does not fire after screen change', async () => {
+  const result = await page.evaluate(() => {
+    const K = window.KARNAGE;
+    K.newBattle(0, new K.Ctrl(K.KM1), 1, new K.Ctrl(K.KM2), 6);
+    K.battle.mode = '2p';
+    K.battle.phase = 'fight';
+    K.battle.phaseT = 200;
+    K.setDebug({ GAME: 'menu', paused: false });
+    const ctrl = K.battle.p1.ctrl;
+    ctrl.clear();
+    for (const key of Object.keys(K.keys)) K.keys[key] = false;
+    window.dispatchEvent(new window.KeyboardEvent('keydown', { code: 'KeyJ' }));
+    window.dispatchEvent(new window.KeyboardEvent('keyup', { code: 'KeyJ' }));
+    for (let i = 0; i < 5; i += 1) K.step();
+    K.setDebug({ GAME: 'fight', paused: false });
+    K.step();
+    return { after: ctrl.buf.map((entry) => entry.k), pressed: ctrl.pP };
+  });
+  assert.deepEqual(result.after, []);
+  assert.equal(result.pressed, false);
+});
+
 test('renders every screen', async () => {
   await page.evaluate(() => {
     window.KARNAGE.newBattle(

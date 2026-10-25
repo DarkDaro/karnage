@@ -1102,9 +1102,20 @@
 
   // src/game/fx/particles.js
   function createParticles({ g, state, options, FL, GR, rnd }) {
+    const pool = [];
     function P(x, y, vx, vy, c, l, s, gv) {
       if (!options.blood && c === "#b01818") return;
-      state.parts.push({ x, y, vx, vy, c, l: l || 30, s: s || 2, gv: gv === void 0 ? 0.3 : gv });
+      const p = pool.pop() || {};
+      p.x = x;
+      p.y = y;
+      p.vx = vx;
+      p.vy = vy;
+      p.c = c;
+      p.l = l || 30;
+      p.s = s || 2;
+      p.gv = gv === void 0 ? 0.3 : gv;
+      p.line = p.horiz = p.kf = 0;
+      state.parts.push(p);
     }
     function blood(x, y, n, pw) {
       if (!options.blood) return;
@@ -1113,14 +1124,16 @@
       }
     }
     function updParts() {
-      for (let i = state.parts.length; i--; ) {
-        const p = state.parts[i];
+      const parts = state.parts;
+      let w = 0;
+      for (let i = 0; i < parts.length; i++) {
+        const p = parts[i];
         p.x += p.vx;
         p.y += p.vy;
         p.vy += p.gv;
         p.l--;
         if (p.kf && p.y > FL + GR) {
-          state.parts.splice(i, 1);
+          pool.push(p);
           continue;
         }
         if (!p.line && p.y >= FL + GR - 1 && p.gv > 0) {
@@ -1131,15 +1144,27 @@
           p.vy *= -0.3;
           p.vx *= 0.6;
         }
-        if (p.l <= 0) state.parts.splice(i, 1);
+        if (p.l <= 0) {
+          pool.push(p);
+          continue;
+        }
+        parts[w++] = p;
       }
-      for (let i = state.decals.length; i--; ) {
-        const d = state.decals[i];
+      parts.length = w;
+      const decals = state.decals;
+      w = 0;
+      for (let i = 0; i < decals.length; i++) {
+        const d = decals[i];
         d.t++;
-        if (d.t > d.l) state.decals.splice(i, 1);
+        if (d.t <= d.l) decals[w++] = d;
       }
-      if (state.decals.length > 240) state.decals.splice(0, state.decals.length - 240);
-      if (state.parts.length > 400) state.parts.splice(0, state.parts.length - 400);
+      decals.length = w;
+      if (decals.length > 240) decals.splice(0, decals.length - 240);
+      if (parts.length > 400) {
+        const drop = parts.length - 400;
+        for (let i = 0; i < drop; i++) pool.push(parts[i]);
+        parts.splice(0, drop);
+      }
     }
     function drawParts(cam) {
       for (const p of state.parts) {
@@ -2299,6 +2324,13 @@
   function createInput() {
     const keys = {};
     const TOUCH = { l: 0, r: 0, u: 0, d: 0, P: 0, K: 0, B: 0 };
+    const pressed = /* @__PURE__ */ Object.create(null);
+    const press = (code, frame) => {
+      pressed[code] = frame || 0;
+    };
+    const clearPress = () => {
+      for (const code in pressed) delete pressed[code];
+    };
     class Ctrl {
       constructor(m) {
         this.m = m;
@@ -2311,7 +2343,11 @@
         this.tK = -999;
       }
       poll(FR) {
-        const q = (k) => this.ai ? !!this.ax[k] : !!keys[this.m[k]] || this.m === KM1 && !!TOUCH[k];
+        const fresh = (code) => {
+          const at = pressed[code];
+          return at !== void 0 && FR - at <= 2;
+        }, touch = this.m === KM1;
+        const q = (k) => this.ai ? !!this.ax[k] : !!keys[this.m[k]] || touch && !!TOUCH[k] || fresh(this.m[k]) || touch && fresh(k);
         const o = { l: q("l"), r: q("r"), u: q("u"), d: q("d"), P: q("P"), K: q("K"), B: q("B") };
         this.fr = FR;
         this.pP = o.P && !this._.P;
@@ -2345,29 +2381,40 @@
       }
       match(seq, win) {
         win = win || 60;
-        const b = this.buf;
-        if (typeof seq === "string") seq = seq.split("");
-        const n = seq.length;
+        const b = this.buf, n = seq.length;
         if (b.length < n) return false;
         if (b[b.length - 1].t - b[b.length - n].t > win) return false;
         for (let i = 0; i < n; i++) if (b[b.length - n + i].k !== seq[i]) return false;
         return true;
       }
       matchRel(seq, face, win) {
-        const mapped = seq.split("").map((k) => k === "R" ? face > 0 ? "R" : "L" : k === "L" ? face > 0 ? "L" : "R" : k);
-        return this.match(mapped, win);
+        win = win || 60;
+        const b = this.buf, n = seq.length;
+        if (b.length < n) return false;
+        if (b[b.length - 1].t - b[b.length - n].t > win) return false;
+        for (let i = 0; i < n; i++) {
+          let k = seq[i];
+          if (k === "R") k = face > 0 ? "R" : "L";
+          else if (k === "L") k = face > 0 ? "L" : "R";
+          if (b[b.length - n + i].k !== k) return false;
+        }
+        return true;
       }
       matchRelLoose(seq, face, win) {
         win = win || 60;
-        const mapped = seq.split("").map((k) => k === "R" ? face > 0 ? "R" : "L" : k === "L" ? face > 0 ? "L" : "R" : k);
-        const b = this.buf, n = mapped.length;
+        const b = this.buf, n = seq.length;
         if (b.length < n) return false;
         for (let start = b.length - n; start >= 0; start--) {
           if (b[b.length - 1].t - b[start].t > win) break;
           let ok = true;
-          for (let i = 0; i < n; i++) if (b[start + i].k !== mapped[i]) {
-            ok = false;
-            break;
+          for (let i = 0; i < n; i++) {
+            let k = seq[i];
+            if (k === "R") k = face > 0 ? "R" : "L";
+            else if (k === "L") k = face > 0 ? "L" : "R";
+            if (b[start + i].k !== k) {
+              ok = false;
+              break;
+            }
           }
           if (ok) return true;
         }
@@ -2377,7 +2424,7 @@
         this.buf.length = 0;
       }
     }
-    return { keys, TOUCH, KM1, KM2, Ctrl };
+    return { keys, TOUCH, KM1, KM2, Ctrl, press, clearPress };
   }
 
   // src/render/ability-fx.js
@@ -4586,6 +4633,34 @@
   }) {
     const abilityFx = createAbilityFx({ g, S, FL, GR, lerp, rnd, mix });
     const fighterArt = createFighterArt({ g, S, OUT, mix, shade, lerp });
+    const portraitCache = /* @__PURE__ */ new Map();
+    let portraitWorkFrame = -1, portraitWorkCount = 0;
+    function portraitImage(d) {
+      let item = portraitCache.get(d.id);
+      if (!item) {
+        const top = fighterArt.portraitTop(d), K = 8, c = document.createElement("canvas");
+        c.width = 48 * K;
+        c.height = (30 - top) * K;
+        const cg = c.getContext("2d"), art = createFighterArt({ g: cg, S, OUT, mix, shade, lerp });
+        item = { image: c, ctx: cg, art, top, K, frame: -1 };
+        portraitCache.set(d.id, item);
+      }
+      if (portraitWorkFrame !== S.FRAME) {
+        portraitWorkFrame = S.FRAME;
+        portraitWorkCount = 0;
+      }
+      if (item.frame < 0 || S.FRAME - item.frame > 12) {
+        if (portraitWorkCount < 2) {
+          portraitWorkCount++;
+          item.ctx.setTransform(1, 0, 0, 1, 0, 0);
+          item.ctx.clearRect(0, 0, item.image.width, item.image.height);
+          item.ctx.setTransform(item.K, 0, 0, item.K, 24 * item.K, -item.top * item.K);
+          item.art.drawPortrait(d, 0, 0, 2);
+          item.frame = S.FRAME;
+        }
+      }
+      return item;
+    }
     function drawProjs(cam) {
       abilityFx.drawProjs(cam);
     }
@@ -6126,7 +6201,13 @@
       g.restore();
     }
     function drawPort(d, x, y, s) {
-      fighterArt.drawPortrait(d, x, y, s);
+      const item = portraitImage(d);
+      if (item.frame < 0) {
+        fighterArt.drawPortrait(d, x, y, s);
+        return;
+      }
+      const top = item.top, w = 24 * s, h = (30 - top) * 0.5 * s;
+      g.drawImage(item.image, x - w / 2, y + top * 0.5 * s, w, h);
     }
     const FAKES = CH2.map((d) => ({ def: d, x: 0, y: FL + GR, face: 1, animT: 0, state: "idle", st: 0, atk: null, tilt: 0, squash: 1, scale: 1, invis: 0, frozen: 0, netT: 0, charred: 0, hidden: 0, flash: 0, hp: 100 }));
     function drawFake(i, px, py, sc, face) {
@@ -6864,7 +6945,7 @@
     const FATAL_FRAMES = 600, FATAL_INPUT = 240;
     const FX = fxAssets || {}, ARENA_IMG = arenaAssets || {}, UI = uiAssets || {};
     const S = createState();
-    const cv = document.getElementById("cv"), g = cv.getContext("2d");
+    const cv = document.getElementById("cv"), g = cv.getContext("2d", { alpha: false });
     let RSCALE = 5, MAX_SCALE = 6, MIN_SCALE = 3, scaleReady = false, scaleDirty = false, lastDpr = window.devicePixelRatio || 1;
     let perfAcc = 0, perfFrames = 0, perfBadWin = 0, perfGoodWin = 0, perfWarm = 400, perfCool = 0, perfLast = 0, perfAvg = 0;
     function resetPerf() {
@@ -7057,7 +7138,7 @@
         SFX.sel();
       }
     });
-    const { keys, TOUCH, KM1: KM12, KM2: KM22, Ctrl } = createInput();
+    const { keys, TOUCH, KM1: KM12, KM2: KM22, Ctrl, press, clearPress } = createInput();
     function bindTouch() {
       const isTouch = "ontouchstart" in window || navigator.maxTouchPoints > 0;
       if (!isTouch) return;
@@ -7084,6 +7165,7 @@
             return;
           }
           TOUCH[key] = 1;
+          press(key, S.FRAME);
           if (S.GAME !== "fight" || S.paused) onKey(codes[key]);
           else if (key === "P") onKey("KeyJ");
         };
@@ -7103,6 +7185,7 @@
       if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Space"].includes(e.code)) e.preventDefault();
       if (!e.repeat) {
         keys[e.code] = true;
+        press(e.code, S.FRAME);
         initA();
         if (AU.ctx && AU.ctx.state === "suspended") AU.ctx.resume();
         onKey(e.code);
@@ -7114,6 +7197,7 @@
     addEventListener("blur", () => {
       for (const k in keys) keys[k] = false;
       for (const k in TOUCH) TOUCH[k] = 0;
+      clearPress();
       document.querySelectorAll("#touch button.on").forEach((btn) => btn.classList.remove("on"));
       if (S.GAME === "fight" && !S.paused) {
         S.paused = true;
@@ -7124,6 +7208,7 @@
       if (document.hidden) {
         for (const k in keys) keys[k] = false;
         for (const k in TOUCH) TOUCH[k] = 0;
+        clearPress();
         document.querySelectorAll("#touch button.on").forEach((btn) => btn.classList.remove("on"));
         if (S.GAME === "fight" && !S.paused) {
           S.paused = true;
