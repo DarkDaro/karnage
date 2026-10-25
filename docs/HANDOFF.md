@@ -56,6 +56,7 @@
 - FX: block, smoke, dustRun, fireImpact, iceImpact, shadowImpact, explosion;
 - все 10 арен на ассетах с fallback, слои `far/mid/props/fg`, свет и погода;
 - `src/game/world/arena.js` вынесен из монолита;
+- `src/render/render.js` выносит бойцов, гир, портреты, HUD, панель фаталити и эффекты;
 - `src/game/core/state.js` хранит состояние сессии, боя, выбора и эффектов;
 - `src/game/fx/particles.js` отвечает за частицы, кровь, декали и лимиты;
 - `src/game/fighter.js` хранит `ATK`, `WM`, `hitR` и фабрику бойца `createFighter`;
