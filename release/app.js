@@ -2601,6 +2601,22 @@
       }
       return p;
     }
+    function drawFighterGlow(f, cam) {
+      if (!f || f.hidden) return;
+      const d = f.def, x = f.x - cam, y = f.y - 38, r = 24 + (d.bulk || 1) * 10;
+      const superOn = f.state === "super" || f.rage >= 100;
+      const a = (superOn ? 0.1 : 0.05) * (f.state === "super" ? 1.6 : 1);
+      g.save();
+      g.globalCompositeOperation = "lighter";
+      g.globalAlpha = a;
+      const gr = g.createRadialGradient(x, y, 2, x, y, r);
+      gr.addColorStop(0, mix(d.acc, "#ffffff", 0.18));
+      gr.addColorStop(0.45, d.acc);
+      gr.addColorStop(1, "rgba(0,0,0,0)");
+      g.fillStyle = gr;
+      g.fillRect(x - r, y - r, r * 2, r * 2);
+      g.restore();
+    }
     function drawF(f, cam) {
       if (f.hidden) return;
       const d = f.def, sc = d.bulk * f.scale;
@@ -3601,6 +3617,7 @@
     return {
       pose,
       drawF,
+      drawFighterGlow,
       drawGear,
       portraitTop,
       drawPort,
@@ -4109,6 +4126,7 @@
     const shade = (h, k) => mix(h, "#000000", 1 - k);
     const {
       drawF,
+      drawFighterGlow,
       drawPort,
       drawFake,
       drawHUD,
@@ -4824,7 +4842,7 @@
       w.atk = null;
       if (S.battle.loser) S.battle.loser.defeated = 1;
       S.projs.length = 0;
-      S.announce = { txt: w.def.name + " ?????????", t: 0, col: "#e8c040" };
+      S.announce = { txt: w.def.name + " \u041F\u041E\u0411\u0415\u0416\u0414\u0410\u0415\u0422", t: 0, col: "#e8c040" };
       say(w.def.en + " wins");
       SFX.win();
     }
@@ -5105,7 +5123,7 @@
             f.vy = 0;
             f.y = FL + GR;
           }
-          S.announce = { txt: "?????", t: 0, col: "#e8c040" };
+          S.announce = { txt: "\u041D\u0418\u0427\u042C\u042F", t: 0, col: "#e8c040" };
           say("Draw");
         } else if (dead.length === 1) roundWon(dead[0].foe);
       }
@@ -5581,7 +5599,7 @@
       if (blink()) {
         g.font = '8px "Russo One"';
         g.fillStyle = "#807850";
-        g.fillText("J \u2014 \u0415\u0429\u0401 \u0411\u041E\u0419 \xB7 ESC \u2014 \u041C\u0415\u041D\u042E", RW / 2, 150);
+        g.fillText(isTouchUI() ? "P \u2014 \u0415\u0429\u0401 \u0411\u041E\u0419 \xB7 B \u2014 \u041C\u0415\u041D\u042E" : "J \u2014 \u0415\u0429\u0401 \u0411\u041E\u0419 \xB7 ESC \u2014 \u041C\u0415\u041D\u042E", RW / 2, 150);
       }
       if (S.bstat) {
         g.font = '7px "Russo One"';
@@ -5664,8 +5682,30 @@
         SFX.sel();
       }
     }
+    const isTouchUI = () => document.body.classList.contains("touch");
     const bgFill = () => {
-      g.fillStyle = "#0a0806";
+      const sky = g.createLinearGradient(0, 0, 0, RH);
+      sky.addColorStop(0, "#0b0706");
+      sky.addColorStop(0.58, "#090605");
+      sky.addColorStop(1, "#050303");
+      g.fillStyle = sky;
+      g.fillRect(0, 0, RW, RH);
+      const glow = g.createRadialGradient(RW / 2, 78, 6, RW / 2, 78, 190);
+      glow.addColorStop(0, "rgba(118,24,16,.20)");
+      glow.addColorStop(0.5, "rgba(70,14,10,.07)");
+      glow.addColorStop(1, "rgba(0,0,0,0)");
+      g.fillStyle = glow;
+      g.fillRect(0, 0, RW, RH);
+      const floor = g.createLinearGradient(0, RH - 72, 0, RH);
+      floor.addColorStop(0, "rgba(0,0,0,0)");
+      floor.addColorStop(1, "rgba(0,0,0,.42)");
+      g.fillStyle = floor;
+      g.fillRect(0, RH - 72, RW, 72);
+      const vg = g.createRadialGradient(RW / 2, RH * 0.5, 70, RW / 2, RH * 0.5, 255);
+      vg.addColorStop(0, "rgba(0,0,0,0)");
+      vg.addColorStop(0.72, "rgba(0,0,0,.10)");
+      vg.addColorStop(1, "rgba(0,0,0,.55)");
+      g.fillStyle = vg;
       g.fillRect(0, 0, RW, RH);
     };
     function drawControls() {
@@ -5676,6 +5716,8 @@
       g.fillText("\u0423\u041F\u0420\u0410\u0412\u041B\u0415\u041D\u0418\u0415", RW / 2, 20);
       panel(12, 30, 196, 176);
       panel(216, 30, 196, 176);
+      g.fillStyle = "rgba(200,160,64,.22)";
+      g.fillRect(212, 42, 1, 158);
       g.font = '10px "Russo One"';
       g.fillStyle = "#e8c040";
       g.textAlign = "center";
@@ -5691,10 +5733,10 @@
       g.font = '7px "Russo One"';
       g.fillStyle = "#c8a040";
       g.textAlign = "center";
-      g.fillText("P+K \u2014 \u0437\u0430\u0445\u0432\u0430\u0442/\u0431\u0440\u043E\u0441\u043E\u043A \xB7 \u0421\u041F\u0415\u0426 \u2014 \u043D\u0430\u043F\u0440\u0430\u0432\u043B\u0435\u043D\u0438\u044F+\u043A\u043D\u043E\u043F\u043A\u0430 \xB7 \u0421\u0423\u041F\u0415\u0420 \u2014 S,S+J", RW / 2, 214);
+      g.fillText(isTouchUI() ? "P+K \u2014 \u0437\u0430\u0445\u0432\u0430\u0442/\u0431\u0440\u043E\u0441\u043E\u043A \xB7 \u0421\u041F\u0415\u0426 \u2014 D-PAD + P/K \xB7 \u0421\u0423\u041F\u0415\u0420 \u2014 \u0412\u041D\u0418\u0417, \u0412\u041D\u0418\u0417 + P" : "P+K \u2014 \u0437\u0430\u0445\u0432\u0430\u0442/\u0431\u0440\u043E\u0441\u043E\u043A \xB7 \u0421\u041F\u0415\u0426 \u2014 \u043D\u0430\u043F\u0440\u0430\u0432\u043B\u0435\u043D\u0438\u044F+\u043A\u043D\u043E\u043F\u043A\u0430 \xB7 \u0421\u0423\u041F\u0415\u0420 \u2014 S,S+J", RW / 2, 214);
       g.fillStyle = "#807850";
       g.fillText("\u0424\u0410\u0422\u0410\u041B\u0418\u0422\u0418 \u2014 \u0432 \u043E\u043A\u043D\u0435 FINISH HIM \xB7 \u0441\u0442\u0440\u0435\u043B\u043A\u0438 \u2014 \u0441 \u0443\u0447\u0451\u0442\u043E\u043C \u0432\u0437\u0433\u043B\u044F\u0434\u0430", RW / 2, 222);
-      g.fillText("J / ESC \u2014 \u043D\u0430\u0437\u0430\u0434", RW / 2, 230);
+      g.fillText(isTouchUI() ? "P/K \u2014 \u0443\u0434\u0430\u0440\u044B \xB7 B \u2014 \u0431\u043B\u043E\u043A \xB7 \u2161 \u2014 \u043F\u0430\u0443\u0437\u0430" : "J / ESC \u2014 \u043D\u0430\u0437\u0430\u0434", RW / 2, 230);
     }
     function drawSelect() {
       const s = S.sel;
@@ -5726,73 +5768,97 @@
           g.strokeRect(x + 1, y + 1, 32, 40);
         }
       }
+      g.fillStyle = "rgba(0,0,0,.55)";
+      g.fillRect(8, 176, 184, 24);
+      g.fillStyle = "rgba(200,160,64,.28)";
+      g.fillRect(8, 176, 184, 1);
       g.font = '7px "Russo One"';
       g.textAlign = "left";
+      const lx = isTouchUI() ? 34 : 12;
       g.fillStyle = "#e02020";
-      g.fillText("P1: " + CH[s.c1].name, 12, 182);
+      g.fillText("P1: " + CH[s.c1].name, lx, 187);
       if (s.mode !== "arcade") {
         g.fillStyle = "#3868c8";
-        g.fillText((s.mode === "2p" ? "P2" : "CPU") + ": " + CH[s.c2].name, 12, 192);
+        g.fillText((s.mode === "2p" ? "P2" : "CPU") + ": " + CH[s.c2].name, lx, 197);
       }
+      g.fillStyle = "rgba(200,160,64,.22)";
+      g.fillRect(196, 34, 1, 150);
       const cur = s.mode === "2p" ? s.last === "c2" ? s.c2 : s.c1 : s.mode === "cpu" ? s.ph === 0 ? s.c1 : s.c2 : s.c1;
       const showP2 = s.mode === "2p" ? cur === s.c2 : s.mode === "cpu" && s.ph === 1;
       const d = CH[cur];
       panel(200, 34, 216, 150);
       g.fillStyle = d.acc;
       g.fillRect(202, 36, 4, 146);
-      drawFake(cur, 244, 176, 1.5, -1);
-      g.strokeStyle = d.acc;
-      g.lineWidth = 1;
-      g.strokeRect(212.5, 66.5, 64, 114);
       g.font = '13px "Rubik Mono One","Russo One",sans-serif';
       g.fillStyle = "#e8e0c0";
       g.textAlign = "left";
-      g.fillText(d.name, 292, 52);
+      g.fillText(d.name, 298, 52);
       g.font = '7px "Russo One"';
       g.fillStyle = d.acc;
-      g.fillText(RANGED.includes(d.id) ? "\u0414\u0410\u041B\u042C\u041D\u0418\u0419 \u0411\u041E\u0419" : "\u0411\u041B\u0418\u0416\u041D\u0418\u0419 \u0411\u041E\u0419", 292, 62);
-      const st = [[Math.round(9 * d.dmg), 9, "\u0421\u0418\u041B\u0410"], [Math.round(d.spd * 4), 9, "\u0421\u041A\u041E\u0420"], [Math.round(9 / d.bulk), 9, "\u0412\u0415\u0421"]];
-      st.forEach((s2, i) => {
-        const sy = 76 + i * 12;
-        g.font = '7px "Russo One"';
-        g.fillStyle = "#c8a040";
-        g.textAlign = "left";
-        g.fillText(s2[2], 292, sy);
-        g.fillStyle = "#2a0808";
-        g.fillRect(324, sy - 6, 88, 5);
-        g.fillStyle = s2[0] >= 7 ? "#e04020" : s2[0] >= 6 ? "#e8c040" : "#7a8a4a";
-        g.fillRect(324, sy - 6, Math.max(2, Math.min(88, s2[0] / s2[1] * 88)), 5);
-      });
-      g.font = '7px "Russo One"';
-      g.fillStyle = "#e8c040";
-      g.fillText("\u0421\u041F\u0415\u0426: " + d.specN, 292, 114);
-      g.fillText("[" + seqTxt(d.spec, showP2) + "]", 292, 123);
-      g.fillStyle = "#c8a040";
-      g.fillText("\u0421\u041F\u0415\u04262: " + d.spec2N, 292, 134);
-      g.fillText("[" + seqTxt(d.spec2, showP2) + "]", 292, 143);
+      g.fillText(RANGED.includes(d.id) ? "\u0414\u0410\u041B\u042C\u041D\u0418\u0419 \u0411\u041E\u0419" : "\u0411\u041B\u0418\u0416\u041D\u0418\u0419 \u0411\u041E\u0419", 298, 63);
       if (s.ph !== 2) {
-        g.fillText("\u0421\u0423\u041F\u0415\u0420: " + d.sup, 292, 155);
+        drawFake(cur, 242, 176, 1.35, -1);
+        g.strokeStyle = "rgba(200,160,64,.25)";
+        g.lineWidth = 1;
+        g.beginPath();
+        g.moveTo(290.5, 74);
+        g.lineTo(290.5, 174);
+        g.stroke();
+        const st = [[Math.round(9 * d.dmg), 9, "\u0421\u0418\u041B\u0410"], [Math.round(d.spd * 4), 9, "\u0421\u041A\u041E\u0420"], [Math.round(9 / d.bulk), 9, "\u0412\u0415\u0421"]];
+        st.forEach((s2, i) => {
+          const sy = 78 + i * 12;
+          g.font = '7px "Russo One"';
+          g.fillStyle = "#c8a040";
+          g.textAlign = "left";
+          g.fillText(s2[2], 298, sy);
+          g.fillStyle = "#2a0808";
+          g.fillRect(332, sy - 6, 76, 5);
+          g.fillStyle = s2[0] >= 7 ? "#e04020" : s2[0] >= 6 ? "#e8c040" : "#7a8a4a";
+          g.fillRect(332, sy - 6, Math.max(2, Math.min(76, s2[0] / s2[1] * 76)), 5);
+        });
+        g.font = '7px "Russo One"';
+        g.fillStyle = "#e8c040";
+        g.fillText("\u0421\u041F\u0415\u0426: " + d.specN, 298, 116);
+        g.fillText("[" + seqTxt(d.spec, showP2) + "]", 298, 125);
+        g.fillStyle = "#c8a040";
+        g.fillText("\u0421\u041F\u0415\u04262: " + d.spec2N, 298, 136);
+        g.fillText("[" + seqTxt(d.spec2, showP2) + "]", 298, 145);
+        g.fillStyle = "#e8c040";
+        g.fillText("\u0421\u0423\u041F\u0415\u0420: " + d.sup, 298, 157);
         g.fillStyle = "#807850";
-        g.fillText("\u0424\u0410\u0422\u0410\u041B\u0418\u0422\u0418: \u0441\u0435\u043A\u0440\u0435\u0442", 292, 167);
-      }
-      if (s.ph === 2) {
-        panel(102, 150, 220, 72);
+        g.fillText("\u0424\u0410\u0422\u0410\u041B\u0418\u0422\u0418: \u0441\u0435\u043A\u0440\u0435\u0442", 298, 169);
+      } else {
+        panel(206, 80, 204, 96);
+        drawPort(d, 240, 100, 0.8);
+        g.fillStyle = "rgba(200,160,64,.28)";
+        g.fillRect(258, 80, 1, 96);
         g.font = '8px "Russo One"';
+        g.fillStyle = "#e8c040";
         g.textAlign = "center";
+        g.fillText("\u041D\u0410\u0421\u0422\u0420\u041E\u0419\u041A\u0410 \u0411\u041E\u042F", 333, 94);
         if (s.mode === "cpu") {
+          if (s.row === 0) {
+            g.fillStyle = "rgba(224,32,32,.10)";
+            g.fillRect(264, 107, 140, 16);
+          }
           g.fillStyle = s.row === 0 ? blink() ? "#fff" : "#e02020" : "#c8a040";
-          g.fillText("\u0421\u041B\u041E\u0416\u041D\u041E\u0421\u0422\u042C: " + ["\u041B\u0401\u0413\u041A\u0410\u042F", "\u041D\u041E\u0420\u041C\u0410\u041B\u042C\u041D\u0410\u042F", "\u0422\u042F\u0416\u0401\u041B\u0410\u042F"][s.diff], 212, 168);
+          g.fillText("\u0421\u041B\u041E\u0416\u041D\u041E\u0421\u0422\u042C: " + ["\u041B\u0401\u0413\u041A\u0410\u042F", "\u041D\u041E\u0420\u041C\u0410\u041B\u042C\u041D\u0410\u042F", "\u0422\u042F\u0416\u0401\u041B\u0410\u042F"][s.diff], 334, 120);
+        }
+        if (s.row === 1) {
+          g.fillStyle = "rgba(224,32,32,.10)";
+          g.fillRect(264, s.mode === "cpu" ? 125 : 115, 140, 16);
         }
         g.fillStyle = s.row === 1 ? blink() ? "#fff" : "#e02020" : "#c8a040";
-        g.fillText("\u0410\u0420\u0415\u041D\u0410: " + (s.ar < 0 ? "\u0410\u0420\u0415\u041D\u0410 \u0411\u041E\u0419\u0426\u0410" : AR[s.ar].n), 212, s.mode === "cpu" ? 184 : 168);
+        g.fillText("\u0410\u0420\u0415\u041D\u0410: " + (s.ar < 0 ? "\u0410\u0420\u0415\u041D\u0410 \u0411\u041E\u0419\u0426\u0410" : AR[s.ar].n), 334, s.mode === "cpu" ? 138 : 128);
         g.font = '7px "Russo One"';
         g.fillStyle = "#807850";
-        g.fillText("A/D \u2014 \u0438\u0437\u043C\u0435\u043D\u0438\u0442\u044C \xB7 W/S \u2014 \u0441\u0442\u0440\u043E\u043A\u0430 \xB7 J \u2014 \u0421\u0422\u0410\u0420\u0422", 212, 206);
+        g.fillText(isTouchUI() ? "D-PAD \u2014 \u0421\u0422\u0420\u041E\u041A\u0410/\u0417\u041D\u0410\u0427\u0415\u041D\u0418\u0415" : "A/D \u2014 \u0438\u0437\u043C\u0435\u043D\u0438\u0442\u044C \xB7 W/S \u2014 \u0441\u0442\u0440\u043E\u043A\u0430", 333, 156);
+        g.fillText(isTouchUI() ? "P \u2014 \u0421\u0422\u0410\u0420\u0422" : "J \u2014 \u0421\u0422\u0410\u0420\u0422", 333, 166);
       }
       g.font = '7px "Russo One"';
       g.textAlign = "center";
       g.fillStyle = "#807850";
-      g.fillText("J \u2014 \u043F\u043E\u0434\u0442\u0432\u0435\u0440\u0434\u0438\u0442\u044C \xB7 ESC \u2014 \u043D\u0430\u0437\u0430\u0434", RW / 2, 230);
+      g.fillText(isTouchUI() ? "P \u2014 \u041F\u041E\u0414\u0422\u0412\u0415\u0420\u0414\u0418\u0422\u042C \xB7 B \u2014 \u041D\u0410\u0417\u0410\u0414" : "J \u2014 \u043F\u043E\u0434\u0442\u0432\u0435\u0440\u0434\u0438\u0442\u044C \xB7 ESC \u2014 \u043D\u0430\u0437\u0430\u0434", RW / 2, 230);
     }
     function drawVS() {
       bgFill();
@@ -5820,14 +5886,21 @@
       }
       panel(10, 30, 150, 120);
       panel(RW - 160, 30, 150, 120);
-      drawFake(S.battle.p1.def, 85, 144, 1.5, 1);
-      drawFake(S.battle.p2.def, RW - 85, 144, S.battle.p2.def.boss ? 1.05 : 1.5, -1);
-      g.font = '11px "Russo One"';
+      drawFake(S.battle.p1.def, 85, 132, 1.25, 1);
+      drawFake(S.battle.p2.def, RW - 85, 132, S.battle.p2.def.boss ? 1 : 1.25, -1);
+      g.fillStyle = "rgba(0,0,0,.55)";
+      g.fillRect(12, 136, 146, 12);
+      g.fillRect(RW - 158, 136, 146, 12);
+      g.fillStyle = S.battle.p1.def.acc;
+      g.fillRect(12, 136, 146, 1);
+      g.fillStyle = S.battle.p2.def.acc;
+      g.fillRect(RW - 158, 136, 146, 1);
+      g.font = '10px "Russo One"';
       g.textAlign = "center";
       g.fillStyle = "#e02020";
-      g.fillText(S.battle.p1.def.name, 85, 142);
+      g.fillText(S.battle.p1.def.name, 85, 145);
       g.fillStyle = "#3868c8";
-      g.fillText(S.battle.p2.def.name + (S.battle.p2.ctrl.ai ? " [CPU]" : ""), RW - 85, 142);
+      g.fillText(S.battle.p2.def.name + (S.battle.p2.ctrl.ai ? " [CPU]" : ""), RW - 85, 145);
       if (S.battle.mode !== "arcade" && (S.sel.diff > 0 || S.sel.ar >= 0)) {
         g.font = '7px "Russo One"';
         g.fillStyle = "#c8a040";
@@ -5847,11 +5920,11 @@
       if (S.vsEscT > 0 && blink()) {
         g.font = '8px "Russo One"';
         g.fillStyle = "#e04020";
-        g.fillText("\u0415\u0429\u0401 \u0420\u0410\u0417 ESC \u2014 \u041F\u041E\u041A\u0418\u041D\u0423\u0422\u042C \u0422\u0423\u0420\u041D\u0418\u0420", RW / 2, 200);
+        g.fillText(isTouchUI() ? "\u0415\u0429\u0401 \u0420\u0410\u0417 B \u2014 \u041F\u041E\u041A\u0418\u041D\u0423\u0422\u042C \u0422\u0423\u0420\u041D\u0418\u0420" : "\u0415\u0429\u0401 \u0420\u0410\u0417 ESC \u2014 \u041F\u041E\u041A\u0418\u041D\u0423\u0422\u042C \u0422\u0423\u0420\u041D\u0418\u0420", RW / 2, 200);
       } else if (S.vsT > 50 && blink()) {
         g.font = '9px "Russo One"';
         g.fillStyle = "#e8e0c0";
-        g.fillText("J \u2014 \u041D\u0410\u0427\u0410\u0422\u042C \u0411\u041E\u0419", RW / 2, 214);
+        g.fillText(isTouchUI() ? "P \u2014 \u041D\u0410\u0427\u0410\u0422\u042C \u0411\u041E\u0419" : "J \u2014 \u041D\u0410\u0427\u0410\u0422\u042C \u0411\u041E\u0419", RW / 2, 214);
       }
     }
     function arcEnding() {
@@ -5866,6 +5939,15 @@
       g.textAlign = "center";
       g.fillText("\u041F\u041E\u0411\u0415\u0414\u0418\u0422\u0415\u041B\u042C \u0422\u0423\u0420\u041D\u0418\u0420\u0410", RW / 2, 30);
       const { fighter: d, ending: e } = arcEnding();
+      const halo = g.createRadialGradient(RW / 2, 100, 8, RW / 2, 100, 68);
+      halo.addColorStop(0, e.col);
+      halo.addColorStop(0.55, e.col);
+      halo.addColorStop(1, "rgba(0,0,0,0)");
+      g.save();
+      g.globalAlpha = 0.12;
+      g.fillStyle = halo;
+      g.fillRect(RW / 2 - 72, 28, 144, 144);
+      g.restore();
       drawPort(d, RW / 2, 94, 2.1);
       g.font = '16px "Russo One"';
       g.fillStyle = "#e8e0c0";
@@ -5882,7 +5964,7 @@
       if (blink()) {
         g.fillStyle = "#807850";
         g.font = '8px "Russo One"';
-        g.fillText("J \u2014 \u0432 \u043C\u0435\u043D\u044E", RW / 2, 228);
+        g.fillText(isTouchUI() ? "P \u2014 \u0432 \u043C\u0435\u043D\u044E" : "J \u2014 \u0432 \u043C\u0435\u043D\u044E", RW / 2, 228);
       }
     }
     function drawTop() {
@@ -5919,7 +6001,7 @@
         g.font = '8px "Russo One"';
         g.fillStyle = "#807850";
         g.textAlign = "center";
-        g.fillText("J / ESC \u2014 \u041D\u0410\u0417\u0410\u0414", RW / 2, 228);
+        g.fillText(isTouchUI() ? "P / B \u2014 \u041D\u0410\u0417\u0410\u0414" : "J / ESC \u2014 \u041D\u0410\u0417\u0410\u0414", RW / 2, 228);
       }
     }
     function drawOver() {
@@ -5935,7 +6017,7 @@
       g.fillText("\u0422\u0443\u0440\u043D\u0438\u0440 \u043D\u0435 \u043F\u0440\u043E\u0449\u0430\u0435\u0442 \u0441\u043B\u0430\u0431\u043E\u0441\u0442\u0438.", RW / 2, 140);
       if (blink()) {
         g.fillStyle = "#807850";
-        g.fillText("J \u2014 \u0432 \u043C\u0435\u043D\u044E", RW / 2, 180);
+        g.fillText(isTouchUI() ? "P \u2014 \u0432 \u043C\u0435\u043D\u044E" : "J \u2014 \u0432 \u043C\u0435\u043D\u044E", RW / 2, 180);
       }
     }
     function drawCont() {
@@ -5957,7 +6039,7 @@
         g.font = '10px "Russo One"';
         g.fillStyle = "#e8e0c0";
         g.textAlign = "center";
-        g.fillText("J \u2014 \u0414\u0410 \xB7 ESC \u2014 \u0412 \u041C\u0415\u041D\u042E", RW / 2, 206);
+        g.fillText(isTouchUI() ? "P \u2014 \u0414\u0410 \xB7 B \u2014 \u0412 \u041C\u0415\u041D\u042E" : "J \u2014 \u0414\u0410 \xB7 ESC \u2014 \u0412 \u041C\u0415\u041D\u042E", RW / 2, 206);
       }
     }
     const SK = ["....SSSSSSSS....", "..SSSSSSSSSSSS..", ".SSSSSSSSSSSSSS.", ".SSSSSSSSSSSSSS.", "SSSSSSSSSSSSSSS", "SSSSSSSSSSSSSSSS", "SSSSSSSSSSSSSSSS", "SSEESSSSSSEESSSS", "SSEESSSSSSEESSSS", "SSSSSSSSSSSSSSSS", ".SSSSSDDDSSSSSS.", "..SSDDDDDDDSS...", "...TDTDTDTDT....", "....SSSSSSSS...."];
@@ -5975,6 +6057,16 @@
     }
     function drawTitle() {
       bgFill();
+      const halo = g.createRadialGradient(RW / 2, 58, 6, RW / 2, 58, 68);
+      halo.addColorStop(0, "rgba(200,42,28,.22)");
+      halo.addColorStop(0.55, "rgba(110,16,12,.08)");
+      halo.addColorStop(1, "rgba(0,0,0,0)");
+      g.fillStyle = halo;
+      g.fillRect(RW / 2 - 78, 0, 156, 132);
+      g.fillStyle = "rgba(0,0,0,.38)";
+      g.beginPath();
+      g.ellipse(RW / 2, 112, 52, 7, 0, 0, 7);
+      g.fill();
       drawSkull(RW / 2, 58 + Math.sin(S.titleT * 0.03) * 3, 4.2);
       g.font = '42px "Russo One"';
       g.textAlign = "center";
@@ -6001,22 +6093,26 @@
       if (blink()) {
         g.fillStyle = "#e8e0c0";
         g.font = '11px "Russo One"';
-        g.fillText("\u041D\u0410\u0416\u041C\u0418 \u041B\u042E\u0411\u0423\u042E \u041A\u041B\u0410\u0412\u0418\u0428\u0423", RW / 2, 216);
+        g.fillText(isTouchUI() ? "\u041A\u041E\u0421\u041D\u0418\u0421\u042C \u042D\u041A\u0420\u0410\u041D\u0410" : "\u041D\u0410\u0416\u041C\u0418 \u041B\u042E\u0411\u0423\u042E \u041A\u041B\u0410\u0412\u0418\u0428\u0423", RW / 2, 216);
       }
     }
     function drawMenu() {
       bgFill();
+      const pulse = 0.15 + Math.sin(S.FRAME * 0.04) * 0.05;
+      const lg = g.createRadialGradient(RW / 2, 30, 4, RW / 2, 30, 104);
+      lg.addColorStop(0, "rgba(224,32,32," + pulse + ")");
+      lg.addColorStop(0.58, "rgba(150,18,14," + pulse * 0.35 + ")");
+      lg.addColorStop(1, "rgba(0,0,0,0)");
+      g.fillStyle = lg;
+      g.fillRect(RW / 2 - 112, 0, 224, 74);
       g.font = '22px "Rubik Mono One","Russo One",sans-serif';
       g.textAlign = "center";
       g.fillStyle = "#000";
       g.fillText("KARNAGE", RW / 2 + 2, 42);
       g.fillStyle = "#e02020";
       g.fillText("KARNAGE", RW / 2, 40);
-      const gl2 = 0.12 + Math.sin(S.FRAME * 0.04) * 0.06;
-      g.globalAlpha = Math.max(0, gl2);
-      g.fillStyle = "#e02020";
-      g.fillRect(RW / 2 - 90, 20, 180, 30);
-      g.globalAlpha = 1;
+      g.fillStyle = "rgba(200,160,64,.42)";
+      g.fillRect(RW / 2 - 74, 50, 148, 1);
       panel(36, 62, 196, 140);
       const items = menuItems().map((it) => it.label), gap = items.length > 6 ? 17 : 19;
       S.menuIdx = clamp2(S.menuIdx, 0, items.length - 1);
@@ -6026,9 +6122,11 @@
           g.fillStyle = "rgba(224,32,32,.08)";
           g.fillRect(56, y - 13, 156, 18);
           frame(56, y - 13, 156, 18, "button");
+          g.fillStyle = "rgba(54,8,6,.50)";
+          g.fillRect(56, y - 13, 156, 18);
         }
         g.font = on ? '12px "Russo One"' : '10px "Russo One"';
-        g.fillStyle = on ? blink() ? "#fff" : "#e02020" : "#c8a040";
+        g.fillStyle = on ? "#fff" : "#c8a040";
         g.textAlign = "center";
         g.fillText(it, 134, y);
         if (on) {
@@ -6051,7 +6149,7 @@
         g.font = '8px "Russo One"';
         g.fillStyle = "#807850";
         g.textAlign = "center";
-        g.fillText("W/S \u2014 \u0432\u044B\u0431\u043E\u0440 \xB7 J \u2014 \u043F\u043E\u0434\u0442\u0432\u0435\u0440\u0434\u0438\u0442\u044C \xB7 M \u2014 \u0437\u0432\u0443\u043A", RW / 2, 212);
+        g.fillText(isTouchUI() ? "D-PAD \u2014 \u0412\u042B\u0411\u041E\u0420 \xB7 P \u2014 \u041F\u041E\u0414\u0422\u0412\u0415\u0420\u0414\u0418\u0422\u042C" : "W/S \u2014 \u0432\u044B\u0431\u043E\u0440 \xB7 J \u2014 \u043F\u043E\u0434\u0442\u0432\u0435\u0440\u0434\u0438\u0442\u044C \xB7 M \u2014 \u0437\u0432\u0443\u043A", RW / 2, 212);
       }
     }
     function settingsIcon(kind, x, y, on) {
@@ -6119,6 +6217,9 @@
       g.fillStyle = "#e02020";
       g.fillText("\u041D\u0410\u0421\u0422\u0420\u041E\u0419\u041A\u0418", RW / 2, 36);
       panel(30, 50, RW - 60, 158);
+      g.fillStyle = "rgba(200,160,64,.16)";
+      g.fillRect(52, 110, RW - 104, 1);
+      g.fillRect(52, 174, RW - 104, 1);
       const items = settingsItems(), kinds = ["sound", "voice", "volume", "crt", "blood", "shake", "motion", "back"];
       const y0 = 70, step2 = 16;
       items.forEach((it, i) => {
@@ -6127,61 +6228,79 @@
           g.fillStyle = "rgba(224,32,32,.08)";
           g.fillRect(64, y - 12, RW - 128, 15);
           frame(64, y - 12, RW - 128, 15, "button");
+          g.fillStyle = "rgba(54,8,6,.50)";
+          g.fillRect(64, y - 12, RW - 128, 15);
         }
         settingsIcon(kinds[i], 69, y - 8, on);
         g.font = on ? '9px "Russo One"' : '8px "Russo One"';
-        g.fillStyle = on ? blink() ? "#fff" : "#e02020" : "#c8a040";
+        g.fillStyle = on ? "#fff" : "#c8a040";
         g.textAlign = "center";
         g.fillText((on ? "> " : "") + it, RW / 2, y);
       });
       g.font = '7px "Russo One"';
       g.fillStyle = "#807850";
       g.textAlign = "center";
-      g.fillText("W/S \u2014 \u0432\u044B\u0431\u043E\u0440 \xB7 A/D \u2014 \u0438\u0437\u043C\u0435\u043D\u0438\u0442\u044C \xB7 J \u2014 \u043F\u0435\u0440\u0435\u043A\u043B\u044E\u0447\u0438\u0442\u044C \xB7 ESC \u2014 \u043D\u0430\u0437\u0430\u0434", RW / 2, 224);
+      g.fillText(isTouchUI() ? "D-PAD \u2014 \u0412\u042B\u0411\u041E\u0420/\u0418\u0417\u041C\u0415\u041D\u0418\u0422\u042C \xB7 P \u2014 \u041F\u0415\u0420\u0415\u041A\u041B\u042E\u0427\u0418\u0422\u042C \xB7 B \u2014 \u041D\u0410\u0417\u0410\u0414" : "W/S \u2014 \u0432\u044B\u0431\u043E\u0440 \xB7 A/D \u2014 \u0438\u0437\u043C\u0435\u043D\u0438\u0442\u044C \xB7 J \u2014 \u043F\u0435\u0440\u0435\u043A\u043B\u044E\u0447\u0438\u0442\u044C \xB7 ESC \u2014 \u043D\u0430\u0437\u0430\u0434", RW / 2, 224);
     }
     function drawPause() {
-      g.fillStyle = "rgba(0,0,0,.65)";
+      g.fillStyle = "rgba(0,0,0,.72)";
       g.fillRect(0, 0, RW, RH);
-      panel(10, 50, RW - 20, 158);
+      panel(10, 44, RW - 20, 170);
       g.font = '13px "Russo One"';
       g.fillStyle = "#e8c040";
       g.textAlign = "center";
-      g.fillText("\u041F\u0410\u0423\u0417\u0410", RW / 2, 64);
+      g.fillText("\u041F\u0410\u0423\u0417\u0410", RW / 2, 60);
+      g.fillStyle = "rgba(200,160,64,.38)";
+      g.fillRect(24, 68, RW - 48, 1);
+      g.fillStyle = "rgba(0,0,0,.28)";
+      g.fillRect(20, 74, 110, 126);
+      g.fillRect(138, 74, 122, 126);
+      g.fillRect(268, 74, 136, 126);
+      g.fillStyle = "rgba(200,160,64,.24)";
+      g.fillRect(20, 74, 110, 1);
+      g.fillRect(138, 74, 122, 1);
+      g.fillRect(268, 74, 136, 1);
       pauseItems().forEach((it, i) => {
-        const y = 84 + i * 16, on = i === S.pauseIdx;
-        g.font = on ? '9px "Russo One"' : '8px "Russo One"';
-        g.fillStyle = on ? blink() ? "#fff" : "#e02020" : "#c8a040";
+        const y = 92 + i * 17, on = i === S.pauseIdx;
+        if (on) {
+          g.fillStyle = "rgba(224,32,32,.10)";
+          g.fillRect(24, y - 11, 102, 15);
+        }
+        g.font = on ? '8px "Russo One"' : '7px "Russo One"';
+        g.fillStyle = on ? "#fff" : "#c8a040";
         g.textAlign = "center";
-        g.fillText((on ? "> " : "") + it, 100, y);
+        g.fillText(it, 75, y);
       });
       const ab = (f, x) => {
         const d = f.def, p2 = f === S.battle.p2;
         g.font = '8px "Russo One"';
-        g.fillStyle = "#e02020";
+        g.fillStyle = d.acc;
         g.textAlign = "center";
-        g.fillText(d.name, x, 84);
+        g.fillText(d.name, x, 88);
+        g.fillStyle = "rgba(200,160,64,.22)";
+        g.fillRect(x - 50, 92, 100, 1);
         g.font = '7px "Russo One"';
         g.fillStyle = "#e8e0c0";
-        g.fillText("\u0421\u041F\u0415\u0426: " + d.specN, x, 96);
+        g.fillText("\u0421\u041F\u0415\u0426: " + d.specN, x, 104);
         g.fillStyle = "#c8a040";
-        g.fillText("[" + seqTxt(d.spec, p2, f.face) + "]", x, 106);
+        g.fillText("[" + seqTxt(d.spec, p2, f.face) + "]", x, 113);
         g.fillStyle = "#e8e0c0";
-        g.fillText("\u0421\u041F\u0415\u04262: " + d.spec2N, x, 118);
+        g.fillText("\u0421\u041F\u0415\u04262: " + d.spec2N, x, 122);
         g.fillStyle = "#c8a040";
-        g.fillText("[" + seqTxt(d.spec2, p2, f.face) + "]", x, 128);
+        g.fillText("[" + seqTxt(d.spec2, p2, f.face) + "]", x, 131);
         g.fillStyle = "#e8e0c0";
-        g.fillText("\u0421\u0423\u041F\u0415\u0420: " + d.sup, x, 140);
+        g.fillText("\u0421\u0423\u041F\u0415\u0420: " + d.sup, x, 141);
         g.fillStyle = "#c8a040";
         g.fillText("[" + seqTxt("DDP", p2, f.face) + "] \u043F\u0440\u0438 \u044F\u0440\u043E\u0441\u0442\u0438 100", x, 150);
         g.fillStyle = "#e8e0c0";
-        g.fillText("\u0424\u0410\u0422\u0410\u041B\u0418\u0422\u0418: [" + seqTxt(d.fat, p2, f.face) + "]", x, 162);
+        g.fillText("\u0424\u0410\u0422\u0410\u041B\u0418\u0422\u0418: [" + seqTxt(d.fat, p2, f.face) + "]", x, 161);
         g.fillStyle = "#e8e0c0";
-        g.fillText("\u0411\u0420\u041E\u0421\u041E\u041A: " + (d.throwN || "\u0417\u0430\u0445\u0432\u0430\u0442"), x, 174);
+        g.fillText("\u0411\u0420\u041E\u0421\u041E\u041A: " + (d.throwN || "\u0417\u0430\u0445\u0432\u0430\u0442"), x, 172, 128);
         g.fillStyle = "#c8a040";
-        g.fillText("[P+K]", x, 184);
+        g.fillText("[P+K]", x, 183);
       };
-      ab(S.battle.p1, 215);
-      ab(S.battle.p2, 345);
+      ab(S.battle.p1, 199);
+      ab(S.battle.p2, 336);
     }
     function loop(ts) {
       requestAnimationFrame(loop);
@@ -6314,6 +6433,18 @@
       g.save();
       if (S.shake > 0 && OPT.shake && !OPT.reduce) g.translate(rnd(-S.shake, S.shake) | 0, rnd(-S.shake, S.shake) | 0);
       drawArena(b.arena, S.cam, S.FRAME);
+      arenaView.foreground(b.arena, S.cam, S.FRAME);
+      if (!arenaView.hasForeground(b.arena)) {
+        g.fillStyle = "rgba(0,0,0,.4)";
+        for (let i = 0; i < 12; i++) {
+          const x = Math.round(((i * 67 - S.cam * 1.25) % (RW + 67) + RW + 67) % (RW + 67) - 33), h2 = 6 + i * 13 % 14;
+          g.beginPath();
+          g.moveTo(x - 9, RH);
+          g.lineTo(x, RH - h2);
+          g.lineTo(x + 9, RH);
+          g.fill();
+        }
+      }
       for (const ff of [b.p1, b.p2]) if (ff.marks) for (const m of ff.marks) {
         const mx2 = m.x - S.cam;
         if (mx2 > -20 && mx2 < RW + 20) {
@@ -6335,7 +6466,10 @@
         }
       }
       drawDecals(S.cam);
-      for (const f of b.p2.state === "grabbed" ? [b.p1, b.p2] : [b.p2, b.p1]) drawF(f, S.cam);
+      for (const f of b.p2.state === "grabbed" ? [b.p1, b.p2] : [b.p2, b.p1]) {
+        drawFighterGlow(f, S.cam);
+        drawF(f, S.cam);
+      }
       if (b.p1.state === "super" && b.p1.def.id === 5 && b.p1.st > 14 && b.p1.st < 90) {
         g.globalAlpha = 0.5;
         drawFakeShift(b.p1, S.cam, -30);
@@ -6351,18 +6485,6 @@
       drawProjs(S.cam);
       drawFx(S.cam);
       drawParts(S.cam);
-      arenaView.foreground(b.arena, S.cam, S.FRAME);
-      if (!arenaView.hasForeground(b.arena)) {
-        g.fillStyle = "rgba(0,0,0,.4)";
-        for (let i = 0; i < 12; i++) {
-          const x = Math.round(((i * 67 - S.cam * 1.25) % (RW + 67) + RW + 67) % (RW + 67) - 33), h2 = 6 + i * 13 % 14;
-          g.beginPath();
-          g.moveTo(x - 9, RH);
-          g.lineTo(x, RH - h2);
-          g.lineTo(x + 9, RH);
-          g.fill();
-        }
-      }
       arenaView.post();
       if (b.p1.state === "super" || b.p2.state === "super" || b.phase === "fatal") {
         g.fillStyle = "rgba(10,0,0,.22)";
@@ -6373,6 +6495,14 @@
         g.fillRect(b.loser.x - S.cam - 6, 0, 12, FL + GR);
       }
       g.restore();
+      if (b.phase === "fight" && (b.p1.hp <= 25 || b.p2.hp <= 25)) {
+        const da = 0.045 + 0.025 * Math.sin(S.FRAME * 0.12), dv = g.createRadialGradient(RW / 2, RH / 2, 70, RW / 2, RH / 2, 250);
+        dv.addColorStop(0, "rgba(0,0,0,0)");
+        dv.addColorStop(0.72, "rgba(0,0,0,0)");
+        dv.addColorStop(1, "rgba(150,10,8," + da + ")");
+        g.fillStyle = dv;
+        g.fillRect(0, 0, RW, RH);
+      }
       if (S.flashS > 0 && !OPT.reduce) {
         g.fillStyle = "rgba(255,255,255," + S.flashS / 10 + ")";
         g.fillRect(0, 0, RW, RH);

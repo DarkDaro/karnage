@@ -45,7 +45,7 @@
   Создаётся фабрикой `createFighter` из `src/game/fighter.js`.
 - `throwN`, `throwT`, `throwC`, `throwD` — имя, стихия, цвет и урон добивания; назначаются в `src/data/characters.js` каждому бойцу и боссу.
 - Захват: `ATK.throw` с `grab:1` переводит жертву в `grabbed`; `F.finishThrow` через 8 кадров удержания наносит именной урон и запускает эффект стихии.
-- `createRender({...})` из `src/render/render.js` возвращает `drawF`, `drawGear`, `drawPort`, `drawFake`, `drawHUD`, `drawFatalPanel`, `frame`, `panel`, `bigText`, `seqTxt`, `drawProjs` и `drawFx`; зависимости передаются явно, модуль только читает состояние.
+- `createRender({...})` из `src/render/render.js` возвращает `drawF`, `drawFighterGlow`, `drawGear`, `drawPort`, `drawFake`, `drawHUD`, `drawFatalPanel`, `frame`, `panel`, `bigText`, `seqTxt`, `drawProjs` и `drawFx`; зависимости передаются явно, модуль только читает состояние.
 - `createAudio({S, clamp, rnd})` из `src/audio/audio.js` возвращает `AU`, `SFX`, `MU`, `initA`, `say`, `setVol`, `saveSet`, `music` и загрузчики сэмплов; AudioContext создаётся только после первого ввода.
 - `drawF(f, cam)` — рисует бойца; не мутирует игровое состояние.
 - `drawGear(f, hx, hy)` — только `def.*` и явно переданные поля; локальной
@@ -55,7 +55,8 @@
 - `BOSS` включается через `def.boss` в `startSuper`, `fireSpec` и `fireSpec2`; `id:9` остаётся обычным Кайзером.
 - `drawFake(defOrId, ...)` рисует и обычного бойца, и def-объект босса.
 - `drawArena(index, cam, frame)` — только чтение данных арены.
-- `arenaView.foreground()` рисует передний слой с прозрачностью 0.7; `arenaView.post()` добавляет виньетку после бойцов и частиц.
+- `arenaView.foreground()` рисует передний слой с прозрачностью 0.7 **до** бойцов, чтобы декор не перекрывал персонажей; `arenaView.post()` добавляет виньетку после бойцов и частиц.
+- `drawFighterGlow(f, cam)` — мягкий цветной ореол элемента под бойцом; вызывается только в боевом рендере, не в портретах и превью.
 - `render()` — чистый рендер; спавн частиц и таймеры — в `step()`.
 
 ## Инварианты

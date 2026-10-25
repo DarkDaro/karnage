@@ -99,6 +99,8 @@ else if(s==='fatal'){const ph=Math.min(1,f.st/30);p.armF=[lerp(-.5,2.6,ph),.2];p
 else if(s==='victim'){p.lean=.1;p.armF=[.15,.3];p.armB=[-.15,.25];p.head=.15;}
 else if(s==='dizzy'){p.lean=Math.sin(t*.12)*.2;p.armF=[.2,1.2];p.armB=[-.2,1.1];p.head=Math.sin(t*.12)*.3;}
 return p;}
+function drawFighterGlow(f,cam){if(!f||f.hidden)return;const d=f.def,x=f.x-cam,y=f.y-38,r=24+(d.bulk||1)*10;const superOn=f.state==='super'||f.rage>=100;const a=(superOn?.10:.05)*(f.state==='super'?1.6:1);
+g.save();g.globalCompositeOperation='lighter';g.globalAlpha=a;const gr=g.createRadialGradient(x,y,2,x,y,r);gr.addColorStop(0,mix(d.acc,'#ffffff',.18));gr.addColorStop(.45,d.acc);gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.fillRect(x-r,y-r,r*2,r*2);g.restore();}// 25.10: цветной ореол отделяет бойца от пёстрого фона
 function drawF(f,cam){if(f.hidden)return;
 const d=f.def,sc=d.bulk*f.scale;
 g.save();g.lineCap='round';g.translate(Math.round(f.x-cam),Math.round(f.y));
@@ -265,7 +267,7 @@ const bw=12,gap=5,tw=n*bw+(n-1)*gap,sx=212-tw/2;
 for(let i=0;i<n;i++){const x=sx+i*(bw+gap),on=i<prog;g.fillStyle=on?'#e04020':'#2a2522';g.fillRect(x,81,bw,3);if(on){g.fillStyle='rgba(255,140,110,.55)';g.fillRect(x,81,bw,1);}}}}
 
 return {
-  pose, drawF, drawGear, portraitTop, drawPort, drawFake,
+  pose, drawF, drawFighterGlow, drawGear, portraitTop, drawPort, drawFake,
   drawHUD, bigText, frame, panel, seqTxt, drawFatalPanel,
   drawProjs, drawBolt, drawFx,
 };

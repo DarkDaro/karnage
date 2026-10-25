@@ -17,6 +17,8 @@ assets/vendor/kenney-digital-audio/
 assets/vendor/audio-source-ogg/
 # копия аудио в release собирается из assets/audio
 release/assets/audio/
+# метафайлы сессий и аудитов не коммитим
+docs/session-*.md
 *.log
 .env
 .env.*
