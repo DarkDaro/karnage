@@ -6865,7 +6865,15 @@
     const FX = fxAssets || {}, ARENA_IMG = arenaAssets || {}, UI = uiAssets || {};
     const S = createState();
     const cv = document.getElementById("cv"), g = cv.getContext("2d");
-    let RSCALE = 5, MAX_SCALE = 6, MIN_SCALE = 3, scaleReady = false, scaleDirty = false;
+    let RSCALE = 5, MAX_SCALE = 6, MIN_SCALE = 3, scaleReady = false, scaleDirty = false, lastDpr = window.devicePixelRatio || 1;
+    let perfAcc = 0, perfFrames = 0, perfBadWin = 0, perfGoodWin = 0, perfWarm = 400, perfCool = 0, perfLast = 0, perfAvg = 0;
+    function resetPerf() {
+      perfAcc = 0;
+      perfFrames = 0;
+      perfBadWin = 0;
+      perfGoodWin = 0;
+      perfCool = 0;
+    }
     function applyRScale() {
       const w = RW * RSCALE, h = RH * RSCALE;
       if (cv.width !== w || cv.height !== h) {
@@ -6881,12 +6889,15 @@
       cv.style.height = s * RH + "px";
       document.body.classList.toggle("portrait", innerHeight > innerWidth);
       const touch = navigator.maxTouchPoints > 0, dpr = Math.min(3, window.devicePixelRatio || 1), cap = touch ? 4 : 6;
+      lastDpr = window.devicePixelRatio || 1;
       MAX_SCALE = Math.max(touch ? 3 : 4, Math.min(cap, Math.round(s * dpr * 1.5)));
       MIN_SCALE = Math.min(touch ? 2 : 3, MAX_SCALE);
       if (!scaleReady) {
         RSCALE = MAX_SCALE;
         scaleReady = true;
       } else RSCALE = Math.max(MIN_SCALE, Math.min(MAX_SCALE, RSCALE));
+      resetPerf();
+      perfWarm = Math.max(perfWarm, 300);
       applyRScale();
     }
     addEventListener("resize", fit);
@@ -9254,7 +9265,6 @@
       ab(S.battle.p2, 341);
       uiHint(isTouchUI() ? "P \u2014 \u0412\u042B\u0411\u041E\u0420/\u0413\u0420\u041E\u041C\u041A\u041E\u0421\u0422\u042C \xB7 B \u2014 \u0417\u0410\u041A\u0420\u042B\u0422\u042C" : "J \u2014 \u0412\u042B\u0411\u041E\u0420 \xB7 A/D \u2014 \u0413\u0420\u041E\u041C\u041A\u041E\u0421\u0422\u042C \xB7 ESC \u2014 \u0417\u0410\u041A\u0420\u042B\u0422\u042C", 228);
     }
-    let perfAcc = 0, perfFrames = 0, perfBadWin = 0, perfGoodWin = 0, perfWarm = 800, perfCool = 0, perfLast = 0, perfAvg = 0;
     function tuneScale(dt) {
       perfLast = dt;
       if (document.hidden || S.paused || dt < 1 || dt > 1e3) return;
@@ -9272,15 +9282,16 @@
         }
         return;
       }
-      perfAcc += Math.min(500, dt);
+      perfAcc += Math.min(50, dt);
       perfFrames++;
-      if (perfAcc < 1e3 || perfFrames < 8) return;
+      if (perfAcc < 750 || perfFrames < 8) return;
       perfAvg = perfAcc / perfFrames;
       perfAcc = 0;
       perfFrames = 0;
       if (perfAvg > 20) {
         perfGoodWin = 0;
-        if (RSCALE > MIN_SCALE) perfBadWin++;
+        if (RSCALE > MIN_SCALE) perfBadWin = perfAvg > 28 ? 2 : perfBadWin + 1;
+        else perfBadWin = 0;
       } else if (perfAvg < 17.2) {
         perfBadWin = 0;
         if (RSCALE < MAX_SCALE) perfGoodWin++;
@@ -9289,23 +9300,24 @@
         perfGoodWin = 0;
       }
       if (perfBadWin >= 2 && RSCALE > MIN_SCALE) {
-        RSCALE--;
+        RSCALE = Math.max(MIN_SCALE, RSCALE - (perfAvg > 35 ? 2 : 1));
         scaleDirty = true;
-        perfCool = 1500;
+        perfCool = 1e3;
         perfBadWin = 0;
         perfGoodWin = 0;
         return;
       }
-      if (perfGoodWin >= 4 && RSCALE < MAX_SCALE) {
+      if (perfGoodWin >= 4 && RSCALE < MAX_SCALE && S.GAME !== "fight") {
         RSCALE++;
         scaleDirty = true;
-        perfCool = 2e3;
+        perfCool = 1800;
         perfBadWin = 0;
         perfGoodWin = 0;
       }
     }
     function loop(ts) {
       requestAnimationFrame(loop);
+      if ((window.devicePixelRatio || 1) !== lastDpr) fit();
       if (scaleDirty) applyRScale();
       const rawDt = ts - S.last, dt = Math.min(50, rawDt);
       S.acc += dt;

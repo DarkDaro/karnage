@@ -18,13 +18,17 @@ const FATAL_FRAMES=600,FATAL_INPUT=240;// 25.10: 10 секунд на добив
 const FX=fxAssets||{},ARENA_IMG=arenaAssets||{},UI=uiAssets||{};
 const S=createState();
 const cv=document.getElementById('cv'),g=cv.getContext('2d');
-let RSCALE=5,MAX_SCALE=6,MIN_SCALE=3,scaleReady=false,scaleDirty=false;
+let RSCALE=5,MAX_SCALE=6,MIN_SCALE=3,scaleReady=false,scaleDirty=false,lastDpr=window.devicePixelRatio||1;
+let perfAcc=0,perfFrames=0,perfBadWin=0,perfGoodWin=0,perfWarm=400,perfCool=0,perfLast=0,perfAvg=0;
+function resetPerf(){perfAcc=0;perfFrames=0;perfBadWin=0;perfGoodWin=0;perfCool=0;}
 function applyRScale(){const w=RW*RSCALE,h=RH*RSCALE;if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h;}scaleDirty=false;}
 function fit(){let s=Math.min(innerWidth/RW,innerHeight/RH);if(s>=2)s=Math.floor(s);cv.style.width=s*RW+'px';cv.style.height=s*RH+'px';document.body.classList.toggle('portrait',innerHeight>innerWidth);
 const touch=navigator.maxTouchPoints>0,dpr=Math.min(3,window.devicePixelRatio||1),cap=touch?4:6;
+lastDpr=window.devicePixelRatio||1;
 MAX_SCALE=Math.max(touch?3:4,Math.min(cap,Math.round(s*dpr*1.5)));
 MIN_SCALE=Math.min(touch?2:3,MAX_SCALE);
 if(!scaleReady){RSCALE=MAX_SCALE;scaleReady=true;}else RSCALE=Math.max(MIN_SCALE,Math.min(MAX_SCALE,RSCALE));
+resetPerf();perfWarm=Math.max(perfWarm,300);
 applyRScale();}
 addEventListener('resize',fit);fit();
 if(document.fonts)document.fonts.load('20px "Russo One"');
@@ -606,22 +610,25 @@ g.font='6px "Russo One"';g.fillStyle='#807850';g.fillText('P '+Math.round(d.norm
 ab(S.battle.p1,209);ab(S.battle.p2,341);
 uiHint(isTouchUI()?'P — ВЫБОР/ГРОМКОСТЬ · B — ЗАКРЫТЬ':'J — ВЫБОР · A/D — ГРОМКОСТЬ · ESC — ЗАКРЫТЬ',228);}
 /* ГЛАВНЫЙ ЦИКЛ */
-let perfAcc=0,perfFrames=0,perfBadWin=0,perfGoodWin=0,perfWarm=800,perfCool=0,perfLast=0,perfAvg=0;
 function tuneScale(dt){
  perfLast=dt;
  if(document.hidden||S.paused||dt<1||dt>1000)return;
  if(perfWarm>0){perfWarm=Math.max(0,perfWarm-dt);return;}
  if(perfCool>0){perfCool=Math.max(0,perfCool-dt);if(perfCool===0){perfAcc=0;perfFrames=0;perfBadWin=0;perfGoodWin=0;}return;}
- perfAcc+=Math.min(500,dt);perfFrames++;
- if(perfAcc<1000||perfFrames<8)return;
+ perfAcc+=Math.min(50,dt);perfFrames++;
+ if(perfAcc<750||perfFrames<8)return;
  perfAvg=perfAcc/perfFrames;perfAcc=0;perfFrames=0;
- if(perfAvg>20){perfGoodWin=0;if(RSCALE>MIN_SCALE)perfBadWin++;}
- else if(perfAvg<17.2){perfBadWin=0;if(RSCALE<MAX_SCALE)perfGoodWin++;}
- else{perfBadWin=0;perfGoodWin=0;}
- if(perfBadWin>=2&&RSCALE>MIN_SCALE){RSCALE--;scaleDirty=true;perfCool=1500;perfBadWin=0;perfGoodWin=0;return;}
- if(perfGoodWin>=4&&RSCALE<MAX_SCALE){RSCALE++;scaleDirty=true;perfCool=2000;perfBadWin=0;perfGoodWin=0;}
+ if(perfAvg>20){
+  perfGoodWin=0;
+  if(RSCALE>MIN_SCALE)perfBadWin=perfAvg>28?2:perfBadWin+1;else perfBadWin=0;
+ }else if(perfAvg<17.2){
+  perfBadWin=0;
+  if(RSCALE<MAX_SCALE)perfGoodWin++;
+ }else{perfBadWin=0;perfGoodWin=0;}
+ if(perfBadWin>=2&&RSCALE>MIN_SCALE){RSCALE=Math.max(MIN_SCALE,RSCALE-(perfAvg>35?2:1));scaleDirty=true;perfCool=1000;perfBadWin=0;perfGoodWin=0;return;}
+ if(perfGoodWin>=4&&RSCALE<MAX_SCALE&&S.GAME!=='fight'){RSCALE++;scaleDirty=true;perfCool=1800;perfBadWin=0;perfGoodWin=0;}
 }
-function loop(ts){requestAnimationFrame(loop);if(scaleDirty)applyRScale();const rawDt=ts-S.last,dt=Math.min(50,rawDt);S.acc+=dt;S.last=ts;
+function loop(ts){requestAnimationFrame(loop);if((window.devicePixelRatio||1)!==lastDpr)fit();if(scaleDirty)applyRScale();const rawDt=ts-S.last,dt=Math.min(50,rawDt);S.acc+=dt;S.last=ts;
 while(S.acc>=1000/60){S.acc-=1000/60;step();}render();tuneScale(rawDt);}
 function step(){S.FRAME++;music();
 if(S.GAME==='fight'){

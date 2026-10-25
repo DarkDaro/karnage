@@ -110,6 +110,31 @@ test('adaptive scale rises on steady frames and falls on slow ones', async () =>
   assert.equal(await page.evaluate(() => window.KARNAGE.RSCALE), 5);
 });
 
+test('adaptive scale drops hard on sustained slowdown and ignores one spike', async () => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await page.evaluate(() => window.dispatchEvent(new window.Event('resize')));
+  const result = await page.evaluate(() => {
+    for (let i = 0; i < 320; i += 1) window.KARNAGE.tuneFrame(16.7);
+    const raised = window.KARNAGE.RSCALE;
+    for (let i = 0; i < 60; i += 1) window.KARNAGE.tuneFrame(40);
+    const dropped = window.KARNAGE.RSCALE;
+    window.KARNAGE.tuneFrame(500);
+    for (let i = 0; i < 80; i += 1) window.KARNAGE.tuneFrame(16.7);
+    const afterSpike = window.KARNAGE.RSCALE;
+    window.KARNAGE.setDebug({ GAME: 'fight' });
+    for (let i = 0; i < 400; i += 1) window.KARNAGE.tuneFrame(16.7);
+    const fightHold = window.KARNAGE.RSCALE;
+    window.KARNAGE.setDebug({ GAME: 'title' });
+    return { raised, dropped, afterSpike, fightHold };
+  });
+  assert.equal(result.raised, 6);
+  assert.ok(result.dropped <= 4, JSON.stringify(result));
+  assert.equal(result.afterSpike, result.dropped);
+  assert.equal(result.fightHold, result.dropped);
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await page.evaluate(() => window.dispatchEvent(new window.Event('resize')));
+});
+
 test('renders every screen', async () => {
   await page.evaluate(() => {
     window.KARNAGE.newBattle(
