@@ -57,6 +57,7 @@
 - все 10 арен на ассетах с fallback, слои `far/mid/props/fg`, свет и погода;
 - `src/game/world/arena.js` вынесен из монолита;
 - `src/render/render.js` выносит бойцов, гир, портреты, HUD, панель фаталити и эффекты;
+- `src/audio/audio.js` хранит AU, WAV/MP3-банк, синтез SFX, голос и музыку;
 - `src/game/core/state.js` хранит состояние сессии, боя, выбора и эффектов;
 - `src/game/fx/particles.js` отвечает за частицы, кровь, декали и лимиты;
 - `src/game/fighter.js` хранит `ATK`, `WM`, `hitR` и фабрику бойца `createFighter`;
@@ -99,7 +100,7 @@ npm run assets:build
 
 Приоритет:
 
-1. Разбор `src/game/karnage.js`: после `core/state`, `fx/particles`, `game/fighter`, `game/combat` и `game/input` — `render`, `audio`, `screens`.
+1. Разбор `src/game/karnage.js`: `render` и `audio` вынесены, следующий слой — `screens` (титул, меню, выбор, VS, пауза, зал славы, финал).
 2. UI-кит: иконки и экран настроек.
 3. Проверка мобилки на реальных iOS/Android.
 4. Кэш отрисовки.

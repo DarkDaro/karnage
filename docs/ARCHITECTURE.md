@@ -9,7 +9,8 @@
 частицы, боец, боевые расчёты и ввод — в `src/game/core/state.js`,
 `src/game/fx/particles.js`, `src/game/fighter.js`, `src/game/combat.js` и
 `src/game/input.js`, бойцы, портреты, HUD и эффекты — в
-`src/render/render.js`, HTML/CSS/шрифты — в `assets`. Основная логика пока
+`src/render/render.js`, звук, WAV/MP3-банк, SFX и музыка — в
+`src/audio/audio.js`, HTML/CSS/шрифты — в `assets`. Основная логика пока
 остаётся в обёртке монолита;
 `src/legacy/karnage.js` — замороженная копия для сравнения. `tools/build.mjs`
 собирает `src/main.js` через esbuild в `release/app.js`, копирует
@@ -45,6 +46,7 @@
 - `throwN`, `throwT`, `throwC`, `throwD` — имя, стихия, цвет и урон добивания; назначаются в `src/data/characters.js` каждому бойцу и боссу.
 - Захват: `ATK.throw` с `grab:1` переводит жертву в `grabbed`; `F.finishThrow` через 8 кадров удержания наносит именной урон и запускает эффект стихии.
 - `createRender({...})` из `src/render/render.js` возвращает `drawF`, `drawGear`, `drawPort`, `drawFake`, `drawHUD`, `drawFatalPanel`, `frame`, `panel`, `bigText`, `seqTxt`, `drawProjs` и `drawFx`; зависимости передаются явно, модуль только читает состояние.
+- `createAudio({S, clamp, rnd})` из `src/audio/audio.js` возвращает `AU`, `SFX`, `MU`, `initA`, `say`, `setVol`, `saveSet`, `music` и загрузчики сэмплов; AudioContext создаётся только после первого ввода.
 - `drawF(f, cam)` — рисует бойца; не мутирует игровое состояние.
 - `drawGear(f, hx, hy)` — только `def.*` и явно переданные поля; локальной
   `skin` нет.

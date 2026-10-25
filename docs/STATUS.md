@@ -13,7 +13,7 @@
 
 Игра запускается из корневого `index.html` и из `release/index.html`. Есть модульный dev-вход `dev.html`, сборка через esbuild, Playwright-тесты, статический аудит и три архивных снимка.
 
-Монолит разобран частично. Бойцы и арены вынесены в `src/data`; состояние, частицы, класс бойца, боевые расчёты и ввод — в `src/game/core/state.js`, `src/game/fx/particles.js`, `src/game/fighter.js`, `src/game/combat.js` и `src/game/input.js`, остальная логика пока в `src/game/karnage.js`.
+Монолит разобран частично. Бойцы и арены вынесены в `src/data`; состояние, частицы, класс бойца, боевые расчёты и ввод — в `src/game/core/state.js`, `src/game/fx/particles.js`, `src/game/fighter.js`, `src/game/combat.js` и `src/game/input.js`; рендер — в `src/render/render.js`, звук — в `src/audio/audio.js`, остальная логика пока в `src/game/karnage.js`.
 
 ## Что сделано
 
@@ -113,6 +113,7 @@
 - touch-управление, safe-area, мобильный canvas и touch-меню;
 - damage scaling, special cancel и броски `P+K`: захват, удержание и именное добивание у каждого бойца;
 - рендер бойцов, гира, портретов, HUD и эффектов вынесен в `src/render/render.js`;
+- AU, WAV/MP3-банк, `tone`/`nz`, SFX, голос и музыка вынесены в `src/audio/audio.js`;
 - фаталити: окно 10 секунд, ввод 4 секунды, прогресс-полоски и подсказки с учётом взгляда;
 - Вега получила женский силуэт, хвост с лентой, серьгу и боевую юбку;
 - портреты Базальта, Веги и Кармин: рамка расширяется под рога, нимб и корону; HUD, сетка выбора и экран победителя их не обрезают;

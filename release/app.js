@@ -3617,94 +3617,8 @@
     };
   }
 
-  // src/game/karnage.js
-  function startKarnage(fxAssets = {}, arenaAssets = {}, uiAssets = {}) {
-    const RW = 424, RH = 240, FL = 206, AW = 760, GR = 8, OUT = "#0e0b08";
-    const FATAL_FRAMES = 600, FATAL_INPUT = 240;
-    const FX = fxAssets || {}, ARENA_IMG = arenaAssets || {}, UI = uiAssets || {};
-    const S = createState();
-    const cv = document.getElementById("cv"), g = cv.getContext("2d");
-    function fit() {
-      let s = Math.min(innerWidth / RW, innerHeight / RH);
-      if (s >= 2) s = Math.floor(s);
-      cv.style.width = s * RW + "px";
-      cv.style.height = s * RH + "px";
-      document.body.classList.toggle("portrait", innerHeight > innerWidth);
-    }
-    addEventListener("resize", fit);
-    fit();
-    if (document.fonts) document.fonts.load('20px "Russo One"');
-    const clamp2 = (v, a, b) => v < a ? a : v > b ? b : v, lerp = (a, b, t) => a + (b - a) * t, rnd = (a, b) => a + Math.random() * (b - a), pick = (a) => a[Math.random() * a.length | 0], blink = () => (S.FRAME >> 4) % 2 === 0;
-    function mul(s) {
-      return function() {
-        s |= 0;
-        s = s + 1831565813 | 0;
-        let t = Math.imul(s ^ s >>> 15, 1 | s);
-        t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
-        return ((t ^ t >>> 14) >>> 0) / 4294967296;
-      };
-    }
-    initArenas({ mul, RW, RH, FL, GR });
-    function colorParts(c) {
-      if (c[0] === "#") return [parseInt(c.slice(1, 3), 16), parseInt(c.slice(3, 5), 16), parseInt(c.slice(5, 7), 16)];
-      const m = /^rgba?\((\d+),\s*(\d+),\s*(\d+)/.exec(c);
-      return m ? [+m[1], +m[2], +m[3]] : [0, 0, 0];
-    }
-    function mix(a, b, t) {
-      const A = colorParts(a), B = colorParts(b);
-      return "rgb(" + (lerp(A[0], B[0], t) | 0) + "," + (lerp(A[1], B[1], t) | 0) + "," + (lerp(A[2], B[2], t) | 0) + ")";
-    }
-    const shade = (h, k) => mix(h, "#000000", 1 - k);
-    const {
-      drawF,
-      drawPort,
-      drawFake,
-      drawHUD,
-      drawFatalPanel,
-      bigText,
-      frame,
-      panel,
-      seqTxt,
-      drawProjs,
-      drawFx
-    } = createRender({
-      g,
-      S,
-      UI,
-      CH,
-      WM,
-      RW,
-      FL,
-      GR,
-      OUT,
-      lerp,
-      rnd,
-      mix,
-      shade,
-      blink,
-      fatalMapped,
-      fatalFrames: FATAL_FRAMES
-    });
-    const arenaView = createArenaView({ g, RW, RH, FL, AR, assets: ARENA_IMG, shade, mix });
-    const OPT = { crt: true, blood: true, shake: true, reduce: false };
-    try {
-      const raw = JSON.parse(localStorage.karnageOpts || "{}");
-      if (raw && typeof raw === "object") {
-        for (const k of ["crt", "blood", "shake", "reduce"]) if (typeof raw[k] === "boolean") OPT[k] = raw[k];
-      }
-    } catch (e) {
-    }
-    const saveOpts = () => {
-      try {
-        localStorage.karnageOpts = JSON.stringify(OPT);
-      } catch (e) {
-      }
-    };
-    const applyCrt = () => {
-      const el = document.getElementById("crt");
-      if (el) el.style.display = OPT.crt ? "block" : "none";
-    };
-    applyCrt();
+  // src/audio/audio.js
+  function createAudio({ S, clamp: clamp2, rnd }) {
     const AU = { ctx: null, on: true, voice: true, vol: 100, samples: {}, loading: {}, audioLoading: false, musicSrc: null, musicGain: null, musicTrack: "", lastSample: "" };
     try {
       if (localStorage.karnageVox !== void 0) AU.voice = localStorage.karnageVox === "1";
@@ -3726,78 +3640,6 @@
       } catch (e) {
       }
     };
-    const dayStamp = () => {
-      const d = /* @__PURE__ */ new Date();
-      return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
-    };
-    const topRaw = () => {
-      try {
-        const raw = JSON.parse(localStorage.karnageTop || "[]");
-        if (!Array.isArray(raw)) return [];
-        return raw.filter((e) => e && Number.isInteger(e.id) && e.id >= 0 && e.id < CH.length && Number.isFinite(e.step) && e.step >= 0);
-      } catch (e) {
-        return [];
-      }
-    };
-    const topBest = () => {
-      const best = /* @__PURE__ */ new Map();
-      for (const e of topRaw()) {
-        const cur = best.get(e.id);
-        if (!cur || e.step > cur.step) best.set(e.id, { id: e.id, step: e.step, ...typeof e.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(e.date) ? { date: e.date } : {} });
-      }
-      return [...best.values()].sort((a, b) => b.step - a.step || a.id - b.id);
-    };
-    const TOP = () => topBest().slice(0, 5);
-    const addTop = (id, step2, date) => {
-      try {
-        if (!Number.isInteger(id) || id < 0 || id >= CH.length || !Number.isFinite(step2) || step2 < 0) return;
-        const day = typeof date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : dayStamp();
-        const best = /* @__PURE__ */ new Map();
-        for (const e of topRaw()) {
-          const cur2 = best.get(e.id);
-          if (!cur2 || e.step > cur2.step) best.set(e.id, { id: e.id, step: e.step, ...typeof e.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(e.date) ? { date: e.date } : {} });
-        }
-        const cur = best.get(id);
-        if (!cur || step2 > cur.step) best.set(id, { id, step: step2, date: day });
-        localStorage.karnageTop = JSON.stringify([...best.values()].sort((a, b) => b.step - a.step || a.id - b.id).slice(0, 5));
-      } catch (e) {
-      }
-    };
-    const ARC_KEY = "karnageArcRun", ARC_VERSION = 1, ARC_TOTAL = CH.length - 1;
-    function validArcRun(run) {
-      if (!run || run.v !== ARC_VERSION) return false;
-      if (!Number.isInteger(run.c1) || run.c1 < 0 || run.c1 >= CH.length) return false;
-      if (!Array.isArray(run.ladder) || run.ladder.length !== CH.length - 2) return false;
-      if (!run.ladder.every((id) => Number.isInteger(id) && id >= 0 && id < CH.length && id !== run.c1 && id !== BOSS.id)) return false;
-      if (new Set(run.ladder).size !== run.ladder.length) return false;
-      if (!Number.isInteger(run.step) || run.step < 0 || run.step >= ARC_TOTAL) return false;
-      return true;
-    }
-    function loadArcRun() {
-      try {
-        const run = JSON.parse(localStorage[ARC_KEY] || "null");
-        return validArcRun(run) ? run : null;
-      } catch (e) {
-        return null;
-      }
-    }
-    function saveArcRun() {
-      try {
-        if (!Number.isInteger(S.arcP1) || !S.ladder.length || !Number.isInteger(S.lStep)) return;
-        const run = { v: ARC_VERSION, c1: S.arcP1, ladder: S.ladder.slice(), step: S.lStep };
-        if (validArcRun(run)) localStorage[ARC_KEY] = JSON.stringify(run);
-      } catch (e) {
-      }
-    }
-    function clearArcRun() {
-      try {
-        localStorage.removeItem(ARC_KEY);
-      } catch (e) {
-      }
-    }
-    function arcTotal() {
-      return S.ladder.length ? S.ladder.length + 1 : ARC_TOTAL;
-    }
     function initA() {
       if (AU.ctx) return;
       try {
@@ -3813,14 +3655,6 @@
       } catch (e) {
       }
     }
-    addEventListener("pointerdown", () => {
-      initA();
-      if (AU.ctx && AU.ctx.state === "suspended") AU.ctx.resume();
-      if (S.GAME === "title") {
-        toLobby("menu");
-        SFX.sel();
-      }
-    });
     function tone(o) {
       if (!AU.ctx || !AU.on) return;
       const c = AU.ctx, t = c.currentTime + (o.w || 0);
@@ -4215,6 +4049,195 @@
         MU.next += dt;
       }
     }
+    return {
+      AU,
+      SFX,
+      MU,
+      initA,
+      say,
+      setVol,
+      saveSet,
+      startMusic,
+      stopMusic,
+      music,
+      tone,
+      nz,
+      playSample,
+      loadBuffer,
+      loadAudio,
+      musicTrackFor
+    };
+  }
+
+  // src/game/karnage.js
+  function startKarnage(fxAssets = {}, arenaAssets = {}, uiAssets = {}) {
+    const RW = 424, RH = 240, FL = 206, AW = 760, GR = 8, OUT = "#0e0b08";
+    const FATAL_FRAMES = 600, FATAL_INPUT = 240;
+    const FX = fxAssets || {}, ARENA_IMG = arenaAssets || {}, UI = uiAssets || {};
+    const S = createState();
+    const cv = document.getElementById("cv"), g = cv.getContext("2d");
+    function fit() {
+      let s = Math.min(innerWidth / RW, innerHeight / RH);
+      if (s >= 2) s = Math.floor(s);
+      cv.style.width = s * RW + "px";
+      cv.style.height = s * RH + "px";
+      document.body.classList.toggle("portrait", innerHeight > innerWidth);
+    }
+    addEventListener("resize", fit);
+    fit();
+    if (document.fonts) document.fonts.load('20px "Russo One"');
+    const clamp2 = (v, a, b) => v < a ? a : v > b ? b : v, lerp = (a, b, t) => a + (b - a) * t, rnd = (a, b) => a + Math.random() * (b - a), pick = (a) => a[Math.random() * a.length | 0], blink = () => (S.FRAME >> 4) % 2 === 0;
+    function mul(s) {
+      return function() {
+        s |= 0;
+        s = s + 1831565813 | 0;
+        let t = Math.imul(s ^ s >>> 15, 1 | s);
+        t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+        return ((t ^ t >>> 14) >>> 0) / 4294967296;
+      };
+    }
+    initArenas({ mul, RW, RH, FL, GR });
+    function colorParts(c) {
+      if (c[0] === "#") return [parseInt(c.slice(1, 3), 16), parseInt(c.slice(3, 5), 16), parseInt(c.slice(5, 7), 16)];
+      const m = /^rgba?\((\d+),\s*(\d+),\s*(\d+)/.exec(c);
+      return m ? [+m[1], +m[2], +m[3]] : [0, 0, 0];
+    }
+    function mix(a, b, t) {
+      const A = colorParts(a), B = colorParts(b);
+      return "rgb(" + (lerp(A[0], B[0], t) | 0) + "," + (lerp(A[1], B[1], t) | 0) + "," + (lerp(A[2], B[2], t) | 0) + ")";
+    }
+    const shade = (h, k) => mix(h, "#000000", 1 - k);
+    const {
+      drawF,
+      drawPort,
+      drawFake,
+      drawHUD,
+      drawFatalPanel,
+      bigText,
+      frame,
+      panel,
+      seqTxt,
+      drawProjs,
+      drawFx
+    } = createRender({
+      g,
+      S,
+      UI,
+      CH,
+      WM,
+      RW,
+      FL,
+      GR,
+      OUT,
+      lerp,
+      rnd,
+      mix,
+      shade,
+      blink,
+      fatalMapped,
+      fatalFrames: FATAL_FRAMES
+    });
+    const arenaView = createArenaView({ g, RW, RH, FL, AR, assets: ARENA_IMG, shade, mix });
+    const OPT = { crt: true, blood: true, shake: true, reduce: false };
+    try {
+      const raw = JSON.parse(localStorage.karnageOpts || "{}");
+      if (raw && typeof raw === "object") {
+        for (const k of ["crt", "blood", "shake", "reduce"]) if (typeof raw[k] === "boolean") OPT[k] = raw[k];
+      }
+    } catch (e) {
+    }
+    const saveOpts = () => {
+      try {
+        localStorage.karnageOpts = JSON.stringify(OPT);
+      } catch (e) {
+      }
+    };
+    const applyCrt = () => {
+      const el = document.getElementById("crt");
+      if (el) el.style.display = OPT.crt ? "block" : "none";
+    };
+    applyCrt();
+    const { AU, SFX, MU, initA, say, setVol, saveSet, music } = createAudio({ S, clamp: clamp2, rnd });
+    const dayStamp = () => {
+      const d = /* @__PURE__ */ new Date();
+      return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+    };
+    const topRaw = () => {
+      try {
+        const raw = JSON.parse(localStorage.karnageTop || "[]");
+        if (!Array.isArray(raw)) return [];
+        return raw.filter((e) => e && Number.isInteger(e.id) && e.id >= 0 && e.id < CH.length && Number.isFinite(e.step) && e.step >= 0);
+      } catch (e) {
+        return [];
+      }
+    };
+    const topBest = () => {
+      const best = /* @__PURE__ */ new Map();
+      for (const e of topRaw()) {
+        const cur = best.get(e.id);
+        if (!cur || e.step > cur.step) best.set(e.id, { id: e.id, step: e.step, ...typeof e.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(e.date) ? { date: e.date } : {} });
+      }
+      return [...best.values()].sort((a, b) => b.step - a.step || a.id - b.id);
+    };
+    const TOP = () => topBest().slice(0, 5);
+    const addTop = (id, step2, date) => {
+      try {
+        if (!Number.isInteger(id) || id < 0 || id >= CH.length || !Number.isFinite(step2) || step2 < 0) return;
+        const day = typeof date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : dayStamp();
+        const best = /* @__PURE__ */ new Map();
+        for (const e of topRaw()) {
+          const cur2 = best.get(e.id);
+          if (!cur2 || e.step > cur2.step) best.set(e.id, { id: e.id, step: e.step, ...typeof e.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(e.date) ? { date: e.date } : {} });
+        }
+        const cur = best.get(id);
+        if (!cur || step2 > cur.step) best.set(id, { id, step: step2, date: day });
+        localStorage.karnageTop = JSON.stringify([...best.values()].sort((a, b) => b.step - a.step || a.id - b.id).slice(0, 5));
+      } catch (e) {
+      }
+    };
+    const ARC_KEY = "karnageArcRun", ARC_VERSION = 1, ARC_TOTAL = CH.length - 1;
+    function validArcRun(run) {
+      if (!run || run.v !== ARC_VERSION) return false;
+      if (!Number.isInteger(run.c1) || run.c1 < 0 || run.c1 >= CH.length) return false;
+      if (!Array.isArray(run.ladder) || run.ladder.length !== CH.length - 2) return false;
+      if (!run.ladder.every((id) => Number.isInteger(id) && id >= 0 && id < CH.length && id !== run.c1 && id !== BOSS.id)) return false;
+      if (new Set(run.ladder).size !== run.ladder.length) return false;
+      if (!Number.isInteger(run.step) || run.step < 0 || run.step >= ARC_TOTAL) return false;
+      return true;
+    }
+    function loadArcRun() {
+      try {
+        const run = JSON.parse(localStorage[ARC_KEY] || "null");
+        return validArcRun(run) ? run : null;
+      } catch (e) {
+        return null;
+      }
+    }
+    function saveArcRun() {
+      try {
+        if (!Number.isInteger(S.arcP1) || !S.ladder.length || !Number.isInteger(S.lStep)) return;
+        const run = { v: ARC_VERSION, c1: S.arcP1, ladder: S.ladder.slice(), step: S.lStep };
+        if (validArcRun(run)) localStorage[ARC_KEY] = JSON.stringify(run);
+      } catch (e) {
+      }
+    }
+    function clearArcRun() {
+      try {
+        localStorage.removeItem(ARC_KEY);
+      } catch (e) {
+      }
+    }
+    function arcTotal() {
+      return S.ladder.length ? S.ladder.length + 1 : ARC_TOTAL;
+    }
+    addEventListener("pointerdown", () => {
+      initA();
+      if (AU.ctx && AU.ctx.state === "suspended") AU.ctx.resume();
+      if (S.GAME === "title") {
+        toLobby("menu");
+        SFX.sel();
+      }
+    });
     const { keys, TOUCH, KM1: KM12, KM2: KM22, Ctrl } = createInput();
     function bindTouch() {
       const isTouch = "ontouchstart" in window || navigator.maxTouchPoints > 0;
