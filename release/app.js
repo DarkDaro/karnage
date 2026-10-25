@@ -4765,7 +4765,7 @@
     function portraitImage(d) {
       let item = portraitCache.get(d);
       if (!item) {
-        const top = fighterArt.portraitTop(d), K = 8, c = document.createElement("canvas");
+        const top = fighterArt.portraitTop(d) * 2, K = 8, c = document.createElement("canvas");
         c.width = 48 * K;
         c.height = (30 - top) * K;
         const cg = c.getContext("2d"), art = createFighterArt({ g: cg, S, OUT, mix, shade, lerp });
@@ -6359,6 +6359,10 @@
       const top = item.top, w = 24 * s, h = (30 - top) * 0.5 * s;
       g.drawImage(item.image, x - w / 2, y + top * 0.5 * s, w, h);
     }
+    function drawPortFit(d, x, y, w, h) {
+      const pt = portraitTop(d), sw = 24, sh = (30 - pt * 2) * 0.5, s = Math.min(w / sw, h / sh);
+      drawPort(d, x + w / 2, y + h / 2 - (pt + 15) * 0.5 * s, s);
+    }
     const FAKES = CH2.map((d) => ({ def: d, x: 0, y: FL + GR, face: 1, animT: 0, state: "idle", st: 0, atk: null, tilt: 0, squash: 1, scale: 1, invis: 0, frozen: 0, netT: 0, charred: 0, hidden: 0, flash: 0, hp: 100 }));
     function drawFake(i, px, py, sc, face) {
       const fk = typeof i === "object" ? Object.assign({}, FAKES[i.id] || FAKES[0], { def: i }) : FAKES[i];
@@ -6581,6 +6585,7 @@
       drawGear,
       portraitTop,
       drawPort,
+      drawPortFit,
       drawFake,
       drawFLegacy,
       drawPortLegacy,
@@ -7686,6 +7691,7 @@
       drawF,
       drawFighterGlow,
       drawPort,
+      drawPortFit,
       drawFake,
       drawHUD,
       drawFatalPanel,
@@ -9598,7 +9604,7 @@
         g.strokeStyle = "#3a3128";
         g.lineWidth = 1;
         g.strokeRect(x + 0.5, y + 0.5, 33, 41);
-        drawPort(CH[i], x + 17, y + 24.5, 0.94);
+        drawPortFit(CH[i], x, y, 34, 42);
         if (s.c1 === i) {
           g.strokeStyle = "#e02020";
           g.lineWidth = 2;

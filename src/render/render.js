@@ -13,7 +13,7 @@ let portraitWorkFrame=-1,portraitWorkCount=0;
 function portraitImage(d){
  let item=portraitCache.get(d);
  if(!item){
-  const top=fighterArt.portraitTop(d),K=8,c=document.createElement('canvas');
+  const top=fighterArt.portraitTop(d)*2,K=8,c=document.createElement('canvas');
   c.width=48*K;c.height=(30-top)*K;
   const cg=c.getContext('2d'),art=createFighterArt({g:cg,S,OUT,mix,shade,lerp});
   item={image:c,ctx:cg,art,top,K,frame:-1};portraitCache.set(d,item);
@@ -258,6 +258,7 @@ if(d.female){g.fillStyle='#141414';g.fillRect(2,-8,2,1);g.fillStyle=shade(d.skin
 g.fillStyle=shade(d.skin,.72);g.fillRect(0,d.female?-9:-8,4,1);// бровь
 drawGear({def:d,animT:0,charred:0},0,-3);g.restore();}
 function drawPort(d,x,y,s){const item=portraitImage(d);if(item.frame<0){fighterArt.drawPortrait(d,x,y,s);return;}const top=item.top,w=24*s,h=(30-top)*.5*s;g.drawImage(item.image,x-w/2,y+top*.5*s,w,h);}
+function drawPortFit(d,x,y,w,h){const pt=portraitTop(d),sw=24,sh=(30-pt*2)*.5,s=Math.min(w/sw,h/sh);drawPort(d,x+w/2,y+h/2-(pt+15)*.5*s,s);}
 const FAKES=CH.map(d=>({def:d,x:0,y:FL+GR,face:1,animT:0,state:'idle',st:0,atk:null,tilt:0,squash:1,scale:1,invis:0,frozen:0,netT:0,charred:0,hidden:0,flash:0,hp:100}));
 function drawFake(i,px,py,sc,face){const fk=typeof i==='object'?Object.assign({},FAKES[i.id]||FAKES[0],{def:i}):FAKES[i];fk.animT=S.FRAME;fk.face=face;g.save();g.translate(px,py);g.scale(sc,sc);g.translate(-fk.x,-fk.y);drawF(fk,0);g.restore();}// 25.10: рисует и отдельный def босса
 /* HUD */
@@ -312,7 +313,7 @@ const bw=12,gap=5,tw=n*bw+(n-1)*gap,sx=212-tw/2;
 for(let i=0;i<n;i++){const x=sx+i*(bw+gap),on=i<prog;g.fillStyle=on?'#e04020':'#2a2522';g.fillRect(x,81,bw,3);if(on){g.fillStyle='rgba(255,140,110,.55)';g.fillRect(x,81,bw,1);}}}}
 
 return {
-  pose, drawF, drawFighterGlow, drawGear, portraitTop, drawPort, drawFake,
+  pose, drawF, drawFighterGlow, drawGear, portraitTop, drawPort, drawPortFit, drawFake,
   drawFLegacy, drawPortLegacy,
   drawHUD, bigText, frame, panel, seqTxt, drawFatalPanel,
   drawProjs, drawBolt, drawFx,

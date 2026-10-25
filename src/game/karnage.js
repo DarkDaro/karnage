@@ -41,7 +41,7 @@ function colorParts(c){if(c[0]==='#')return[parseInt(c.slice(1,3),16),parseInt(c
 function mix(a,b,t){const A=colorParts(a),B=colorParts(b);return'rgb('+(lerp(A[0],B[0],t)|0)+','+(lerp(A[1],B[1],t)|0)+','+(lerp(A[2],B[2],t)|0)+')';}
 const shade=(h,k)=>mix(h,'#000000',1-k);
 const {
-  drawF, drawFighterGlow, drawPort, drawFake, drawHUD, drawFatalPanel,
+  drawF, drawFighterGlow, drawPort, drawPortFit, drawFake, drawHUD, drawFatalPanel,
   bigText, frame, panel, seqTxt, drawProjs, drawFx,
 } = createRender({
   g, S, UI, CH, WM, RW, FL, GR, OUT,
@@ -483,7 +483,7 @@ const hdr=s.mode==='training'?'ВЫБЕРИ БОЙЦА ДЛЯ ТРЕНИРОВК
 g.fillText(hdr,RW/2,27);
 for(let i=0;i<CH.length;i++){const x=12+(i%5)*37,y=36+((i/5)|0)*46;
 g.fillStyle='#100d0a';g.fillRect(x,y,34,42);g.strokeStyle='#3a3128';g.lineWidth=1;g.strokeRect(x+.5,y+.5,33,41);
-drawPort(CH[i],x+17,y+24.5,.94);
+drawPortFit(CH[i],x,y,34,42);
 if(s.c1===i){g.strokeStyle='#e02020';g.lineWidth=2;g.strokeRect(x-1,y-1,36,44);}
 if((s.mode==='2p'||(s.mode==='cpu'&&s.ph===1))&&s.c2===i){g.strokeStyle='#3868c8';g.lineWidth=2;g.strokeRect(x+1,y+1,32,40);}}
 g.fillStyle='rgba(0,0,0,.55)';g.fillRect(8,176,184,24);g.fillStyle='rgba(200,160,64,.28)';g.fillRect(8,176,184,1);// 25.10: подписи выбора в отдельной плашке
