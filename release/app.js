@@ -545,6 +545,9 @@
   };
   for (const c of CH) Object.assign(c, THROW_DATA[c.id]);
   Object.assign(BOSS, { throwN: "\u041F\u0420\u0418\u0413\u041E\u0412\u041E\u0420 \u041A\u041E\u0420\u041E\u041D\u042B", throwT: "royal", throwC: "#f0c850", throwD: 14 });
+  var CMD_THROW_NAMES = ["\u041F\u0415\u041F\u0415\u041B\u042C\u041D\u042B\u0419 \u041E\u0411\u0425\u0412\u0410\u0422", "\u0422\u0415\u041D\u0415\u0412\u041E\u0419 \u041F\u0415\u0420\u0415\u041B\u041E\u041C", "\u041A\u041E\u0420\u041E\u0422\u041A\u041E\u0415 \u0417\u0410\u041C\u042B\u041A\u0410\u041D\u0418\u0415", "\u0413\u041E\u0420\u041D\u042B\u0419 \u0421\u041B\u041E\u041C", "\u042F\u0414\u041E\u0412\u0418\u0422\u042B\u0419 \u0417\u0410\u0425\u0412\u0410\u0422", "\u041F\u0415\u0421\u0427\u0410\u041D\u042B\u0419 \u041F\u041B\u0415\u041D", "\u041B\u0415\u0414\u042F\u041D\u041E\u0419 \u041A\u0410\u041F\u041A\u0410\u041D", "\u0420\u0416\u0410\u0412\u042B\u0419 \u0417\u0410\u0416\u0418\u041C", "\u0421\u041E\u041D\u041D\u042B\u0419 \u041F\u041B\u0415\u041D", "\u041A\u041E\u0420\u041E\u041B\u0415\u0412\u0421\u041A\u0418\u0419 \u0417\u0410\u0425\u0412\u0410\u0422", "\u0410\u041B\u042B\u0419 \u041F\u041B\u0415\u041D", "\u041B\u0423\u041D\u041D\u042B\u0419 \u0417\u0410\u0425\u0412\u0410\u0422", "\u0417\u0412\u0401\u0417\u0414\u041D\u042B\u0419 \u0417\u0410\u0425\u0412\u0410\u0422"];
+  for (const c of CH) c.throwCmdN = CMD_THROW_NAMES[c.id];
+  BOSS.throwCmdN = "\u041A\u041E\u0420\u041E\u041D\u0410-\u0417\u0410\u0425\u0412\u0410\u0422";
   var CMD_DEFAULT = {
     fP: { t: "punch", d: 8, wd: 6, ac: 3, rc: 10, rng: 32, hh: 0.7 },
     fK: { t: "kick", d: 11, wd: 8, ac: 4, rc: 14, rng: 40, hh: 0.55, knock: 1 },
@@ -573,6 +576,23 @@
   }
   for (const c of CH) applyNormalData(c, NORMAL_DATA[c.id]);
   applyNormalData(BOSS, NORMAL_DATA[9]);
+  var TARGET_DATA = {
+    0: { target: { seq: "PPK", n: "\u041F\u0415\u041F\u0415\u041B\u042C\u041D\u0410\u042F \u0421\u0415\u0420\u0418\u042F" } },
+    1: { target: { seq: "PK", n: "\u0422\u0415\u041D\u0415\u0412\u041E\u0419 \u0420\u0410\u0417\u0420\u0415\u0417" } },
+    2: { target: { seq: "PPK", n: "\u0413\u0420\u041E\u0417\u041E\u0412\u0410\u042F \u0426\u0415\u041F\u042C" } },
+    3: { target: { seq: "PPK", n: "\u0413\u041E\u0420\u041D\u042B\u0419 \u041E\u0411\u0412\u0410\u041B" } },
+    4: { target: { seq: "PPK", n: "\u041A\u041E\u0413\u0422\u0415\u0412\u0410\u042F \u0421\u0415\u0420\u0418\u042F" } },
+    5: { target: { seq: "PPK", n: "\u041F\u0415\u0421\u0427\u0410\u041D\u0410\u042F \u041A\u0410\u0420\u0423\u0421\u0415\u041B\u042C" } },
+    6: { target: { seq: "PPK", n: "\u041B\u0415\u0414\u042F\u041D\u0410\u042F \u0426\u0415\u041F\u042C" } },
+    7: { target: { seq: "PPK", n: "\u0420\u0416\u0410\u0412\u0410\u042F \u0421\u0415\u0420\u0418\u042F" } },
+    8: { target: { seq: "PPK", n: "\u0421\u0423\u041C\u0420\u0410\u0427\u041D\u0410\u042F \u0426\u0415\u041F\u042C" } },
+    9: { target: { seq: "PPK", n: "\u041A\u041E\u0420\u041E\u041B\u0415\u0412\u0421\u041A\u0410\u042F \u0421\u0415\u0420\u0418\u042F" } },
+    10: { target: { seq: "PPK", n: "\u0410\u041B\u0410\u042F \u0421\u0415\u0420\u0418\u042F" } },
+    11: { target: { seq: "PK", n: "\u041B\u0423\u041D\u041D\u042B\u0419 \u0420\u0410\u0417\u0420\u0415\u0417" } },
+    12: { target: { seq: "PPK", n: "\u0417\u0412\u0401\u0417\u0414\u041D\u0410\u042F \u0426\u0415\u041F\u042C" } }
+  };
+  for (const c of CH) Object.assign(c, TARGET_DATA[c.id]);
+  Object.assign(BOSS, TARGET_DATA[9]);
 
   // src/data/endings.js
   var ENDINGS = [
@@ -1108,6 +1128,8 @@
         this.grabbedBy = 0;
         this.throwTarget = 0;
         this.jumpGrace = 0;
+        this.chain = "";
+        this.chainT = 0;
         this.ctrl.clear();
       }
       get onGround() {
@@ -1127,21 +1149,38 @@
           A = { ...A, ...rest };
           name = n || null;
         }
+        const btn = key ? key === "fP" || key === "bP" ? "P" : key === "fK" ? "K" : null : type === "punch" || type === "upper" ? "P" : type === "kick" || type === "sweep" || type === "rh" ? "K" : null;
+        let target = null;
+        if (btn) {
+          const seq = d.target && d.target.seq, continuing = this.comboT < 60 && this.combo > 0 && this.chainT > 0;
+          let chain = continuing ? this.chain + btn : btn;
+          if (seq && !seq.startsWith(chain)) chain = btn;
+          this.chain = chain;
+          this.chainT = 60;
+          if (seq && chain === seq) target = d.target;
+        } else {
+          this.chain = "";
+          this.chainT = 0;
+        }
         this.state = "atk";
         this.st = 0;
-        this.atk = { t: type, name, A, hit: 0, blocked: 0, connected: 0, cancel: 0 };
+        this.atk = { t: type, name, A, target, hit: 0, blocked: 0, connected: 0, cancel: 0 };
         this.invis = 0;
         this.spec2go = 0;
         this.jumpGrace = 0;
         if (!S.battle || S.battle.phase === "fight") this.ctrl.buf.length = 0;
         SFX.swing();
       }
-      // 08.09: атака пробивает невидимость; 24.10: буфер очищается для special cancel только в бою; 25.10: профили нормалов и командные нормалы
+      // 08.09: атака пробивает невидимость; 24.10: буфер очищается для special cancel только в бою; 25.10: профили нормалов, командные нормалы и target-combo
       startCmd(key) {
         const c = this.def.cmd && this.def.cmd[key];
         if (!c) return false;
         this.startAtk(c.t, key);
         return true;
+      }
+      startCmdThrow() {
+        this.startAtk("throw");
+        this.atk.cmdThrow = 1;
       }
       jump() {
         this.vy = -this.def.jmp;
@@ -1162,6 +1201,8 @@
         if (stunned) this.blockStun--;
         this.animT++;
         this.st++;
+        if (this.chainT > 0) this.chainT--;
+        else this.chain = "";
         this.flash = Math.max(0, this.flash - 1);
         this.squash = lerp(this.squash, 1, 0.12);
         this.hpLag = Math.max(this.hp, this.hpLag - 0.4);
@@ -1266,8 +1307,10 @@
             if (this.rage >= 100 && this.ctrl.match("DDP", 60)) this.startSuper();
             else if (this.ctrl.matchRel(d.spec, this.face, 60)) this.startSpec(foe);
             else if (this.ctrl.matchRel(d.spec2, this.face, 60)) this.startSpec2(foe);
-            else if (c.pP && c.pK) this.startAtk("throw");
-            else if (!c.d && fwd && btn === "P") this.startCmd("fP");
+            else if (c.pP && c.pK) {
+              if (c.d) this.startCmdThrow();
+              else this.startAtk("throw");
+            } else if (!c.d && fwd && btn === "P") this.startCmd("fP");
             else if (!c.d && fwd && btn === "K") this.startCmd("fK");
             else if (!c.d && back && btn === "P") this.startCmd("bP");
             else if (btn === "P") this.startAtk(c.d ? "upper" : "punch");
@@ -1354,7 +1397,7 @@
           if (this.st > A.wd && this.st <= A.wd + A.ac && !this.atk.hit && foe.state !== "down") {
             const hb = this.atkBox();
             if (hb && hitR(hb, foe.box) && (!A.throw || foe.onGround && ["idle", "walk", "block"].includes(foe.state))) {
-              const res = resolveHit(this, foe, A.d, { launch: A.launch, low: A.low, overhead: A.overhead, throw: A.throw, knock: A.knock, grab: A.grab });
+              const res = resolveHit(this, foe, A.d, { launch: A.launch, low: A.low, overhead: A.overhead, throw: A.throw, knock: A.knock, grab: A.grab, target: this.atk.target });
               this.atk.hit = 1;
               this.atk.blocked = res === "block" ? 1 : 0;
               this.atk.connected = res === "hit" || res === "grab" ? 1 : 0;
@@ -1409,10 +1452,10 @@
         return { x: this.x + (this.face > 0 ? 4 : -4 - A.rng * d.bulk), y: this.y - d.h * A.hh - (this.atk.t === "sweep" ? 0 : 6), w: A.rng * d.bulk + 6, h: this.atk.t === "sweep" ? 12 : this.atk.t === "upper" ? 34 : 14 };
       }
       finishThrow(foe) {
-        const d = this.def, type = d.throwT || "slam", col = d.throwC || d.acc || "#f8d060", launch = type === "star";
+        const d = this.def, cmd = !!(this.atk && this.atk.cmdThrow), type = d.throwT || "slam", col = d.throwC || d.acc || "#f8d060", dmg = cmd ? d.throwCmdD || (d.throwD || 10) + 1 : d.throwD || 10, name = cmd ? d.throwCmdN || d.throwN : d.throwN, launch = type === "star";
         foe.grabbedBy = 0;
         this.throwTarget = 0;
-        const res = resolveHit(this, foe, d.throwD || 10, { throw: 1, knock: !launch, launch: launch ? 1 : 0 });
+        const res = resolveHit(this, foe, dmg, { throw: 1, knock: !launch, launch: launch ? 1 : 0 });
         this.atk.thrown = 1;
         this.atk.grabbed = 0;
         if (res !== "hit") return;
@@ -1424,7 +1467,7 @@
         this.squash = 0.86;
         S.shake = Math.max(S.shake, type === "slam" || type === "blast" || type === "royal" ? 7 : 4);
         S.fx.push({ ty: "ring", x: foe.x, y: foe.y - foe.def.h * 0.55, t: 0, col });
-        S.fx.push({ ty: "name", x: this.x + this.face * 10, y: this.y - this.def.h - 10, txt: d.throwN, col, life: 60, t: 0 });
+        S.fx.push({ ty: "name", x: this.x + this.face * 10, y: this.y - this.def.h - 10, txt: name, col, life: 60, t: 0 });
         if (type === "fire") {
           SFX.fire();
           foe.poison = 50;
@@ -1475,6 +1518,8 @@
         this.face = foe.x < this.x ? -1 : 1;
         this.spec2go = 0;
         this.jumpGrace = 0;
+        this.chain = "";
+        this.chainT = 0;
         SFX.cast();
       }
       startSpec2(foe) {
@@ -1483,6 +1528,8 @@
         this.face = foe.x < this.x ? -1 : 1;
         this.spec2go = 1;
         this.jumpGrace = 0;
+        this.chain = "";
+        this.chainT = 0;
         SFX.cast2();
       }
       // 08.09: второй спец — тот же каст, флаг spec2go выбирает ветку в fireSpec
@@ -1494,6 +1541,8 @@
         this.supEv = [];
         this.invis = 0;
         this.jumpGrace = 0;
+        this.chain = "";
+        this.chainT = 0;
         S.flashS = Math.max(S.flashS, 4);
         S.shake = Math.max(S.shake, 4);
         SFX.supwave();
@@ -1919,6 +1968,8 @@
       f.invis = 0;
       f.netT = 0;
       f.combo = 0;
+      f.chain = "";
+      f.chainT = 0;
       f.blockStun = 0;
       if (f.frozen > 0) f.frozen = 0;
       a.rage = Math.min(100, a.rage + 2);
@@ -1968,6 +2019,8 @@
         def.spec2go = 0;
         def.invis = 0;
         def.netT = 0;
+        def.chain = "";
+        def.chainT = 0;
         def.blockStun = 0;
         def.frozen = 0;
         def.face = -att.face;
@@ -1998,11 +2051,18 @@
         def.rage = Math.min(100, def.rage + 1);
         def.vx = att.face * 2;
         def.hvx = 0;
+        att.chain = "";
+        att.chainT = 0;
         spriteFx("block", def.x + def.face * 8, def.y - def.def.h * 0.55, { scale: 0.9, alpha: 0.9 });
         for (let i = 0; i < 4; i++) P(def.x + def.face * 8, def.y - def.def.h * 0.55, rnd(-1.5, 1.5), rnd(-2, 0), "#fff", 10, 2, 0);
         return "block";
       }
       let d = dmg * att.def.dmg * comboScale(att);
+      if (opts.target) {
+        d *= 1.2;
+        S.fx.push({ ty: "name", x: att.x + att.face * 10, y: att.y - att.def.h - 20, txt: opts.target.n, col: att.def.acc, life: 45, t: 0 });
+        S.shake = Math.max(S.shake, 3);
+      }
       if (def.frozen > 0) {
         d *= 1.4;
         def.frozen = 0;
@@ -2016,6 +2076,8 @@
       def.spec2go = 0;
       def.atk = null;
       def.invis = 0;
+      def.chain = "";
+      def.chainT = 0;
       att.combo = (att.comboT !== void 0 && att.comboT < 60 ? att.combo : 0) + 1;
       att.comboT = 0;
       if (def.combo >= 3) SFX.cbreak();
@@ -7359,7 +7421,9 @@
         g.fillStyle = "#e8e0c0";
         g.fillText("\u0411\u0420\u041E\u0421\u041E\u041A: " + (d.throwN || "\u0417\u0410\u0425\u0412\u0410\u0422"), x, 172, 118);
         g.fillStyle = "#c8a040";
-        g.fillText(p2 ? "[I + O]" : "[J + K]", x, 183);
+        g.fillText("\u041D\u0418\u0417\u041A\u0418\u0419: " + (p2 ? "[S+I+O]" : "[S+J+K]"), x, 183);
+        g.fillStyle = "#e8e0c0";
+        g.fillText("\u0426\u0415\u041F\u042C: " + d.target.seq.split("").join("+"), x, 194);
       };
       ab(S.battle.p1, 209);
       ab(S.battle.p2, 341);

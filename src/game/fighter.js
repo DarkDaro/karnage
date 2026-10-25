@@ -23,15 +23,16 @@ export function createFighter({
     for(let i=0;i<8;i++){const a=i/8*Math.PI*2;P(x+Math.cos(a)*3,y+Math.sin(a)*3,Math.cos(a)*rnd(.8,2.2),Math.sin(a)*rnd(.8,2.2),c,16,2,0);}}
   class F{
   constructor(def,ctrl){this.def=def;this.ctrl=ctrl;this.wins=0;this.rage=0;this.aiDir=null;this.reset(200,1);}
-  reset(x,face){this.x=x;this.y=FL+GR;this.vx=0;this.vy=0;this.face=face;this.state='idle';this.st=0;this.hp=100;this.atk=null;this.frozen=0;this.netT=0;this.invis=0;this.invuln=0;this.poison=0;this.charred=0;this.hidden=0;this.tilt=0;this.run=100;this.running=0;this.hpLag=100;this.lastTap=-99;this.tapDir=0;this.animT=0;this.squash=1;this.scale=1;this.flash=0;this.jbuf=0;this.abuf=0;this.abufB='punch';this.dodging=0;this.dvx=0;this.marks=[];this.poisonC=null;this.spec2go=0;this.combo=0;this.comboT=99;this.pale=0;this.defeated=0;this.damageTaken=0;this.armor=0;this.blockStun=0;this.blockLow=0;this.grabbedBy=0;this.throwTarget=0;this.jumpGrace=0;this.ctrl.clear();}
+  reset(x,face){this.x=x;this.y=FL+GR;this.vx=0;this.vy=0;this.face=face;this.state='idle';this.st=0;this.hp=100;this.atk=null;this.frozen=0;this.netT=0;this.invis=0;this.invuln=0;this.poison=0;this.charred=0;this.hidden=0;this.tilt=0;this.run=100;this.running=0;this.hpLag=100;this.lastTap=-99;this.tapDir=0;this.animT=0;this.squash=1;this.scale=1;this.flash=0;this.jbuf=0;this.abuf=0;this.abufB='punch';this.dodging=0;this.dvx=0;this.marks=[];this.poisonC=null;this.spec2go=0;this.combo=0;this.comboT=99;this.pale=0;this.defeated=0;this.damageTaken=0;this.armor=0;this.blockStun=0;this.blockLow=0;this.grabbedBy=0;this.throwTarget=0;this.jumpGrace=0;this.chain='';this.chainT=0;this.ctrl.clear();}
   get onGround(){return this.y>=FL+GR-.5;}
   get box(){const d=this.def,bh=(this.state==='crouch')?d.h*.55:d.h;return{x:this.x-9*d.bulk,y:this.y-bh,w:18*d.bulk,h:bh};}
-  startAtk(t,key){const d=this.def,c=key&&d.cmd?d.cmd[key]:null,stats=c?{...c}:null,type=stats?(stats.t||t):t;let A={...ATK[type],...(d.norm?.[type]||{})};let name=null;if(stats){const {n,...rest}=stats;delete rest.t;A={...A,...rest};name=n||null;}this.state='atk';this.st=0;this.atk={t:type,name,A,hit:0,blocked:0,connected:0,cancel:0};this.invis=0;this.spec2go=0;this.jumpGrace=0;if(!S.battle||S.battle.phase==='fight')this.ctrl.buf.length=0;SFX.swing();}// 08.09: атака пробивает невидимость; 24.10: буфер очищается для special cancel только в бою; 25.10: профили нормалов и командные нормалы
+  startAtk(t,key){const d=this.def,c=key&&d.cmd?d.cmd[key]:null,stats=c?{...c}:null,type=stats?(stats.t||t):t;let A={...ATK[type],...(d.norm?.[type]||{})};let name=null;if(stats){const {n,...rest}=stats;delete rest.t;A={...A,...rest};name=n||null;}const btn=key?(key==='fP'||key==='bP'?'P':key==='fK'?'K':null):(type==='punch'||type==='upper'?'P':type==='kick'||type==='sweep'||type==='rh'?'K':null);let target=null;if(btn){const seq=d.target&&d.target.seq,continuing=this.comboT<60&&this.combo>0&&this.chainT>0;let chain=continuing?this.chain+btn:btn;if(seq&&!seq.startsWith(chain))chain=btn;this.chain=chain;this.chainT=60;if(seq&&chain===seq)target=d.target;}else{this.chain='';this.chainT=0;}this.state='atk';this.st=0;this.atk={t:type,name,A,target,hit:0,blocked:0,connected:0,cancel:0};this.invis=0;this.spec2go=0;this.jumpGrace=0;if(!S.battle||S.battle.phase==='fight')this.ctrl.buf.length=0;SFX.swing();}// 08.09: атака пробивает невидимость; 24.10: буфер очищается для special cancel только в бою; 25.10: профили нормалов, командные нормалы и target-combo
   startCmd(key){const c=this.def.cmd&&this.def.cmd[key];if(!c)return false;this.startAtk(c.t,key);return true;}
+  startCmdThrow(){this.startAtk('throw');this.atk.cmdThrow=1;}
   jump(){this.vy=-this.def.jmp;this.state='jump';this.jumpGrace=0;SFX.jump();}
   motionPrefix(){const d=this.def;return [d.spec,d.spec2].some((seq)=>{const p=(seq||'').slice(0,-1);return p.endsWith('U')&&this.ctrl.matchRel(p,this.face,16);});}
   update(FR,foe){const d=this.def,c=(S.battle&&S.battle.phase==='intro')?ZEROC:this.ctrl;const stunned=this.blockStun>0;if(stunned)this.blockStun--;// 08.09: в интро ввод заблокирован, но бойцы дышат
-  this.animT++;this.st++;this.flash=Math.max(0,this.flash-1);this.squash=lerp(this.squash,1,.12);this.hpLag=Math.max(this.hp,this.hpLag-.4);// 08.09: отстающий бар урона + восстановление сквоша
+  this.animT++;this.st++;if(this.chainT>0)this.chainT--;else this.chain='';this.flash=Math.max(0,this.flash-1);this.squash=lerp(this.squash,1,.12);this.hpLag=Math.max(this.hp,this.hpLag-.4);// 08.09: отстающий бар урона + восстановление сквоша
   if(this.defeated){this.tilt=lerp(this.tilt,this.state==='dizzy'?0:-1.4,.2);return;}
   if(this.netT>0&&this.state!=='net')this.netT=0;
   if(this.poison>0){this.poison--;this.hp=Math.max(1,this.hp-.06);this.damageTaken=(this.damageTaken||0)+.06;if(this.poison%9===0)P(this.x,this.y-d.h*.6,rnd(-.5,.5),rnd(-1.5,-.3),this.poisonC||'#7ac83a',20,2);}// 30.09: цвет DoT — яд зелёный, кровотечение алое
@@ -65,7 +66,7 @@ export function createFighter({
   if(this.rage>=100&&this.ctrl.match('DDP',60))this.startSuper();
   else if(this.ctrl.matchRel(d.spec,this.face,60))this.startSpec(foe);
   else if(this.ctrl.matchRel(d.spec2,this.face,60))this.startSpec2(foe);// 08.09: второй спецприём
-  else if(c.pP&&c.pK)this.startAtk('throw');// 24.10: бросок P+K
+  else if(c.pP&&c.pK){if(c.d)this.startCmdThrow();else this.startAtk('throw');}// 24.10: бросок P+K; 25.10: D+P+K — командный бросок
   else if(!c.d&&fwd&&btn==='P')this.startCmd('fP');
   else if(!c.d&&fwd&&btn==='K')this.startCmd('fK');
   else if(!c.d&&back&&btn==='P')this.startCmd('bP');
@@ -87,7 +88,7 @@ export function createFighter({
   if(['idle','walk','crouch','block'].includes(this.state))this.face=foe.x<this.x?-1:1;
   if(this.state==='atk'&&this.atk){const A=this.atk.A;
   if(c.pP){this.abuf=8;this.abufB='punch';}else if(c.pK){this.abuf=8;this.abufB=c.d?'sweep':'kick';}else if(this.abuf>0)this.abuf--;// 30.09: буфер атаки 8 кадров
-  if(this.st>A.wd&&this.st<=A.wd+A.ac&&!this.atk.hit&&foe.state!=='down'){const hb=this.atkBox();if(hb&&hitR(hb,foe.box)&&(!A.throw||(foe.onGround&&['idle','walk','block'].includes(foe.state)))){const res=resolveHit(this,foe,A.d,{launch:A.launch,low:A.low,overhead:A.overhead,throw:A.throw,knock:A.knock,grab:A.grab});this.atk.hit=1;this.atk.blocked=res==='block'?1:0;this.atk.connected=res==='hit'||res==='grab'?1:0;this.atk.grabbed=res==='grab'?foe:0;}}
+  if(this.st>A.wd&&this.st<=A.wd+A.ac&&!this.atk.hit&&foe.state!=='down'){const hb=this.atkBox();if(hb&&hitR(hb,foe.box)&&(!A.throw||(foe.onGround&&['idle','walk','block'].includes(foe.state)))){const res=resolveHit(this,foe,A.d,{launch:A.launch,low:A.low,overhead:A.overhead,throw:A.throw,knock:A.knock,grab:A.grab,target:this.atk.target});this.atk.hit=1;this.atk.blocked=res==='block'?1:0;this.atk.connected=res==='hit'||res==='grab'?1:0;this.atk.grabbed=res==='grab'?foe:0;}}
   if(this.atk.t==='throw'&&this.atk.grabbed&&!this.atk.thrown&&this.st>=A.wd+A.ac+8)this.finishThrow(this.atk.grabbed);
   if(this.st===A.wd+A.ac&&!this.atk.hit){SFX.whiff();const hb=this.atkBox();S.fx.push({ty:'whiff',x:hb?hb.x+hb.w/2:this.x+this.face*22,y:hb?hb.y+hb.h/2:this.y-this.def.h*.6,face:this.face,t:0,life:12,col:this.def.acc||'#cfe8ff'});}// 30.09: свист промаха; 25.10: дуга воздуха
   if(this.atk.hit&&this.atk.connected&&!this.atk.blocked&&!this.atk.cancel&&!A.throw&&this.st>A.wd+A.ac&&this.st<=A.wd+A.ac+10&&this.onGround){if(this.ctrl.matchRel(d.spec,this.face,60)){this.atk.cancel=1;this.startSpec(foe);}else if(this.ctrl.matchRel(d.spec2,this.face,60)){this.atk.cancel=1;this.startSpec2(foe);}}// 24.10: special cancel только по попаданию
@@ -98,10 +99,10 @@ export function createFighter({
   if(this.state==='frozen'){this.frozen--;if(this.frozen<=0)this.state='idle';}
   if(this.state==='net'){this.netT--;if(this.netT<=0)this.state='idle';}}
   atkBox(){if(!this.atk)return null;const A=this.atk.A,d=this.def;if(this.atk.t==='jkick')return{x:this.x+(this.face>0?4:-4-A.rng*d.bulk),y:this.y-d.h*.05,w:A.rng*d.bulk+6,h:d.h*.6};return{x:this.x+(this.face>0?4:-4-A.rng*d.bulk),y:this.y-d.h*A.hh-(this.atk.t==='sweep'?0:6),w:A.rng*d.bulk+6,h:this.atk.t==='sweep'?12:(this.atk.t==='upper'?34:14)};}
-  finishThrow(foe){const d=this.def,type=d.throwT||'slam',col=d.throwC||d.acc||'#f8d060',launch=type==='star';foe.grabbedBy=0;this.throwTarget=0;
-  const res=resolveHit(this,foe,d.throwD||10,{throw:1,knock:!launch,launch:launch?1:0});this.atk.thrown=1;this.atk.grabbed=0;if(res!=='hit')return;
+  finishThrow(foe){const d=this.def,cmd=!!(this.atk&&this.atk.cmdThrow),type=d.throwT||'slam',col=d.throwC||d.acc||'#f8d060',dmg=cmd?(d.throwCmdD||(d.throwD||10)+1):(d.throwD||10),name=cmd?(d.throwCmdN||d.throwN):d.throwN,launch=type==='star';foe.grabbedBy=0;this.throwTarget=0;
+  const res=resolveHit(this,foe,dmg,{throw:1,knock:!launch,launch:launch?1:0});this.atk.thrown=1;this.atk.grabbed=0;if(res!=='hit')return;
   foe.x=clamp(this.x+this.face*(launch?22:34),16,AW-16);foe.y=this.y-4;foe.vy=launch?-9:-3.6;foe.vx=this.face*(launch?4.5:5);this.x=clamp(this.x-this.face*3,16,AW-16);this.squash=.86;
-  S.shake=Math.max(S.shake,type==='slam'||type==='blast'||type==='royal'?7:4);S.fx.push({ty:'ring',x:foe.x,y:foe.y-foe.def.h*.55,t:0,col});S.fx.push({ty:'name',x:this.x+this.face*10,y:this.y-this.def.h-10,txt:d.throwN,col,life:60,t:0});
+  S.shake=Math.max(S.shake,type==='slam'||type==='blast'||type==='royal'?7:4);S.fx.push({ty:'ring',x:foe.x,y:foe.y-foe.def.h*.55,t:0,col});S.fx.push({ty:'name',x:this.x+this.face*10,y:this.y-this.def.h-10,txt:name,col,life:60,t:0});
   if(type==='fire'){SFX.fire();foe.poison=50;foe.poisonC=col;}
   else if(type==='shadow'){SFX.tele();this.invis=24;smoke(this.x,this.y-30);}
   else if(type==='shock'){SFX.zap();foe.blockStun=12;}
@@ -116,9 +117,9 @@ export function createFighter({
   else if(type==='blade'){SFX.slash();blood(foe.x,foe.y-foe.def.h*.5,9,1.3);}
   else if(type==='star'){SFX.cast2();}
   for(let i=0;i<10;i++)P(foe.x+rnd(-12,12),foe.y-rnd(8,50),rnd(-2,2),rnd(-2.5,0),col,24,2,-.01);}
-  startSpec(foe){this.state='cast';this.st=0;this.face=foe.x<this.x?-1:1;this.spec2go=0;this.jumpGrace=0;SFX.cast();}
-  startSpec2(foe){this.state='cast';this.st=0;this.face=foe.x<this.x?-1:1;this.spec2go=1;this.jumpGrace=0;SFX.cast2();}// 08.09: второй спец — тот же каст, флаг spec2go выбирает ветку в fireSpec
-  startSuper(){this.state='super';this.st=0;this.rage=0;this.armor=this.def.boss?20:12;this.supEv=[];this.invis=0;this.jumpGrace=0;S.flashS=Math.max(S.flashS,4);S.shake=Math.max(S.shake,4);SFX.supwave();// 08.09: +пробивание невидимости; 25.10: у босса больше армора
+  startSpec(foe){this.state='cast';this.st=0;this.face=foe.x<this.x?-1:1;this.spec2go=0;this.jumpGrace=0;this.chain='';this.chainT=0;SFX.cast();}
+  startSpec2(foe){this.state='cast';this.st=0;this.face=foe.x<this.x?-1:1;this.spec2go=1;this.jumpGrace=0;this.chain='';this.chainT=0;SFX.cast2();}// 08.09: второй спец — тот же каст, флаг spec2go выбирает ветку в fireSpec
+  startSuper(){this.state='super';this.st=0;this.rage=0;this.armor=this.def.boss?20:12;this.supEv=[];this.invis=0;this.jumpGrace=0;this.chain='';this.chainT=0;S.flashS=Math.max(S.flashS,4);S.shake=Math.max(S.shake,4);SFX.supwave();// 08.09: +пробивание невидимости; 25.10: у босса больше армора
   const sy=this.y-this.def.h*.55;S.fx.push({ty:'super',x:this.x,y:sy,gy:this.y,t:0,life:26,col:this.def.acc||'#e8c040'});for(let i=0;i<18;i++){const a=i/18*Math.PI*2;P(this.x+Math.cos(a)*7,sy+Math.sin(a)*7,Math.cos(a)*rnd(1.2,3),Math.sin(a)*rnd(1.2,3),i%2?this.def.acc:'#f8e8b0',26,2,-.02);}// 25.10: вспышка ауры супера
   const me=this;const E=(t,fn)=>this.supEv.push({t,fn,done:0});const id=this.def.id;
   if(this.def.boss){SFX.fire();SFX.boom();S.shake=6;for(let i=0;i<8;i++)E(14+i*7,()=>{S.projs.push({ty:'meteor',x:clamp(me.foe.x+rnd(-54,54),20,AW-20),y:-10,vx:0,vy:5.8,o:me,d:3.4,l:120});SFX.shoot();});E(74,()=>{S.shake=8;S.flashS=Math.max(S.flashS,4);for(let i=0;i<18;i++){const a=i/18*Math.PI*2;P(me.x+Math.cos(a)*8,me.y-30+Math.sin(a)*8,Math.cos(a)*rnd(1,3),Math.sin(a)*rnd(1,3),'#f0c850',30,2,-.02);}});}// 25.10: «Орбитальная корона» — метеоры вокруг цели

@@ -241,6 +241,72 @@ test('command normals and directional U-specials stay usable from the ground', a
   assert.deepEqual(result, []);
 });
 
+test('command throws and target combos work for every fighter', async () => {
+  const result = await page.evaluate(() => {
+    const K = window.KARNAGE;
+    const failures = [];
+    const setup = (id) => {
+      for (const code in K.keys) K.keys[code] = false;
+      K.setDebug({ GAME: 'fight', paused: false });
+      K.newBattle(id, new K.Ctrl(K.KM1), (id + 1) % K.CH.length, new K.Ctrl(K.KM2), 9);
+      const battle = K.battle;
+      battle.mode = '2p';
+      battle.phase = 'fight';
+      battle.phaseT = 200;
+      battle.p1.ctrl.ai = false;
+      battle.p2.ctrl.ai = false;
+      battle.p1.x = 300;
+      battle.p2.x = 330;
+      battle.p1.y = battle.p2.y = 214;
+      battle.p1.face = 1;
+      battle.p2.face = -1;
+      battle.p1.state = 'idle';
+      battle.p1.st = 0;
+      battle.p1.atk = null;
+      battle.p2.state = 'idle';
+      battle.p2.st = 0;
+      battle.p2.atk = null;
+      battle.p2.hp = 100;
+      battle.p2.defeated = 0;
+      battle.p1.ctrl.clear();
+      battle.p2.ctrl.clear();
+      return battle;
+    };
+
+    for (const def of K.CH) {
+      const battle = setup(def.id);
+      K.keys.KeyS = true;
+      K.step();
+      K.keys.KeyJ = true;
+      K.keys.KeyK = true;
+      K.step();
+      K.keys.KeyJ = false;
+      K.keys.KeyK = false;
+      K.step();
+      K.keys.KeyS = false;
+      K.step();
+      const started = battle.p1.atk;
+      if (!started || started.t !== 'throw' || !started.cmdThrow) {
+        failures.push(`${def.id}: command throw did not start`);
+      } else {
+        for (let frame = 0; frame < 30; frame += 1) K.step();
+        if (battle.p2.hp >= 100) failures.push(`${def.id}: command throw did not damage`);
+      }
+
+      const chainBattle = setup(def.id);
+      chainBattle.p1.startAtk('punch');
+      for (let frame = 0; frame < 8; frame += 1) K.step();
+      chainBattle.p1.startAtk('punch');
+      chainBattle.p1.startAtk('kick');
+      if (!chainBattle.p1.atk?.target || chainBattle.p1.atk.target.n !== def.target.n) {
+        failures.push(`${def.id}: target combo not detected (${chainBattle.p1.chain})`);
+      }
+    }
+    return failures;
+  });
+  assert.deepEqual(result, []);
+});
+
 test('every fatality accepts its command in the finish window', async () => {
   const result = await page.evaluate(() => {
     const K = window.KARNAGE;

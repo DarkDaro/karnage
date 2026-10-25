@@ -30,7 +30,7 @@
 - CC0-эффекты: `hitLight`, `hitHeavy`, `dust`.
 - Все 10 арен — 4 слоя, параллакс, свет, туман и погода; передний слой не закрывает бойцов.
 - Звук включён по умолчанию; WAV-эффекты и MP3-музыка, выбор сохраняется.
-- Тесты: 50 сценариев (9 unit + 41 Playwright).
+- Тесты: 52 сценария (10 unit + 42 Playwright).
 - `npm run check`: синтаксис, ESLint, UTF-8/BOM, ростер, checksums архивов.
 
 ## Текущий технический проход
@@ -57,6 +57,8 @@
 - e2e реального ввода: все спецы, спец-2, суперы и фаталити проверяются клавишами;
 - у каждого бойца свои профили нормалов и командные нормалы `вперёд+P`, `вперёд+K`, `назад+P`;
 - `DUP` и `RUK` получили наземный pre-jump каст, остальные `U`-команды остаются воздушными;
+- добавлен командный бросок `D+P+K` с отдельным именем и уроном;
+- добавлены именные target-combo с бонусным финишёром;
 - FX: block, smoke, dustRun, fireImpact, iceImpact, shadowImpact, explosion;
 - все 10 арен на ассетах с fallback, слои `far/mid/props/fg`, свет и погода;
 - `src/game/world/arena.js` вынесен из монолита;
@@ -182,7 +184,7 @@ npm run assets:build
 1. `git status --short` — нет случайных файлов, `node_modules` и `test-results` не в индексе.
 2. `npm run assets:build` — если менялись `assets/vendor` или `assets/fx`.
 3. `npm run build` — обновить `release/app.js` и `release/assets/fx`.
-4. `npm test` — 50/50.
+4. `npm test` — 52/52.
 5. `npm run check` — ESLint и audit без ошибок.
 6. Открыть `index.html` двойным кликом: титул, меню, бой, эффект удара.
 7. Проверить `release/index.html` отдельно, как переносимую папку.

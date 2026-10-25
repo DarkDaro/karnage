@@ -72,6 +72,11 @@ const THROW_DATA = {
 for (const c of CH) Object.assign(c, THROW_DATA[c.id]);
 Object.assign(BOSS, { throwN: 'ПРИГОВОР КОРОНЫ', throwT: 'royal', throwC: '#f0c850', throwD: 14 });
 
+// 25.10: командный бросок D+P+K — отдельное имя и чуть больше урона.
+const CMD_THROW_NAMES = ['ПЕПЕЛЬНЫЙ ОБХВАТ', 'ТЕНЕВОЙ ПЕРЕЛОМ', 'КОРОТКОЕ ЗАМЫКАНИЕ', 'ГОРНЫЙ СЛОМ', 'ЯДОВИТЫЙ ЗАХВАТ', 'ПЕСЧАНЫЙ ПЛЕН', 'ЛЕДЯНОЙ КАПКАН', 'РЖАВЫЙ ЗАЖИМ', 'СОННЫЙ ПЛЕН', 'КОРОЛЕВСКИЙ ЗАХВАТ', 'АЛЫЙ ПЛЕН', 'ЛУННЫЙ ЗАХВАТ', 'ЗВЁЗДНЫЙ ЗАХВАТ'];
+for (const c of CH) c.throwCmdN = CMD_THROW_NAMES[c.id];
+BOSS.throwCmdN = 'КОРОНА-ЗАХВАТ';
+
 // 25.10: у каждого бойца свои нормалы и три командных нормала.
 const CMD_DEFAULT = {
   fP: { t: 'punch', d: 8, wd: 6, ac: 3, rc: 10, rng: 32, hh: .7 },
@@ -101,3 +106,22 @@ function applyNormalData(target, data) {
 }
 for (const c of CH) applyNormalData(c, NORMAL_DATA[c.id]);
 applyNormalData(BOSS, NORMAL_DATA[9]);
+
+// 25.10: один именной target-combo на бойца; цепочка начинается только после попадания.
+const TARGET_DATA = {
+  0: { target: { seq: 'PPK', n: 'ПЕПЕЛЬНАЯ СЕРИЯ' } },
+  1: { target: { seq: 'PK', n: 'ТЕНЕВОЙ РАЗРЕЗ' } },
+  2: { target: { seq: 'PPK', n: 'ГРОЗОВАЯ ЦЕПЬ' } },
+  3: { target: { seq: 'PPK', n: 'ГОРНЫЙ ОБВАЛ' } },
+  4: { target: { seq: 'PPK', n: 'КОГТЕВАЯ СЕРИЯ' } },
+  5: { target: { seq: 'PPK', n: 'ПЕСЧАНАЯ КАРУСЕЛЬ' } },
+  6: { target: { seq: 'PPK', n: 'ЛЕДЯНАЯ ЦЕПЬ' } },
+  7: { target: { seq: 'PPK', n: 'РЖАВАЯ СЕРИЯ' } },
+  8: { target: { seq: 'PPK', n: 'СУМРАЧНАЯ ЦЕПЬ' } },
+  9: { target: { seq: 'PPK', n: 'КОРОЛЕВСКАЯ СЕРИЯ' } },
+  10: { target: { seq: 'PPK', n: 'АЛАЯ СЕРИЯ' } },
+  11: { target: { seq: 'PK', n: 'ЛУННЫЙ РАЗРЕЗ' } },
+  12: { target: { seq: 'PPK', n: 'ЗВЁЗДНАЯ ЦЕПЬ' } }
+};
+for (const c of CH) Object.assign(c, TARGET_DATA[c.id]);
+Object.assign(BOSS, TARGET_DATA[9]);

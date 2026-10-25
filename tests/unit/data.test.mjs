@@ -77,6 +77,18 @@ test('normal and command normal data is complete and distinct', () => {
   assert.equal(new Set(names).size, names.length, 'command normal names must be unique');
 });
 
+test('command throws and target combos are complete', () => {
+  for (const fighter of [...CH, BOSS]) {
+    assert.ok(fighter.throwCmdN, `${fighter.name} command throw`);
+    assert.match(fighter.target.seq, /^[PK]{2,3}$/, `${fighter.name} target sequence`);
+    assert.ok(fighter.target.n, `${fighter.name} target name`);
+  }
+  for (const field of ['throwCmdN', 'target']) {
+    const values = CH.map((fighter) => field === 'target' ? fighter.target.n : fighter[field]);
+    assert.equal(new Set(values).size, values.length, `${field} must be unique`);
+  }
+});
+
 test('every fighter has a named throw finisher', () => {
   for (const fighter of [...CH, BOSS]) {
     assert.ok(fighter.throwN && fighter.throwN.length <= 24, fighter.name);
