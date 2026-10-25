@@ -593,6 +593,27 @@
   };
   for (const c of CH) Object.assign(c, TARGET_DATA[c.id]);
   Object.assign(BOSS, TARGET_DATA[9]);
+  var DUMMY = {
+    ...CH[3],
+    id: 13,
+    name: "\u041C\u0410\u041D\u0415\u041A\u0415\u041D",
+    en: "DUMMY",
+    skin: "#b8b0a0",
+    suit: "#4a4a4a",
+    acc: "#c8c0a8",
+    hair: "#2a2a2a",
+    gear: "visor",
+    h: 64,
+    bulk: 1.12,
+    spd: 0,
+    jmp: 0,
+    dmg: 0,
+    specN: "\u2014",
+    spec2N: "\u2014",
+    sup: "\u2014",
+    throwN: "\u0417\u0410\u0425\u0412\u0410\u0422 \u041C\u0410\u041D\u0415\u041A\u0415\u041D\u0410",
+    throwCmdN: "\u0417\u0410\u0425\u0412\u0410\u0422 \u041C\u0410\u041D\u0415\u041A\u0415\u041D\u0410"
+  };
 
   // src/data/endings.js
   var ENDINGS = [
@@ -4573,7 +4594,7 @@
       g.font = '15px "Russo One"';
       g.fillStyle = b.timer < 11 && blink() ? "#ff5030" : "#f0e8d0";
       g.textAlign = "center";
-      g.fillText("" + Math.ceil(b.timer), RW / 2, 23);
+      g.fillText(b.mode === "training" ? "\u221E" : "" + Math.ceil(b.timer), RW / 2, 23);
       const pip = (x, y, on) => {
         g.fillStyle = on ? "#e04020" : "#2a2522";
         g.beginPath();
@@ -6218,6 +6239,28 @@
     function battleUpd() {
       const b = S.battle;
       b.phaseT++;
+      if (b.mode === "training") {
+        b.phase = "fight";
+        b.phaseT = 200;
+        b.timer = 99;
+        S.freeze = 0;
+        updFs(1);
+        for (const f of [b.p1, b.p2]) {
+          f.hp = 100;
+          f.hpLag = 100;
+          f.rage = 100;
+          f.defeated = 0;
+          if (f.state === "down" && f.st > 60) {
+            f.state = "idle";
+            f.st = 0;
+            f.y = FL + GR;
+            f.vx = 0;
+            f.vy = 0;
+          }
+        }
+        S.freeze = 0;
+        return;
+      }
       if (b.phase === "intro") {
         if (b.phaseT === 90) {
           S.announce = { txt: "FIGHT!", t: 0, col: "#e02020" };
@@ -6259,7 +6302,7 @@
       const b = S.battle;
       for (const f of [b.p1, b.p2]) {
         f.comboT = (f.comboT || 0) + 1;
-        if (f.ctrl.ai && act && b.phase !== "finish") aiUpd(f, f.foe, b.aiLvl);
+        if (f.ctrl.ai && act && b.phase !== "finish" && b.mode !== "training") aiUpd(f, f.foe, b.aiLvl);
         if (f.state !== "fatal" && f.state !== "victim") f.update(S.FRAME, f.foe);
         else {
           f.st++;
@@ -6267,7 +6310,7 @@
         }
         f.updSuper();
       }
-      if (b.phase === "fight") {
+      if (b.phase === "fight" && b.mode !== "training") {
         const dead = [b.p1, b.p2].filter((f) => f.hp <= 0 && f.state !== "victim");
         if (dead.length >= 2) {
           b.phase = "ko";
@@ -6432,7 +6475,7 @@
     function menuItems() {
       const saved = !!loadArcRun(), items = [];
       if (saved) items.push({ id: "resume", label: "\u041F\u0420\u041E\u0414\u041E\u041B\u0416\u0418\u0422\u042C \u0410\u0420\u041A\u0410\u0414\u0423" });
-      items.push({ id: "arcade", label: saved ? "\u041D\u041E\u0412\u0410\u042F \u0410\u0420\u041A\u0410\u0414\u0410" : "\u0410\u0420\u041A\u0410\u0414\u0410" }, { id: "cpu", label: "\u0411\u041E\u0419 \u041F\u0420\u041E\u0422\u0418\u0412 CPU" }, { id: "2p", label: "\u0411\u041E\u0419 \u041D\u0410 \u0414\u0412\u041E\u0418\u0425" }, { id: "settings", label: "\u041D\u0410\u0421\u0422\u0420\u041E\u0419\u041A\u0418" }, { id: "controls", label: "\u0423\u041F\u0420\u0410\u0412\u041B\u0415\u041D\u0418\u0415" }, { id: "top", label: "\u0417\u0410\u041B \u0421\u041B\u0410\u0412\u042B" });
+      items.push({ id: "arcade", label: saved ? "\u041D\u041E\u0412\u0410\u042F \u0410\u0420\u041A\u0410\u0414\u0410" : "\u0410\u0420\u041A\u0410\u0414\u0410" }, { id: "cpu", label: "\u0411\u041E\u0419 \u041F\u0420\u041E\u0422\u0418\u0412 CPU" }, { id: "training", label: "\u0422\u0420\u0415\u041D\u0418\u0420\u041E\u0412\u041A\u0410" }, { id: "2p", label: "\u0411\u041E\u0419 \u041D\u0410 \u0414\u0412\u041E\u0418\u0425" }, { id: "settings", label: "\u041D\u0410\u0421\u0422\u0420\u041E\u0419\u041A\u0418" }, { id: "controls", label: "\u0423\u041F\u0420\u0410\u0412\u041B\u0415\u041D\u0418\u0415" }, { id: "top", label: "\u0417\u0410\u041B \u0421\u041B\u0410\u0412\u042B" });
       return items;
     }
     function pauseItems() {
@@ -6517,6 +6560,10 @@
         S.paused = true;
         S.pauseIdx = 0;
         SFX.menu();
+        return;
+      }
+      if (S.GAME === "fight" && !S.paused && k === "KeyR" && S.battle && S.battle.mode === "training") {
+        resetTraining();
         return;
       }
       if (S.GAME === "title") {
@@ -6605,6 +6652,10 @@
           } else if (item.id === "cpu") {
             S.GAME = "select";
             S.sel = createSelection("cpu");
+            say("Choose your fighter");
+          } else if (item.id === "training") {
+            S.GAME = "select";
+            S.sel = createSelection("training");
             say("Choose your fighter");
           } else if (item.id === "2p") {
             S.GAME = "select";
@@ -6722,7 +6773,30 @@
     }
     function startSel() {
       const s = S.sel;
-      newBattle(s.c1, new Ctrl(KM12), s.c2, new Ctrl(KM22), s.ar < 0 ? CH[s.c1].arena : s.ar);
+      const training = s.mode === "training";
+      newBattle(s.c1, new Ctrl(KM12), training ? DUMMY : s.c2, new Ctrl(KM22), training ? DUMMY.arena : s.ar < 0 ? CH[s.c1].arena : s.ar);
+      if (training) {
+        const b = S.battle;
+        b.mode = "training";
+        b.p2.ctrl.ai = true;
+        b.p2.ctrl.ax = {};
+        b.p1.x = 300;
+        b.p1.face = 1;
+        b.p2.x = 380;
+        b.p2.face = -1;
+        b.p1.rage = 100;
+        b.p2.rage = 100;
+        b.timer = 99;
+        b.phase = "fight";
+        b.phaseT = 200;
+        b.p1.ctrl.clear();
+        b.p2.ctrl.clear();
+        S.lastSel = null;
+        S.announce = { txt: "\u0422\u0420\u0415\u041D\u0418\u0420\u041E\u0412\u041A\u0410", t: 0, col: "#e8c040" };
+        S.GAME = "fight";
+        SFX.sel();
+        return;
+      }
       S.battle.mode = s.mode === "cpu" ? "cpu" : "2p";
       if (s.mode === "cpu") {
         S.battle.p2.ctrl.ai = true;
@@ -6732,6 +6806,22 @@
       S.lastSel = { mode: s.mode, c1: s.c1, c2: s.c2, diff: s.diff, ar: s.ar };
       S.GAME = "vs";
       S.vsT = 0;
+    }
+    function resetTraining() {
+      const b = S.battle;
+      if (!b || b.mode !== "training") return;
+      b.p1.reset(300, 1);
+      b.p2.reset(380, -1);
+      b.p1.rage = 100;
+      b.p2.rage = 100;
+      b.phase = "fight";
+      b.phaseT = 200;
+      b.timer = 99;
+      S.freeze = 0;
+      S.paused = false;
+      S.projs.length = 0;
+      S.fx.length = 0;
+      S.announce = { txt: "\u0421\u0411\u0420\u041E\u0421", t: 0, col: "#c8a040" };
     }
     function rematchStart() {
       newBattle(S.lastSel.c1, new Ctrl(KM12), S.lastSel.c2, new Ctrl(KM22), S.lastSel.ar < 0 ? CH[S.lastSel.c1].arena : S.lastSel.ar);
@@ -6804,6 +6894,14 @@
           SFX.menu();
         }
       };
+      if (s.mode === "training") {
+        move("c1", d1 || d2);
+        if (k === "KeyJ" || k === "Enter" || k === "Space") {
+          SFX.sel();
+          startSel();
+        }
+        return;
+      }
       if (s.mode === "arcade") {
         move("c1", d1 || d2);
         if (k === "KeyJ" || k === "Enter" || k === "Space") {
@@ -6908,7 +7006,7 @@
       g.fillText("\u0412\u042B\u0411\u041E\u0420 \u0411\u041E\u0419\u0426\u0410", RW / 2, 16);
       g.font = '7px "Russo One"';
       g.fillStyle = "#807850";
-      const hdr = s.mode === "arcade" ? loadArcRun() ? "\u041D\u041E\u0412\u0410\u042F \u0410\u0420\u041A\u0410\u0414\u0410 \u0417\u0410\u041C\u0415\u041D\u0418\u0422 \u0421\u041E\u0425\u0420\u0410\u041D\u0401\u041D\u041D\u0423\u042E" : "\u0412\u042B\u0411\u0415\u0420\u0418 \u0411\u041E\u0419\u0426\u0410 \u2014 " + ARC_TOTAL + " \u0411\u041E\u0401\u0412 \xB7 \u0411\u041E\u0421\u0421 \u0412 \u0424\u0418\u041D\u0410\u041B\u0415" : s.ph === 2 ? "\u041F\u041E\u0414\u0413\u041E\u0422\u041E\u0412\u041A\u0410 \u041A \u0411\u041E\u042E" : s.mode === "cpu" ? s.ph === 0 ? "\u0412\u042B\u0411\u0415\u0420\u0418 \u0421\u0412\u041E\u0415\u0413\u041E \u0411\u041E\u0419\u0426\u0410" : "\u0412\u042B\u0411\u0415\u0420\u0418 \u0421\u041E\u041F\u0415\u0420\u041D\u0418\u041A\u0410" : "P1: WASD + J \xB7 P2: \u0421\u0422\u0420\u0415\u041B\u041A\u0418 + I";
+      const hdr = s.mode === "training" ? "\u0412\u042B\u0411\u0415\u0420\u0418 \u0411\u041E\u0419\u0426\u0410 \u0414\u041B\u042F \u0422\u0420\u0415\u041D\u0418\u0420\u041E\u0412\u041A\u0418" : s.mode === "arcade" ? loadArcRun() ? "\u041D\u041E\u0412\u0410\u042F \u0410\u0420\u041A\u0410\u0414\u0410 \u0417\u0410\u041C\u0415\u041D\u0418\u0422 \u0421\u041E\u0425\u0420\u0410\u041D\u0401\u041D\u041D\u0423\u042E" : "\u0412\u042B\u0411\u0415\u0420\u0418 \u0411\u041E\u0419\u0426\u0410 \u2014 " + ARC_TOTAL + " \u0411\u041E\u0401\u0412 \xB7 \u0411\u041E\u0421\u0421 \u0412 \u0424\u0418\u041D\u0410\u041B\u0415" : s.ph === 2 ? "\u041F\u041E\u0414\u0413\u041E\u0422\u041E\u0412\u041A\u0410 \u041A \u0411\u041E\u042E" : s.mode === "cpu" ? s.ph === 0 ? "\u0412\u042B\u0411\u0415\u0420\u0418 \u0421\u0412\u041E\u0415\u0413\u041E \u0411\u041E\u0419\u0426\u0410" : "\u0412\u042B\u0411\u0415\u0420\u0418 \u0421\u041E\u041F\u0415\u0420\u041D\u0418\u041A\u0410" : "P1: WASD + J \xB7 P2: \u0421\u0422\u0420\u0415\u041B\u041A\u0418 + I";
       g.fillText(hdr, RW / 2, 27);
       for (let i = 0; i < CH.length; i++) {
         const x = 12 + i % 5 * 37, y = 36 + (i / 5 | 0) * 46;
@@ -6938,7 +7036,10 @@
       const lx = isTouchUI() ? 34 : 12;
       g.fillStyle = "#e02020";
       g.fillText("P1: " + CH[s.c1].name, lx, 187);
-      if (s.mode !== "arcade") {
+      if (s.mode === "training") {
+        g.fillStyle = UI_MUTED;
+        g.fillText("\u041C\u0410\u041D\u0415\u041A\u0415\u041D: \u041F\u0410\u0421\u0421\u0418\u0412\u041D\u042B\u0419", lx, 197);
+      } else if (s.mode !== "arcade") {
         g.fillStyle = UI_BLUE;
         g.fillText((s.mode === "2p" ? "P2" : "CPU") + ": " + CH[s.c2].name, lx, 197);
       }
@@ -7248,7 +7349,7 @@
       g.fillStyle = "rgba(200,160,64,.42)";
       g.fillRect(RW / 2 - 74, 50, 148, 1);
       panel(36, 62, 196, 140);
-      const items = menuItems().map((it) => it.label), gap = items.length > 6 ? 17 : 19;
+      const items = menuItems().map((it) => it.label), gap = items.length > 7 ? 15 : items.length > 6 ? 17 : 19;
       S.menuIdx = clamp2(S.menuIdx, 0, items.length - 1);
       items.forEach((it, i) => {
         const y = 82 + i * gap, on = i === S.menuIdx;
@@ -7658,6 +7759,12 @@
         g.fillStyle = "#e8e0c0";
         g.textAlign = "center";
         g.fillText(isTouchUI() ? "P \u2014 \u041F\u0420\u041E\u041F\u0423\u0421\u0422\u0418\u0422\u042C" : "J \u2014 \u041F\u0420\u041E\u041F\u0423\u0421\u0422\u0418\u0422\u042C", RW / 2, 232);
+      }
+      if (b.mode === "training") {
+        g.font = '7px "Russo One"';
+        g.fillStyle = UI_MUTED;
+        g.textAlign = "center";
+        g.fillText("R \u2014 \u0421\u0411\u0420\u041E\u0421 \xB7 ESC \u2014 \u041F\u0410\u0423\u0417\u0410", RW / 2, 232);
       }
       if (S.announce && S.announce.t < 110) {
         const t = S.announce.t;

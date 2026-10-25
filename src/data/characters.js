@@ -125,3 +125,26 @@ const TARGET_DATA = {
 };
 for (const c of CH) Object.assign(c, TARGET_DATA[c.id]);
 Object.assign(BOSS, TARGET_DATA[9]);
+
+// 25.10: манекен для тренировки — пассивная копия тела, не входит в ростер.
+export const DUMMY = {
+  ...CH[3],
+  id: 13,
+  name: 'МАНЕКЕН',
+  en: 'DUMMY',
+  skin: '#b8b0a0',
+  suit: '#4a4a4a',
+  acc: '#c8c0a8',
+  hair: '#2a2a2a',
+  gear: 'visor',
+  h: 64,
+  bulk: 1.12,
+  spd: 0,
+  jmp: 0,
+  dmg: 0,
+  specN: '—',
+  spec2N: '—',
+  sup: '—',
+  throwN: 'ЗАХВАТ МАНЕКЕНА',
+  throwCmdN: 'ЗАХВАТ МАНЕКЕНА'
+};

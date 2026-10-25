@@ -529,6 +529,67 @@ test('main menu offers continue for a saved arcade run', async () => {
   assert.deepEqual(result, { game: 'vs', step: 0, player: 0, saved: 0 });
 });
 
+test('training mode uses a passive dummy with endless resources', async () => {
+  const result = await page.evaluate(() => {
+    const K = window.KARNAGE;
+    localStorage.clear();
+    K.toLobby('menu');
+    K.onKey('ArrowDown');
+    K.onKey('ArrowDown');
+    K.onKey('Enter');
+    const selected = K.GAME;
+    K.onKey('Enter');
+    const b = K.battle;
+    const started = {
+      game: K.GAME,
+      mode: b.mode,
+      dummy: b.p2.def.name,
+      ai: b.p2.ctrl.ai,
+      axes: Object.keys(b.p2.ctrl.ax).length,
+      timer: b.timer,
+      phase: b.phase
+    };
+    b.p1.x = 352;
+    b.p1.startAtk('punch');
+    for (let i = 0; i < 12; i += 1) K.step();
+    const hit = { combo: b.p1.combo, hp: b.p2.hp, phase: b.phase };
+    b.timer = 0;
+    b.p2.hp = 0;
+    K.step();
+    const safe = { timer: b.timer, hp: b.p2.hp, defeated: b.p2.defeated, phase: b.phase, p1hp: b.p1.hp, rage: b.p1.rage };
+    K.onKey('KeyR');
+    const reset = { x: b.p1.x, p2x: b.p2.x, hp: b.p2.hp, timer: b.timer, phase: b.phase };
+    let render = 'ok';
+    try {
+      K.render();
+      K.setDebug({ paused: true });
+      K.render();
+      K.setDebug({ paused: false });
+    } catch (error) {
+      render = `${error.name}: ${error.message}`;
+    }
+    return { selected, started, hit, safe, reset, render };
+  });
+  assert.equal(result.selected, 'select');
+  assert.equal(result.started.game, 'fight');
+  assert.equal(result.started.mode, 'training');
+  assert.equal(result.started.dummy, 'МАНЕКЕН');
+  assert.equal(result.started.ai, true);
+  assert.equal(result.started.axes, 0);
+  assert.equal(result.started.timer, 99);
+  assert.equal(result.started.phase, 'fight');
+  assert.ok(result.hit.combo >= 1);
+  assert.equal(result.hit.hp, 100);
+  assert.equal(result.safe.timer, 99);
+  assert.equal(result.safe.hp, 100);
+  assert.equal(result.safe.defeated, 0);
+  assert.equal(result.safe.phase, 'fight');
+  assert.equal(result.safe.p1hp, 100);
+  assert.equal(result.safe.rage, 100);
+  assert.deepEqual(result.reset, { x: 300, p2x: 380, hp: 100, timer: 99, phase: 'fight' });
+  assert.equal(result.render, 'ok');
+});
+
 test('interrupted special does not leak spec2go', async () => {
   const result = await page.evaluate(() => {
     const K = window.KARNAGE;
@@ -556,6 +617,7 @@ test('settings open from the main menu and persist video toggles', async () => {
     const K = window.KARNAGE;
     localStorage.removeItem('karnageArcRun');
     K.toLobby('menu');
+    K.onKey('ArrowDown');
     K.onKey('ArrowDown');
     K.onKey('ArrowDown');
     K.onKey('ArrowDown');

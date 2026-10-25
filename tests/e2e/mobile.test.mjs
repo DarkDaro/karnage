@@ -62,6 +62,7 @@ test('touch controls navigate the menu and hold fight buttons', async () => {
   await page.locator('[data-key="d"]').tap();
   await page.locator('[data-key="d"]').tap();
   await page.locator('[data-key="d"]').tap();
+  await page.locator('[data-key="d"]').tap();
   await page.locator('[data-key="P"]').tap();
   const game = await page.evaluate(() => window.KARNAGE.snapshot().GAME);
   assert.equal(game, 'settings');
