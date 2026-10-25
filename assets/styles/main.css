@@ -55,7 +55,7 @@ body {
 }
 
 canvas {
-  image-rendering: pixelated;
+  image-rendering: auto;
   background: #000;
 }
 

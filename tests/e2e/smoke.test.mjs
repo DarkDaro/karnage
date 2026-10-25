@@ -76,8 +76,8 @@ test('renders at an internal resolution above the logical world', async () => {
     ratio: el.width / el.height,
     logicalRatio: 424 / 240
   }));
-  assert.ok(canvas.width >= 424 * 2);
-  assert.ok(canvas.height >= 240 * 2);
+  assert.ok(canvas.width >= 424 * 4);
+  assert.ok(canvas.height >= 240 * 4);
   assert.ok(Math.abs(canvas.ratio - canvas.logicalRatio) < 0.001);
 });
 

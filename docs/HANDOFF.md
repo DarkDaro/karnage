@@ -66,7 +66,7 @@
 - все 10 арен на ассетах с fallback, слои `far/mid/props/fg`, свет и погода;
 - `src/game/world/arena.js` вынесен из монолита;
 - `src/render/render.js` выносит бойцов, гир, портреты, HUD, панель фаталити и эффекты; новый комиксовый рендер тела/лиц/гира и портретов — в `src/render/fighter-art.js`; старый рендер доступен как `drawFLegacy`/`drawPortLegacy`;
-- внутреннее разрешение canvas динамическое 2–4× (`RSCALE` в `fit()`/`render()`), логический мир остаётся `424×240`;
+- внутреннее разрешение canvas динамическое 2–6× с supersampling (`RSCALE` в `fit()`/`render()`, `image-rendering: auto`), логический мир остаётся `424×240`;
 - `src/audio/audio.js` хранит AU, WAV/MP3-банк, синтез SFX, голос и музыку;
 - `src/game/core/state.js` хранит состояние сессии, боя, выбора и эффектов;
 - `src/game/fx/particles.js` отвечает за частицы, кровь, декали и лимиты;

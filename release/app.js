@@ -6767,15 +6767,15 @@
     const FX = fxAssets || {}, ARENA_IMG = arenaAssets || {}, UI = uiAssets || {};
     const S = createState();
     const cv = document.getElementById("cv"), g = cv.getContext("2d");
-    let RSCALE = 3;
+    let RSCALE = 5;
     function fit() {
       let s = Math.min(innerWidth / RW, innerHeight / RH);
       if (s >= 2) s = Math.floor(s);
       cv.style.width = s * RW + "px";
       cv.style.height = s * RH + "px";
       document.body.classList.toggle("portrait", innerHeight > innerWidth);
-      const dpr = Math.min(2, window.devicePixelRatio || 1), cap = navigator.maxTouchPoints > 0 ? 3 : 4;
-      RSCALE = Math.max(2, Math.min(cap, Math.ceil(s * dpr)));
+      const touch = navigator.maxTouchPoints > 0, dpr = Math.min(3, window.devicePixelRatio || 1), cap = touch ? 4 : 6, min = touch ? 3 : 4;
+      RSCALE = Math.max(min, Math.min(cap, Math.round(s * dpr * 1.5)));
       if (cv.width !== RW * RSCALE || cv.height !== RH * RSCALE) {
         cv.width = RW * RSCALE;
         cv.height = RH * RSCALE;
