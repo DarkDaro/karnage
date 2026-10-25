@@ -45,7 +45,7 @@
 - Бойцы, портреты, HUD и эффекты рисуются из `src/render/render.js`; титул, логотип и меню — из `src/render/ui-art.js`.
 - Звук, WAV/MP3-банк, SFX и музыка вынесены в `src/audio/audio.js`.
 - Подключены 10 FX-атласов: `hitLight`, `hitHeavy`, `dust`, `block`, `smoke`, `dustRun`, `fireImpact`, `iceImpact`, `shadowImpact`, `explosion`.
-- Тесты: 86 сценариев (13 unit + 73 Playwright), ESLint покрывает `src`.
+- Тесты: 89 сценариев (14 unit + 75 Playwright), ESLint покрывает `src`.
 - Известные ошибки и ограничения: `DEVNOTES.md`.
 
 ## Запуск

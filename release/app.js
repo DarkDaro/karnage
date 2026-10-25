@@ -518,16 +518,16 @@
 
   // src/data/characters.js
   var CH = [
-    { id: 0, name: "\u042D\u041C\u0411\u0415\u0420", en: "EMBER", skin: "#c8845a", suit: "#8a2418", acc: "#f0a032", hair: "#3a1408", gear: "hair", h: 60, bulk: 1, spd: 2, jmp: 8.4, dmg: 1, specN: "\u041E\u0433\u043D\u0435\u043D\u043D\u044B\u0439 \u0448\u0430\u0440", spec: "DRP", sup: "\u041C\u0435\u0442\u0435\u043E\u0440\u0438\u0442\u043D\u044B\u0439 \u0434\u043E\u0436\u0434\u044C", fat: "RRLP", arena: 6 },
+    { id: 0, name: "\u042D\u041C\u0411\u0415\u0420", en: "EMBER", skin: "#c8845a", suit: "#8a2418", acc: "#f0a032", hair: "#3a1408", gear: "hair", h: 60, bulk: 1, spd: 2.05, jmp: 8.4, dmg: 1, specN: "\u041E\u0433\u043D\u0435\u043D\u043D\u044B\u0439 \u0448\u0430\u0440", spec: "DRP", sup: "\u041C\u0435\u0442\u0435\u043E\u0440\u0438\u0442\u043D\u044B\u0439 \u0434\u043E\u0436\u0434\u044C", fat: "RRLP", arena: 6 },
     { id: 1, name: "\u0413\u0415\u0419\u0421\u0422", en: "GEIST", skin: "#a9b6bd", suit: "#3d4750", acc: "#9fb4bd", hair: "#111", gear: "mask", h: 62, bulk: 0.95, spd: 2.3, jmp: 8.8, dmg: 0.95, specN: "\u0422\u0435\u043D\u0438-\u0441\u043A\u0430\u0447\u043E\u043A", spec: "RRP", sup: "\u041A\u0443\u043D\u0430\u0439-\u0446\u0435\u043F\u044C", fat: "LURP", arena: 1 },
-    { id: 2, name: "\u0412\u041E\u041B\u042C\u0422", en: "VOLT", skin: "#d8a05a", suit: "#2b4a8a", acc: "#f2d23a", hair: "#1a1a1a", gear: "helm", h: 63, bulk: 1.05, spd: 2.1, jmp: 8.5, dmg: 1, specN: "\u0421\u0442\u043E\u043B\u043F \u043C\u043E\u043B\u043D\u0438\u0439", spec: "DUP", sup: "\u0413\u0440\u043E\u0437\u0430", fat: "DDRP", arena: 2 },
-    { id: 3, name: "\u0411\u0410\u0417\u0410\u041B\u042C\u0422", en: "BASALT", skin: "#8a7256", suit: "#4a4038", acc: "#7a6a54", hair: "#2a241e", gear: "horn", h: 74, bulk: 1.45, spd: 1.6, jmp: 7.2, dmg: 1.2, specN: "\u0421\u0435\u0439\u0441\u043C\u0438\u0447\u0435\u0441\u043A\u0430\u044F \u0432\u043E\u043B\u043D\u0430", spec: "LRK", sup: "\u041A\u0443\u043B\u0430\u043A\u0438 \u043D\u0435\u0434\u0440", fat: "LRDP", arena: 3 },
-    { id: 4, name: "\u0424\u042D\u041D\u0413", en: "FANG", skin: "#c8965e", suit: "#8a7218", acc: "#e8e0c0", hair: "#141210", gear: "mask", claws: 1, h: 61, bulk: 0.95, spd: 2.4, jmp: 8.8, dmg: 0.9, specN: "\u041E\u0442\u0440\u0430\u0432\u043B\u0435\u043D\u043D\u044B\u0439 \u043A\u043E\u0433\u043E\u0442\u044C", spec: "DRK", sup: "\u0421\u043E\u0442\u043D\u044F \u043F\u043E\u0440\u0435\u0437\u043E\u0432", fat: "RDLK", arena: 4 },
-    { id: 5, name: "\u0421\u0410\u0425\u0420\u0410", en: "SAHRA", skin: "#b8824e", suit: "#7a6a3a", acc: "#3aa8a0", hair: "#201408", gear: "hood", h: 55, bulk: 0.85, spd: 2.6, jmp: 9.2, dmg: 0.9, specN: "\u041F\u0435\u0441\u0447\u0430\u043D\u0430\u044F \u0434\u044B\u043C\u043A\u0430", spec: "LLK", sup: "\u0417\u0435\u0440\u043A\u0430\u043B\u0430 \u043F\u0443\u0441\u0442\u044B\u043D\u0438", fat: "DLLP", arena: 5 },
+    { id: 2, name: "\u0412\u041E\u041B\u042C\u0422", en: "VOLT", skin: "#d8a05a", suit: "#2b4a8a", acc: "#f2d23a", hair: "#1a1a1a", gear: "helm", h: 63, bulk: 1.05, spd: 2.1, jmp: 8.5, dmg: 1.05, specN: "\u0421\u0442\u043E\u043B\u043F \u043C\u043E\u043B\u043D\u0438\u0439", spec: "DUP", sup: "\u0413\u0440\u043E\u0437\u0430", fat: "DDRP", arena: 2 },
+    { id: 3, name: "\u0411\u0410\u0417\u0410\u041B\u042C\u0422", en: "BASALT", skin: "#8a7256", suit: "#4a4038", acc: "#7a6a54", hair: "#2a241e", gear: "horn", h: 74, bulk: 1.45, spd: 1.5, jmp: 7.2, dmg: 1.25, specN: "\u0421\u0435\u0439\u0441\u043C\u0438\u0447\u0435\u0441\u043A\u0430\u044F \u0432\u043E\u043B\u043D\u0430", spec: "LRK", sup: "\u041A\u0443\u043B\u0430\u043A\u0438 \u043D\u0435\u0434\u0440", fat: "LRDP", arena: 3 },
+    { id: 4, name: "\u0424\u042D\u041D\u0413", en: "FANG", skin: "#c8965e", suit: "#8a7218", acc: "#e8e0c0", hair: "#141210", gear: "mask", claws: 1, h: 61, bulk: 0.95, spd: 2.4, jmp: 8.8, dmg: 0.93, specN: "\u041E\u0442\u0440\u0430\u0432\u043B\u0435\u043D\u043D\u044B\u0439 \u043A\u043E\u0433\u043E\u0442\u044C", spec: "DRK", sup: "\u0421\u043E\u0442\u043D\u044F \u043F\u043E\u0440\u0435\u0437\u043E\u0432", fat: "RDLK", arena: 4 },
+    { id: 5, name: "\u0421\u0410\u0425\u0420\u0410", en: "SAHRA", skin: "#b8824e", suit: "#7a6a3a", acc: "#3aa8a0", hair: "#201408", gear: "hood", h: 55, bulk: 0.85, spd: 2.7, jmp: 9.2, dmg: 0.88, specN: "\u041F\u0435\u0441\u0447\u0430\u043D\u0430\u044F \u0434\u044B\u043C\u043A\u0430", spec: "LLK", sup: "\u0417\u0435\u0440\u043A\u0430\u043B\u0430 \u043F\u0443\u0441\u0442\u044B\u043D\u0438", fat: "DLLP", arena: 5 },
     { id: 6, name: "\u041A\u0420\u0418\u041E", en: "KRYO", skin: "#8ab4c8", suit: "#1e4a6a", acc: "#c8ecff", hair: "#0a1420", gear: "mask", h: 62, bulk: 1, spd: 2, jmp: 8.4, dmg: 1, specN: "\u041B\u0435\u0434\u044F\u043D\u0430\u044F \u0441\u0444\u0435\u0440\u0430", spec: "DLP", sup: "\u0410\u0431\u0441\u043E\u043B\u044E\u0442\u043D\u044B\u0439 \u043D\u043E\u043B\u044C", fat: "LDDP", arena: 7 },
-    { id: 7, name: "\u0420\u0416\u0410\u0412\u042B\u0419", en: "RUST", skin: "#9aa48a", suit: "#4a5240", acc: "#d84a2a", hair: "#333", gear: "visor", h: 64, bulk: 1.1, spd: 2, jmp: 8.2, dmg: 1.05, specN: "\u0421\u0435\u0442\u044C-\u043B\u043E\u0432\u0443\u0448\u043A\u0430", spec: "RLP", sup: "\u041A\u043E\u0432\u0440\u043E\u0432\u044B\u0439 \u0437\u0430\u043B\u043F", fat: "RDRK", arena: 8 },
-    { id: 8, name: "\u041D\u041E\u041A\u0422\u042E\u0420\u041D", en: "NOCTURNE", skin: "#d8d0d8", suit: "#2a1a3a", acc: "#7a3aa8", hair: "#0a0612", gear: "hood", cape: 1, h: 63, bulk: 1, spd: 2.2, jmp: 8.6, dmg: 1, specN: "\u0421\u0433\u0443\u0441\u0442\u043E\u043A \u0442\u044C\u043C\u044B", spec: "DRP", sup: "\u0412\u043E\u0440\u043E\u043D\u043A\u0430 \u0434\u0443\u0448", fat: "DRDP", arena: 9 },
-    { id: 9, name: "\u041A\u0410\u0419\u0417\u0415\u0420", en: "KAISER", skin: "#c89868", suit: "#3a4a2a", acc: "#c8b060", hair: "#3a2a14", gear: "band", h: 65, bulk: 1.15, spd: 1.9, jmp: 8, dmg: 1.1, specN: "\u042D\u043D\u0435\u0440\u0433\u043E\u0432\u043E\u043B\u043D\u0430", spec: "DDK", sup: "\u041E\u0440\u0431\u0438\u0442\u0430\u043B\u044C\u043D\u044B\u0439 \u0437\u0430\u043B\u043F", fat: "RLRP", arena: 0 }
+    { id: 7, name: "\u0420\u0416\u0410\u0412\u042B\u0419", en: "RUST", skin: "#9aa48a", suit: "#4a5240", acc: "#d84a2a", hair: "#333", gear: "visor", h: 64, bulk: 1.1, spd: 1.95, jmp: 8.2, dmg: 1.08, specN: "\u0421\u0435\u0442\u044C-\u043B\u043E\u0432\u0443\u0448\u043A\u0430", spec: "RLP", sup: "\u041A\u043E\u0432\u0440\u043E\u0432\u044B\u0439 \u0437\u0430\u043B\u043F", fat: "RDRK", arena: 8 },
+    { id: 8, name: "\u041D\u041E\u041A\u0422\u042E\u0420\u041D", en: "NOCTURNE", skin: "#d8d0d8", suit: "#2a1a3a", acc: "#7a3aa8", hair: "#0a0612", gear: "hood", cape: 1, h: 63, bulk: 1, spd: 2.15, jmp: 8.6, dmg: 1.02, specN: "\u0421\u0433\u0443\u0441\u0442\u043E\u043A \u0442\u044C\u043C\u044B", spec: "DRP", sup: "\u0412\u043E\u0440\u043E\u043D\u043A\u0430 \u0434\u0443\u0448", fat: "DRDP", arena: 9 },
+    { id: 9, name: "\u041A\u0410\u0419\u0417\u0415\u0420", en: "KAISER", skin: "#c89868", suit: "#3a4a2a", acc: "#c8b060", hair: "#3a2a14", gear: "band", h: 65, bulk: 1.15, spd: 1.9, jmp: 8, dmg: 1.12, specN: "\u042D\u043D\u0435\u0440\u0433\u043E\u0432\u043E\u043B\u043D\u0430", spec: "DDK", sup: "\u041E\u0440\u0431\u0438\u0442\u0430\u043B\u044C\u043D\u044B\u0439 \u0437\u0430\u043B\u043F", fat: "RLRP", arena: 0 }
   ];
   CH[0].spec2 = "DRK";
   CH[0].spec2N = "\u041E\u0433\u043D\u0435\u043D\u043D\u044B\u0439 \u0432\u0435\u0435\u0440";
@@ -549,9 +549,9 @@
   CH[8].spec2N = "\u041F\u0440\u043E\u043A\u043B\u044F\u0442\u0438\u0435";
   CH[9].spec2 = "URP";
   CH[9].spec2N = "\u0422\u044F\u0436\u0451\u043B\u044B\u0439 \u0441\u043D\u0430\u0440\u044F\u0434";
-  CH.push({ id: 10, name: "\u041A\u0410\u0420\u041C\u0418\u041D", en: "CARMINE", skin: "#e8d8d0", suit: "#6a1020", acc: "#d82040", hair: "#d8d0e0", gear: "corona", dress: 1, longhair: 1, fan: 1, female: 1, h: 58, bulk: 0.9, spd: 2.2, jmp: 8.6, dmg: 0.95, specN: "\u041A\u0440\u043E\u0432\u0430\u0432\u044B\u0435 \u0438\u0433\u043B\u044B", spec: "RDP", sup: "\u0410\u043B\u044B\u0439 \u043F\u0438\u043E\u043D", fat: "RLDK", arena: 9 });
-  CH.push({ id: 11, name: "\u0410\u042F\u041C\u042D", en: "AYAME", skin: "#e0c8b8", suit: "#1a1f33", acc: "#7ac8d8", hair: "#0a0d1a", gear: "tail", blade: 1, h: 57, bulk: 0.85, spd: 2.7, jmp: 9.2, dmg: 1, specN: "\u041F\u043E\u043B\u0443\u043C\u0435\u0441\u044F\u0446", spec: "DRP", sup: "\u0421\u0442\u043E \u0442\u0435\u043D\u0435\u0439", fat: "LDRP", arena: 4 });
-  CH.push({ id: 12, name: "\u0412\u0415\u0413\u0410", en: "VEGA", skin: "#c8a888", suit: "#241540", acc: "#b89aff", hair: "#e8e8ff", gear: "halo", bow: 1, ponytail: 1, skirt: 1, female: 1, h: 60, bulk: 0.95, spd: 2.3, jmp: 8.8, dmg: 1.05, specN: "\u0417\u0432\u0451\u0437\u0434\u043D\u0430\u044F \u043C\u0435\u0442\u043A\u0430", spec: "UDK", sup: "\u041D\u0435\u0431\u0435\u0441\u043D\u044B\u0439 \u043B\u043E\u0432\u0435\u0446", fat: "UDRP", arena: 1 });
+  CH.push({ id: 10, name: "\u041A\u0410\u0420\u041C\u0418\u041D", en: "CARMINE", skin: "#e8d8d0", suit: "#6a1020", acc: "#d82040", hair: "#d8d0e0", gear: "corona", dress: 1, longhair: 1, fan: 1, female: 1, h: 58, bulk: 0.9, spd: 2.35, jmp: 8.6, dmg: 0.92, specN: "\u041A\u0440\u043E\u0432\u0430\u0432\u044B\u0435 \u0438\u0433\u043B\u044B", spec: "RDP", sup: "\u0410\u043B\u044B\u0439 \u043F\u0438\u043E\u043D", fat: "RLDK", arena: 9 });
+  CH.push({ id: 11, name: "\u0410\u042F\u041C\u042D", en: "AYAME", skin: "#e0c8b8", suit: "#1a1f33", acc: "#7ac8d8", hair: "#0a0d1a", gear: "tail", blade: 1, h: 57, bulk: 0.85, spd: 2.8, jmp: 9.2, dmg: 0.9, specN: "\u041F\u043E\u043B\u0443\u043C\u0435\u0441\u044F\u0446", spec: "DRP", sup: "\u0421\u0442\u043E \u0442\u0435\u043D\u0435\u0439", fat: "LDRP", arena: 4 });
+  CH.push({ id: 12, name: "\u0412\u0415\u0413\u0410", en: "VEGA", skin: "#c8a888", suit: "#241540", acc: "#b89aff", hair: "#e8e8ff", gear: "halo", bow: 1, ponytail: 1, skirt: 1, female: 1, h: 60, bulk: 0.95, spd: 2.3, jmp: 8.8, dmg: 0.95, specN: "\u0417\u0432\u0451\u0437\u0434\u043D\u0430\u044F \u043C\u0435\u0442\u043A\u0430", spec: "UDK", sup: "\u041D\u0435\u0431\u0435\u0441\u043D\u044B\u0439 \u043B\u043E\u0432\u0435\u0446", fat: "UDRP", arena: 1 });
   CH[10].spec2 = "RRK";
   CH[10].spec2N = "\u041A\u0440\u043E\u0432\u0430\u0432\u044B\u0435 \u0448\u0438\u043F\u044B";
   CH[11].spec2 = "RRP";
@@ -767,6 +767,17 @@
     throwN: "\u0417\u0410\u0425\u0412\u0410\u0422 \u041C\u0410\u041D\u0415\u041A\u0415\u041D\u0410",
     throwCmdN: "\u0417\u0410\u0425\u0412\u0410\u0422 \u041C\u0410\u041D\u0415\u041A\u0415\u041D\u0410"
   };
+  var WEIGHT_POWER = 2.4;
+  for (const c of [...CH, BOSS, DUMMY]) c.weight = +(c.bulk * Math.pow(c.h / 60, WEIGHT_POWER)).toFixed(2);
+  var WEIGHT_MAX = Math.max(...CH.map((c) => c.weight));
+  function statBars(fighter) {
+    const bar = (value) => Math.min(9, Math.max(0, Math.round(value)));
+    return [
+      [bar(9 * fighter.dmg / 1.25), 9, "\u0421\u0418\u041B\u0410"],
+      [bar(9 * fighter.spd / 2.8), 9, "\u0421\u041A\u041E\u0420\u041E\u0421\u0422\u042C"],
+      [bar(9 * Math.pow(fighter.weight / WEIGHT_MAX, 0.6)), 9, "\u0412\u0415\u0421"]
+    ];
+  }
 
   // src/data/endings.js
   var ENDINGS = [
@@ -9742,7 +9753,7 @@
         g.moveTo(290.5, 74);
         g.lineTo(290.5, 174);
         g.stroke();
-        const st = [[Math.round(9 * d.dmg), 9, "\u0421\u0418\u041B\u0410"], [Math.round(d.spd * 4), 9, "\u0421\u041A\u041E\u0420\u041E\u0421\u0422\u042C"], [Math.round(9 / d.bulk), 9, "\u0412\u0415\u0421"]];
+        const st = statBars(d);
         st.forEach((s2, i) => {
           const sy = 78 + i * 12;
           g.font = '7px "Russo One"';

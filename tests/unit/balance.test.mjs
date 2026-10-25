@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { CH } from '../../src/data/characters.js';
+import { CH, statBars } from '../../src/data/characters.js';
 
 const NORMALS = ['punch', 'kick', 'upper', 'sweep', 'rh', 'jkick'];
 
@@ -45,4 +45,22 @@ test('normal, command and throw values stay inside balance bounds', () => {
     assert.ok(fighter.dmg >= 0.85 && fighter.dmg <= 1.25, `${fighter.name}: damage multiplier ${fighter.dmg}`);
     assert.ok(!fighter.throwCmdD || fighter.throwCmdD <= 18, `${fighter.name}: command throw ${fighter.throwCmdD}`);
   }
+});
+
+test('physique drives weight, strength and speed', () => {
+  for (const fighter of CH) {
+    const expectedWeight = fighter.bulk * Math.pow(fighter.h / 60, 2.4);
+    assert.ok(Math.abs(fighter.weight - expectedWeight) < 0.011, `${fighter.name}: weight ${fighter.weight}`);
+    const bars = statBars(fighter);
+    assert.equal(bars.length, 3, `${fighter.name}: bars`);
+    assert.ok(bars.every(([value, max, label]) => max === 9 && value >= 0 && value <= 9 && label), `${fighter.name}: bars`);
+  }
+
+  const byWeight = [...CH].sort((a, b) => a.weight - b.weight);
+  const average = (fighters, field) => fighters.reduce((sum, fighter) => sum + fighter[field], 0) / fighters.length;
+  const light = byWeight.slice(0, 4);
+  const heavy = byWeight.slice(-4);
+  assert.ok(average(heavy, 'dmg') > average(light, 'dmg') + 0.1, 'heavy builds must hit harder');
+  assert.ok(average(light, 'spd') > average(heavy, 'spd') + 0.3, 'light builds must move faster');
+  assert.ok(statBars(CH[3])[2][0] > statBars(CH[5])[2][0], 'Basalt must outweigh Sahra');
 });

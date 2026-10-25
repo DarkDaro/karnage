@@ -1,4 +1,4 @@
-import { CH, BOSS, DUMMY } from '../data/characters.js';
+import { CH, BOSS, DUMMY, statBars } from '../data/characters.js';
 import { ENDINGS } from '../data/endings.js';
 import { AR, initArenas } from '../data/arenas.js';
 import { createArenaView } from './world/arena.js';
@@ -504,7 +504,7 @@ g.font='7px "Russo One"';g.fillStyle=d.acc;g.fillText(RANGED.includes(d.id)?'Д�
 if(s.ph!==2){
 drawFake(cur,242,176,1.35,-1);
 g.strokeStyle='rgba(200,160,64,.25)';g.lineWidth=1;g.beginPath();g.moveTo(290.5,74);g.lineTo(290.5,174);g.stroke();
-const st=[[Math.round(9*d.dmg),9,'СИЛА'],[Math.round(d.spd*4),9,'СКОРОСТЬ'],[Math.round(9/d.bulk),9,'ВЕС']];// 08.09: характеристики бойца
+const st=statBars(d);// 08.09: характеристики бойца; 25.10: полоски нормированы по ростеру
 st.forEach((s2,i)=>{const sy=78+i*12;g.font='7px "Russo One"';g.fillStyle='#c8a040';g.textAlign='left';g.fillText(s2[2],298,sy);
 g.fillStyle='#2a0808';g.fillRect(338,sy-6,70,5);g.fillStyle=s2[0]>=7?'#e04020':(s2[0]>=6?'#e8c040':'#7a8a4a');g.fillRect(338,sy-6,Math.max(2,Math.min(70,s2[0]/s2[1]*70)),5);});
 g.font='7px "Russo One"';g.fillStyle='#e8c040';g.fillText('СПЕЦ: '+d.specN,298,116);
