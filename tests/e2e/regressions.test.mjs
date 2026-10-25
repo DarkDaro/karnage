@@ -1177,6 +1177,73 @@ test('real input keeps P then K as a kick and completes a target combo', async (
   assert.ok(result.hp < 100, 'target combo must deal damage');
 });
 
+test('Kryo ice needles cast from the ground and from the air can hit', async () => {
+  const result = await page.evaluate(() => {
+    const K = window.KARNAGE;
+    const key = { U: 'KeyW', R: 'KeyD', K: 'KeyK' };
+    const setup = () => {
+      for (const code in K.keys) K.keys[code] = false;
+      K.setDebug({ GAME: 'fight', paused: false });
+      K.newBattle(6, new K.Ctrl(K.KM1), 7, new K.Ctrl(K.KM2), 9);
+      const battle = K.battle;
+      battle.mode = '2p';
+      battle.phase = 'fight';
+      battle.phaseT = 200;
+      battle.p1.ctrl.ai = false;
+      battle.p2.ctrl.ai = false;
+      battle.p1.x = 300;
+      battle.p2.x = 330;
+      battle.p1.y = battle.p2.y = 214;
+      battle.p1.face = 1;
+      battle.p2.face = -1;
+      battle.p1.state = 'idle';
+      battle.p1.st = 0;
+      battle.p1.atk = null;
+      battle.p2.state = 'idle';
+      battle.p2.st = 0;
+      battle.p2.atk = null;
+      battle.p2.hp = 100;
+      battle.p2.defeated = 0;
+      battle.p1.ctrl.clear();
+      battle.p2.ctrl.clear();
+      return battle;
+    };
+    const press = (code) => {
+      K.keys[code] = true;
+      K.step();
+      K.keys[code] = false;
+      K.step();
+    };
+    const input = () => {
+      for (const symbol of 'URK') press(key[symbol]);
+    };
+    const run = (air) => {
+      const battle = setup();
+      if (air) {
+        battle.p1.y = 110;
+        battle.p1.vy = 0;
+        battle.p1.state = 'jump';
+      }
+      input();
+      const cast = battle.p1.state === 'cast';
+      const ground = battle.p1.onGround;
+      let froze = false;
+      for (let frame = 0; frame < 55; frame += 1) {
+        K.step();
+        if (battle.p2.frozen > 0) froze = true;
+      }
+      return { cast, ground, hp: battle.p2.hp, froze };
+    };
+    return { groundCast: run(false), airCast: run(true) };
+  });
+  assert.equal(result.groundCast.cast, true);
+  assert.equal(result.groundCast.ground, true);
+  assert.ok(result.groundCast.hp < 100, 'ground ice needles must hit');
+  assert.equal(result.groundCast.froze, true);
+  assert.equal(result.airCast.cast, true);
+  assert.ok(result.airCast.hp < 100, 'air ice needles must hit');
+});
+
 test('throw input forgives sequential P and K and shows feedback', async () => {
   const result = await page.evaluate(() => {
     const K = window.KARNAGE;

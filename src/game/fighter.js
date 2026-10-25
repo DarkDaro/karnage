@@ -38,7 +38,15 @@ export function createFighter({
     if(c.pP)this.queueAtk('punch');else if(c.pK)this.queueAtk(c.d?'sweep':'kick');
   }
   jump(){this.vy=-this.def.jmp;this.state='jump';this.jumpGrace=0;SFX.jump();}
-  motionPrefix(){const d=this.def;return [d.spec,d.spec2].some((seq)=>{const p=(seq||'').slice(0,-1);return p.endsWith('U')&&this.ctrl.matchRel(p,this.face,20);});}
+  motionPrefix(){// 25.10: префикс U-спеца задерживает прыжок, чтобы URK/ULP/UDK кастовались с земли
+    const d=this.def,b=this.ctrl.buf;
+    return [d.spec,d.spec2].some((seq)=>{
+      const dirs=(seq||'').slice(0,-1);
+      if(!dirs.includes('U'))return false;
+      for(let n=Math.min(dirs.length,b.length);n>0;n--)if(this.ctrl.matchRel(dirs.slice(0,n),this.face,20))return true;
+      return false;
+    });
+  }
   update(FR,foe){const d=this.def,c=(S.battle&&S.battle.phase==='intro')?ZEROC:this.ctrl;const stunned=this.blockStun>0;if(stunned)this.blockStun--;// 08.09: в интро ввод заблокирован, но бойцы дышат
   this.animT++;this.st++;if(this.chainT>0)this.chainT--;else this.chain='';this.flash=Math.max(0,this.flash-1);this.squash=lerp(this.squash,1,.12);this.hpLag=Math.max(this.hp,this.hpLag-.4);// 08.09: отстающий бар урона + восстановление сквоша
   if(this.defeated){this.tilt=lerp(this.tilt,this.state==='dizzy'?0:-1.4,.2);return;}
@@ -64,9 +72,14 @@ export function createFighter({
   if(this.onGround&&c.d&&['idle','walk'].includes(this.state))this.state='crouch';
   if(this.state==='crouch'&&!c.d)this.state='idle';
   if(!stunned&&this.onGround&&c.pu&&['idle','walk'].includes(this.state)){
-    if(this.motionPrefix())this.jumpGrace=4;else this.jump();
+    if(this.motionPrefix())this.jumpGrace=6;else this.jump();
   }
-  if(this.jumpGrace>0){this.jumpGrace--;if(this.jumpGrace===0&&this.onGround&&['idle','walk','crouch'].includes(this.state))this.jump();}
+  if(this.jumpGrace>0){
+    const freshDir=c.pu||c.pl||c.pr||c.pd;
+    if(freshDir&&this.onGround&&['idle','walk','crouch'].includes(this.state)&&this.motionPrefix())this.jumpGrace=Math.max(this.jumpGrace,6);
+    this.jumpGrace--;
+    if(this.jumpGrace===0&&this.onGround&&['idle','walk','crouch'].includes(this.state))this.jump();
+  }
   else if(!this.onGround&&c.pu)this.jbuf=10;else if(this.jbuf>0)this.jbuf--;// 30.09: буфер прыжка 10 кадров; 25.10: pre-jump окно для наземных U-спецов
   if(this.onGround&&c.B&&['idle','walk','crouch'].includes(this.state))this.state='block';
   else if(this.state==='block'&&!c.B)this.state=c.d?'crouch':'idle';this.blockLow=this.state==='block'?!!c.d:0;
@@ -191,7 +204,9 @@ export function createFighter({
   case 3:for(let i=0;i<3;i++)S.projs.push({ty:'meteor',x:clamp(foe.x+rnd(-44,44),20,AW-20),y:-10-i*30,vx:0,vy:5.5,o:this,d:6,l:120});SFX.bone();break;// Камнепад
   case 4:for(let i=0;i<3;i++)S.projs.push({ty:'shard',c:'#7ac83a',x,y:y+i*8-8,vx:this.face*6,vy:0,o:this,d:4,l:80,s:3});SFX.slash();break;// Рой клинков
   case 5:S.projs.push({ty:'shard',c:'#c8a060',x,y,vx:this.face*2.6,vy:0,o:this,d:7,l:110,s:6,k:1});SFX.tele();break;// Песчаный жернов — валит с ног
-  case 6:for(let i=0;i<3;i++)S.projs.push({ty:'shard',c:'#c8ecff',x,y:y+i*10-10,vx:this.face*5,vy:0,o:this,d:3,l:80,s:3});SFX.ice();break;// Ледяные иглы
+  case 6:{const ty=foe.y-foe.def.h*.55,dx=foe.x-x,dy=ty-y,dist=Math.max(1,Math.hypot(dx,dy)),sp=5;// 25.10: иглы летят в цель, а не горизонтально с высоты прыжка
+    for(let i=0;i<3;i++)S.projs.push({ty:'shard',c:'#c8ecff',x,y:y+i*10-10,vx:dx/dist*sp,vy:dy/dist*sp,o:this,d:3,l:100,s:3,frz:1,hom:1});
+    SFX.ice();break;}
   case 7:S.projs.push({ty:'bomb',x:x,y:y-10,vx:this.face*3.2,vy:-5,o:this,d:6,l:130});S.projs.push({ty:'bomb',x:x,y:y-10,vx:this.face*1.8,vy:-4,o:this,d:6,l:130});SFX.shoot();break;// Двойная граната
   case 8:S.projs.push({ty:'shard',c:'#7a3aa8',x,y,vx:this.face*2.8,vy:0,o:this,d:5,l:110,s:5,pois:1});SFX.sting();break;// Проклятие — отравление
   case 10:for(let i=0;i<3;i++)S.projs.push({ty:'shard',c:'#d82040',x:clamp(foe.x+rnd(-32,32),20,AW-20),y:FL+GR-4,vx:0,vy:-(4.4+i*.5),o:this,d:5,l:60,s:5});SFX.bone();S.shake=3;break;// 30.09: Кровавые шипы — взмывают из земли под врагом

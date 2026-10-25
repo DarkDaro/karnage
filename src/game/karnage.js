@@ -198,7 +198,7 @@ if(f&&!f.hidden&&!f.dodging&&f.state!=='down'&&f.state!=='victim'){const b=f.box
 if(p.ty!=='meteor'&&p.ty!=='rocket'&&p.ty!=='bomb'&&p.x>b.x-4&&p.x<b.x+b.w+4&&p.y>b.y-6&&p.y<b.y+b.h+4){
 const wf=f.frozen>0;const hit=resolveHit(p.o,f,p.d,p.k?{knock:1,noHitFx:1}:{noHitFx:1});if(hit!=='block')impactFx(p.ty,p.x,p.y,p.c,p);// 08.09: shard с k:1 валит с ног; 25.10: снаряд рисует один импакт, без generic hit-спрайта
 const blk=f.state==='block';// 08.09: блок гасит контроль-эффекты снарядов
-if(p.ty==='ice'&&!wf&&!blk&&f.hp>0){f.frozen=85;f.state='frozen';f.atk=null;SFX.freeze();}
+if((p.ty==='ice'||p.frz)&&!wf&&!blk&&f.hp>0){f.frozen=85;f.state='frozen';f.atk=null;SFX.freeze();}// 25.10: ледяные иглы тоже замораживают
 // 08.09: баланс Крио — заморозка 100→85 кадров; звон льда; блок больше не замораживает
 if(p.pois&&!blk&&f.hp>0){f.poison=120;f.poisonC='#7ac83a';}// 08.09: яд через блок не проходит; 30.09: цвет яда всегда зелёный
 if(p.bl&&!blk&&f.hp>0){f.poison=150;f.poisonC='#d82040';}// 30.09: кровотечение от игл Кармин

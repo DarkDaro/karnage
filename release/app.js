@@ -1418,10 +1418,12 @@
         SFX.jump();
       }
       motionPrefix() {
-        const d = this.def;
+        const d = this.def, b = this.ctrl.buf;
         return [d.spec, d.spec2].some((seq) => {
-          const p = (seq || "").slice(0, -1);
-          return p.endsWith("U") && this.ctrl.matchRel(p, this.face, 20);
+          const dirs = (seq || "").slice(0, -1);
+          if (!dirs.includes("U")) return false;
+          for (let n = Math.min(dirs.length, b.length); n > 0; n--) if (this.ctrl.matchRel(dirs.slice(0, n), this.face, 20)) return true;
+          return false;
         });
       }
       update(FR, foe) {
@@ -1522,10 +1524,12 @@
           if (this.onGround && c.d && ["idle", "walk"].includes(this.state)) this.state = "crouch";
           if (this.state === "crouch" && !c.d) this.state = "idle";
           if (!stunned && this.onGround && c.pu && ["idle", "walk"].includes(this.state)) {
-            if (this.motionPrefix()) this.jumpGrace = 4;
+            if (this.motionPrefix()) this.jumpGrace = 6;
             else this.jump();
           }
           if (this.jumpGrace > 0) {
+            const freshDir = c.pu || c.pl || c.pr || c.pd;
+            if (freshDir && this.onGround && ["idle", "walk", "crouch"].includes(this.state) && this.motionPrefix()) this.jumpGrace = Math.max(this.jumpGrace, 6);
             this.jumpGrace--;
             if (this.jumpGrace === 0 && this.onGround && ["idle", "walk", "crouch"].includes(this.state)) this.jump();
           } else if (!this.onGround && c.pu) this.jbuf = 10;
@@ -2138,11 +2142,12 @@
             SFX.tele();
             break;
           // Песчаный жернов — валит с ног
-          case 6:
-            for (let i = 0; i < 3; i++) S.projs.push({ ty: "shard", c: "#c8ecff", x, y: y + i * 10 - 10, vx: this.face * 5, vy: 0, o: this, d: 3, l: 80, s: 3 });
+          case 6: {
+            const ty = foe.y - foe.def.h * 0.55, dx = foe.x - x, dy = ty - y, dist = Math.max(1, Math.hypot(dx, dy)), sp = 5;
+            for (let i = 0; i < 3; i++) S.projs.push({ ty: "shard", c: "#c8ecff", x, y: y + i * 10 - 10, vx: dx / dist * sp, vy: dy / dist * sp, o: this, d: 3, l: 100, s: 3, frz: 1, hom: 1 });
             SFX.ice();
             break;
-          // Ледяные иглы
+          }
           case 7:
             S.projs.push({ ty: "bomb", x, y: y - 10, vx: this.face * 3.2, vy: -5, o: this, d: 6, l: 130 });
             S.projs.push({ ty: "bomb", x, y: y - 10, vx: this.face * 1.8, vy: -4, o: this, d: 6, l: 130 });
@@ -8418,7 +8423,7 @@
             const hit = resolveHit(p.o, f, p.d, p.k ? { knock: 1, noHitFx: 1 } : { noHitFx: 1 });
             if (hit !== "block") impactFx(p.ty, p.x, p.y, p.c, p);
             const blk = f.state === "block";
-            if (p.ty === "ice" && !wf && !blk && f.hp > 0) {
+            if ((p.ty === "ice" || p.frz) && !wf && !blk && f.hp > 0) {
               f.frozen = 85;
               f.state = "frozen";
               f.atk = null;

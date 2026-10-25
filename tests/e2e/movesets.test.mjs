@@ -227,8 +227,7 @@ test('command normals and directional U-specials stay usable from the ground', a
         const battle = setup(def.id);
         const before = snapshot(battle);
         input(command);
-        const groundExpected = command[0] !== 'U';
-        if (battle.p1.state !== 'cast' || (groundExpected && !battle.p1.onGround)) {
+        if (battle.p1.state !== 'cast' || !battle.p1.onGround) {
           failures.push(`${def.id}/${kind}: cast from air (${battle.p1.state}, y=${Math.round(battle.p1.y)})`);
           continue;
         }
