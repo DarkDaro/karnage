@@ -210,6 +210,51 @@ test('confirm key does not leak into fight after pause or VS', async () => {
   assert.deepEqual(result.vs, { game: 'fight', paused: false, state: 'idle', pressed: false, held: false });
 });
 
+test('pause and blur release held buttons', async () => {
+  const result = await page.evaluate(() => {
+    const K = window.KARNAGE;
+    K.newBattle(0, new K.Ctrl(K.KM1), 1, new K.Ctrl(K.KM2), 6);
+    K.battle.mode = '2p';
+    K.battle.phase = 'fight';
+    K.battle.phaseT = 200;
+    K.setDebug({ GAME: 'fight', paused: false });
+    const ctrl = K.battle.p1.ctrl;
+    ctrl.clear();
+    ctrl._ = { d: true, P: true };
+    ctrl.buf.push({ k: 'P', t: 0 });
+    K.keys.KeyD = true;
+    K.keys.KeyJ = true;
+    K.TOUCH.B = 1;
+    K.onKey('Escape');
+    const paused = {
+      paused: K.paused,
+      keys: Boolean(K.keys.KeyD || K.keys.KeyJ),
+      touch: K.TOUCH.B,
+      edges: Boolean(ctrl._.d || ctrl._.P),
+      buffer: ctrl.buf.length
+    };
+    K.onKey('Escape');
+    const resumed = {
+      paused: K.paused,
+      keys: Boolean(K.keys.KeyD),
+      touch: K.TOUCH.B
+    };
+    K.keys.KeyD = true;
+    K.TOUCH.P = 1;
+    window.dispatchEvent(new window.Event('blur'));
+    const blurred = {
+      paused: K.paused,
+      keys: Boolean(K.keys.KeyD),
+      touch: K.TOUCH.P
+    };
+    K.setDebug({ paused: false });
+    return { paused, resumed, blurred };
+  });
+  assert.deepEqual(result.paused, { paused: true, keys: false, touch: 0, edges: false, buffer: 0 });
+  assert.deepEqual(result.resumed, { paused: false, keys: false, touch: 0 });
+  assert.deepEqual(result.blurred, { paused: true, keys: false, touch: 0 });
+});
+
 test('stale menu press does not fire after screen change', async () => {
   const result = await page.evaluate(() => {
     const K = window.KARNAGE;

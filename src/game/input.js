@@ -14,6 +14,7 @@ export function createInput() {
   match(seq,win){win=win||60;const b=this.buf,n=seq.length;if(b.length<n)return false;if(b[b.length-1].t-b[b.length-n].t>win)return false;for(let i=0;i<n;i++)if(b[b.length-n+i].k!==seq[i])return false;return true;}
   matchRel(seq,face,win){win=win||60;const b=this.buf,n=seq.length;if(b.length<n)return false;if(b[b.length-1].t-b[b.length-n].t>win)return false;for(let i=0;i<n;i++){let k=seq[i];if(k==='R')k=face>0?'R':'L';else if(k==='L')k=face>0?'L':'R';if(b[b.length-n+i].k!==k)return false;}return true;}
   matchRelLoose(seq,face,win){win=win||60;const b=this.buf,n=seq.length;if(b.length<n)return false;for(let start=b.length-n;start>=0;start--){if(b[b.length-1].t-b[start].t>win)break;let ok=true;for(let i=0;i<n;i++){let k=seq[i];if(k==='R')k=face>0?'R':'L';else if(k==='L')k=face>0?'L':'R';if(b[start+i].k!==k){ok=false;break;}}if(ok)return true;}return false;}
-  clear(){this.buf.length=0;this.tP=-999;this.tK=-999;}}
+  clear(){this.buf.length=0;this.tP=-999;this.tK=-999;}
+  cancel(){this.clear();this._={};this.pP=this.pK=this.pB=this.pl=this.pr=this.pu=this.pd=false;this.l=this.r=this.u=this.d=this.P=this.K=this.B=false;}}
   return {keys,TOUCH,KM1,KM2,Ctrl,press,clearPress};
 }

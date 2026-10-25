@@ -78,7 +78,7 @@ function arcTotal(){return S.ladder.length?S.ladder.length+1:ARC_TOTAL;}
 /* ВВОД */
 const {keys,TOUCH,KM1,KM2,Ctrl,press,clearPress}=createInput();
 let resetTouch=()=>{};
-function resetInput(){for(const k in keys)keys[k]=false;for(const k in TOUCH)TOUCH[k]=0;clearPress();resetTouch();}// 25.10: после переходов и паузы старый ввод не должен протекать в бой
+function resetInput(){for(const k in keys)keys[k]=false;for(const k in TOUCH)TOUCH[k]=0;clearPress();resetTouch();if(S.battle)for(const w of [S.battle.p1,S.battle.p2])if(w&&w.ctrl&&w.ctrl.cancel)w.ctrl.cancel();}// 25.10: после переходов, паузы и потери фокуса старый ввод не должен протекать в бой
 addEventListener('pointerdown',()=>{initA();if(AU.ctx&&AU.ctx.state==='suspended')AU.ctx.resume();if(S.GAME==='title'){toLobby('menu');SFX.sel();}});// 08.09: клик мыши на титуле тоже открывает меню
 function bindTouch(){const isTouch=('ontouchstart' in window)||navigator.maxTouchPoints>0;if(!isTouch)return;document.body.classList.add('touch');const root=document.createElement('div');root.id='touch';root.innerHTML='<div class="dpad"><button class="up" data-key="u">▲</button><button class="left" data-key="l">◀</button><button class="down" data-key="d">▼</button><button class="right" data-key="r">▶</button></div><div class="actions"><button class="punch" data-key="P">P</button><button class="kick" data-key="K">K</button><button class="block" data-key="B">БЛОК</button></div><button class="pause" data-key="pause">Ⅱ</button>';document.body.appendChild(root);const codes={l:'ArrowLeft',r:'ArrowRight',u:'ArrowUp',d:'ArrowDown',P:'Enter',K:'KeyK',B:'Escape'};const held=new Map();const btnOf=key=>root.querySelector(`[data-key="${key}"]`);const release=(key,id)=>{const ids=held.get(key);if(!ids||!ids.delete(id)||ids.size)return;held.delete(key);if(key!=='pause')TOUCH[key]=0;btnOf(key)?.classList.remove('on');};const releasePointer=id=>{for(const key of [...held.keys()])if(held.get(key).has(id))release(key,id);};const releaseAll=()=>{for(const key of [...held.keys()])for(const id of [...held.get(key)])release(key,id);};
 resetTouch=releaseAll;
@@ -90,7 +90,8 @@ bindTouch();
 addEventListener('keydown',e=>{if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code))e.preventDefault();if(e.repeat){if((S.GAME!=='fight'||S.paused)&&['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','KeyW','KeyA','KeyS','KeyD'].includes(e.code))onKey(e.code);return;}keys[e.code]=true;press(e.code,S.FRAME);initA();if(AU.ctx&&AU.ctx.state==='suspended')AU.ctx.resume();onKey(e.code);});// 25.10: удержание стрелок листает меню, но не повторяет выбор
 addEventListener('keyup',e=>{keys[e.code]=false;});
 addEventListener('blur',()=>{resetInput();if(S.GAME==='fight'&&!S.paused){S.paused=true;S.pauseIdx=0;}});
-addEventListener('visibilitychange',()=>{if(document.hidden){resetInput();if(S.GAME==='fight'&&!S.paused){S.paused=true;S.pauseIdx=0;}}});
+document.addEventListener('visibilitychange',()=>{if(document.hidden){resetInput();if(S.GAME==='fight'&&!S.paused){S.paused=true;S.pauseIdx=0;}}});// 25.10: событие приходит на document, не только на window
+addEventListener('pagehide',resetInput);// 25.10: уход со страницы не оставляет зажатые кнопки в bfcache
 /* ПЕРСОНАЖИ: spec/fat строки (D вниз U вверх L влево R вправо P рука K нога) */
 ;
 /* ВТОРЫЕ СПЕЦПРИЁМЫ (08.09): по одному на бойца, ввод — 3 кнопки */
@@ -361,7 +362,7 @@ function onKey(k){
 if(S.GAME!=='fight'||S.paused)resetInput();// 25.10: клавиша меню/паузы не становится ударом после возврата в бой
 if(k==='KeyM'){AU.on=!AU.on;setVol();if(!AU.on){try{speechSynthesis.cancel();}catch(e){}}else SFX.menu();saveSet();return;}// 08.09: +сохранение настройки
 if(S.GAME==='fight'&&!S.paused&&S.battle&&(k==='KeyJ'||k==='Enter'||k==='Space')){if(S.battle.phase==='fatal'&&S.battle.phaseT>30){endBattle(S.battle.winner);return;}if(S.battle.phase==='over'&&S.battle.phaseT>30){afterBattle();return;}}
-if(S.GAME==='fight'&&!S.paused&&k==='Escape'){S.paused=true;S.pauseIdx=0;SFX.menu();return;}// 08.09: пауза не активировалась — Escape не ставил paused
+if(S.GAME==='fight'&&!S.paused&&k==='Escape'){resetInput();S.paused=true;S.pauseIdx=0;SFX.menu();return;}// 08.09: пауза не активировалась — Escape не ставил paused; 25.10: пауза сбрасывает зажатый ввод
 if(S.GAME==='fight'&&!S.paused&&k==='KeyR'&&S.battle&&S.battle.mode==='training'){resetTraining();return;}
 if(S.GAME==='fight'&&!S.paused&&k==='KeyT'&&S.battle&&S.battle.mode==='training'){toggleTrainingBlock();return;}
 if(S.GAME==='title'){toLobby('menu');SFX.sel();say('Karnage');return;}

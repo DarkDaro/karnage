@@ -107,6 +107,34 @@ test('touch button releases when pointerup lands outside it', async () => {
   assert.equal(released.on, false);
 });
 
+test('touch button releases when pointer is canceled or capture is lost', async () => {
+  await page.evaluate(() => {
+    const K = window.KARNAGE;
+    K.newBattle(0, new K.Ctrl(K.KM1), 1, new K.Ctrl(K.KM2), 9);
+    const battle = K.battle;
+    battle.mode = '2p';
+    battle.phase = 'fight';
+    battle.phaseT = 200;
+  });
+  const button = page.locator('[data-key="P"]');
+  await button.dispatchEvent('pointerdown', { pointerId: 21, pointerType: 'touch' });
+  const held = await page.evaluate(() => window.KARNAGE.TOUCH.P);
+  await button.dispatchEvent('pointercancel', { pointerId: 21, pointerType: 'touch' });
+  const canceled = await page.evaluate(() => ({
+    touch: window.KARNAGE.TOUCH.P,
+    on: document.querySelector('[data-key="P"]').classList.contains('on')
+  }));
+  await button.dispatchEvent('pointerdown', { pointerId: 22, pointerType: 'touch' });
+  await button.dispatchEvent('lostpointercapture', { pointerId: 22, pointerType: 'touch' });
+  const lost = await page.evaluate(() => ({
+    touch: window.KARNAGE.TOUCH.P,
+    on: document.querySelector('[data-key="P"]').classList.contains('on')
+  }));
+  assert.equal(held, 1);
+  assert.deepEqual(canceled, { touch: 0, on: false });
+  assert.deepEqual(lost, { touch: 0, on: false });
+});
+
 test('portrait touch layout keeps controls inside the viewport', async () => {
   const portrait = await browser.newPage({
     viewport: { width: 390, height: 844 },

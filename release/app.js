@@ -2438,6 +2438,12 @@
         this.tP = -999;
         this.tK = -999;
       }
+      cancel() {
+        this.clear();
+        this._ = {};
+        this.pP = this.pK = this.pB = this.pl = this.pr = this.pu = this.pd = false;
+        this.l = this.r = this.u = this.d = this.P = this.K = this.B = false;
+      }
     }
     return { keys, TOUCH, KM1, KM2, Ctrl, press, clearPress };
   }
@@ -7681,6 +7687,9 @@
       for (const k in TOUCH) TOUCH[k] = 0;
       clearPress();
       resetTouch();
+      if (S.battle) {
+        for (const w of [S.battle.p1, S.battle.p2]) if (w && w.ctrl && w.ctrl.cancel) w.ctrl.cancel();
+      }
     }
     addEventListener("pointerdown", () => {
       initA();
@@ -7774,7 +7783,7 @@
         S.pauseIdx = 0;
       }
     });
-    addEventListener("visibilitychange", () => {
+    document.addEventListener("visibilitychange", () => {
       if (document.hidden) {
         resetInput();
         if (S.GAME === "fight" && !S.paused) {
@@ -7783,6 +7792,7 @@
         }
       }
     });
+    addEventListener("pagehide", resetInput);
     ;
     ;
     function drawArena(ai, cam, t) {
@@ -8931,6 +8941,7 @@
         }
       }
       if (S.GAME === "fight" && !S.paused && k === "Escape") {
+        resetInput();
         S.paused = true;
         S.pauseIdx = 0;
         SFX.menu();
