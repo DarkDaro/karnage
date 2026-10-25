@@ -69,6 +69,18 @@ test('loads title without page errors', async () => {
   assert.deepEqual(pageErrors, []);
 });
 
+test('renders at an internal resolution above the logical world', async () => {
+  const canvas = await page.locator('#cv').evaluate((el) => ({
+    width: el.width,
+    height: el.height,
+    ratio: el.width / el.height,
+    logicalRatio: 424 / 240
+  }));
+  assert.ok(canvas.width >= 424 * 2);
+  assert.ok(canvas.height >= 240 * 2);
+  assert.ok(Math.abs(canvas.ratio - canvas.logicalRatio) < 0.001);
+});
+
 test('renders every screen', async () => {
   await page.evaluate(() => {
     window.KARNAGE.newBattle(

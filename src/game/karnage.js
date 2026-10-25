@@ -18,7 +18,11 @@ const FATAL_FRAMES=600,FATAL_INPUT=240;// 25.10: 10 секунд на добив
 const FX=fxAssets||{},ARENA_IMG=arenaAssets||{},UI=uiAssets||{};
 const S=createState();
 const cv=document.getElementById('cv'),g=cv.getContext('2d');
-function fit(){let s=Math.min(innerWidth/RW,innerHeight/RH);if(s>=2)s=Math.floor(s);cv.style.width=s*RW+'px';cv.style.height=s*RH+'px';document.body.classList.toggle('portrait',innerHeight>innerWidth);}
+let RSCALE=3;
+function fit(){let s=Math.min(innerWidth/RW,innerHeight/RH);if(s>=2)s=Math.floor(s);cv.style.width=s*RW+'px';cv.style.height=s*RH+'px';document.body.classList.toggle('portrait',innerHeight>innerWidth);
+const dpr=Math.min(2,window.devicePixelRatio||1),cap=navigator.maxTouchPoints>0?3:4;
+RSCALE=Math.max(2,Math.min(cap,Math.ceil(s*dpr)));
+if(cv.width!==RW*RSCALE||cv.height!==RH*RSCALE){cv.width=RW*RSCALE;cv.height=RH*RSCALE;}}
 addEventListener('resize',fit);fit();
 if(document.fonts)document.fonts.load('20px "Russo One"');
 const clamp=(v,a,b)=>v<a?a:v>b?b:v,lerp=(a,b,t)=>a+(b-a)*t,rnd=(a,b)=>a+Math.random()*(b-a),pick=a=>a[Math.random()*a.length|0],blink=()=>((S.FRAME>>4)%2===0);
@@ -621,7 +625,7 @@ if(S.GAME==='continue'){S.contT--;if(S.contT<=0){clearArcRun();toLobby('gameover
 if(S.GAME==='fight'){if(S.announce)S.announce.t++;if(S.wipe>0)S.wipe--;}if(S.GAME==='title')S.titleT++;
 if(S.GAME==='vs'||S.GAME==='select')S.vsT++;if(S.vsEscT>0)S.vsEscT--;// 08.09: таймер подтверждения выхода
 }
-function render(){g.setTransform(2,0,0,2,0,0);// 08.09: рендер в 2× разрешении — весь код остаётся в 424×240, шрифты и края вдвое чётче
+function render(){g.setTransform(RSCALE,0,0,RSCALE,0,0);// 25.10: динамическое внутреннее разрешение 2–4× — весь код остаётся в 424×240, края и шрифты чётче
 g.fillStyle='#000';g.fillRect(0,0,RW,RH);// 08.09: полная очистка кадра — небо (0-192) не доходило до земли (FL=206), в полосе 192-206 накапливались пиксели бойцов; плюс тряска обнажала края
 if(S.GAME==='title'){drawTitle();drawParts(0);return;}
 if(S.GAME==='menu'){drawMenu();drawParts(0);return;}

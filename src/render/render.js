@@ -1,11 +1,13 @@
 // 25.10: рендер бойцов, портретов, HUD и эффектов вынесен из монолита.
 // Модуль ничего не обновляет: только читает состояние и рисует.
 import { createAbilityFx } from './ability-fx.js';
+import { createFighterArt } from './fighter-art.js';
 export function createRender({
   g, S, UI, CH, WM, RW, FL, GR, OUT,
   lerp, rnd, mix, shade, blink, fatalMapped, fatalFrames,
 }) {
 const abilityFx=createAbilityFx({g,S,FL,GR,lerp,rnd,mix});
+const fighterArt=createFighterArt({g,S,OUT,mix,shade,lerp});
 /* ЭФФЕКТЫ */
 function drawProjs(cam){abilityFx.drawProjs(cam);}
 const drawBolt=abilityFx.drawBolt;
@@ -96,7 +98,7 @@ else if(s==='dizzy'){p.lean=Math.sin(t*.12)*.2;p.armF=[.2,1.2];p.armB=[-.2,1.1];
 return p;}
 function drawFighterGlow(f,cam){if(!f||f.hidden)return;const d=f.def,x=f.x-cam,y=f.y-38,r=24+(d.bulk||1)*10;const superOn=f.state==='super'||f.rage>=100;const a=(superOn?.10:.05)*(f.state==='super'?1.6:1);
 g.save();g.globalCompositeOperation='lighter';g.globalAlpha=a;const gr=g.createRadialGradient(x,y,2,x,y,r);gr.addColorStop(0,mix(d.acc,'#ffffff',.18));gr.addColorStop(.45,d.acc);gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.fillRect(x-r,y-r,r*2,r*2);g.restore();}// 25.10: цветной ореол отделяет бойца от пёстрого фона
-function drawF(f,cam){if(f.hidden)return;
+function drawFLegacy(f,cam){if(f.hidden)return;
 const d=f.def,sc=d.bulk*f.scale;
 g.save();g.lineCap='round';g.translate(Math.round(f.x-cam),Math.round(f.y));
 const shadowY=FL+GR-f.y;const shg=g.createRadialGradient(0,shadowY,1,0,shadowY,15*sc);shg.addColorStop(0,'rgba(0,0,0,.45)');shg.addColorStop(1,'rgba(0,0,0,0)');
@@ -171,6 +173,25 @@ g.restore();
 if(f.frozen>0){const b=f.box;g.fillStyle='rgba(120,190,240,.45)';g.fillRect(b.x-cam,b.y-2,b.w,b.h+4);g.fillStyle='rgba(225,245,255,.85)';for(let i=0;i<3;i++){const sx=b.x-cam+3+i*(b.w-6)/2;g.beginPath();g.moveTo(sx-3,b.y-2);g.lineTo(sx,b.y-8-(i*7%5));g.lineTo(sx+3,b.y-2);g.fill();}}
 if(f.netT>0){g.strokeStyle='#c8c8a0';g.lineWidth=1;const b=f.box;for(let i=0;i<4;i++)g.strokeRect(b.x-cam+2+i*3,b.y+i*4,b.w-4-i*6,4);}
 if(f.state==='dizzy'){for(let i=0;i<3;i++){const a=f.animT*.15+i*2.09;g.fillStyle='#f8d060';g.fillRect(f.x-cam+Math.cos(a)*12-1,f.y-d.h-8+Math.sin(a)*3,3,3);}}}
+function drawF(f,cam){if(f.hidden)return;
+ const d=f.def,sc=d.bulk*f.scale;
+ g.save();g.lineCap='round';g.lineJoin='round';g.translate(Math.round(f.x-cam),Math.round(f.y));
+ const shadowY=FL+GR-f.y;const shg=g.createRadialGradient(0,shadowY,1,0,shadowY,15*sc);shg.addColorStop(0,'rgba(0,0,0,.45)');shg.addColorStop(1,'rgba(0,0,0,0)');
+ g.fillStyle=shg;g.beginPath();g.ellipse(0,shadowY,15*sc,4.2,0,0,7);g.fill();
+ if(d.boss){g.save();g.globalCompositeOperation='lighter';const ay=-d.h*.55,ar=d.h*.9,ag=g.createRadialGradient(0,ay,2,0,ay,ar);ag.addColorStop(0,'rgba(240,200,80,.24)');ag.addColorStop(.55,'rgba(180,60,20,.1)');ag.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=ag;g.beginPath();g.arc(0,ay,ar,0,7);g.fill();g.restore();}
+ abilityFx.drawCastAura(f);
+ if(f.invis>0)g.globalAlpha=.25;
+ g.scale(f.face*sc,sc*f.squash);g.rotate(f.tilt*f.face);
+ if(f.state==='super'||f.frozen>0)g.translate(rnd(-1,1),rnd(-1,1));
+ const p=pose(f),body=fighterArt.drawBody(f,p);
+ fighterArt.drawWeapons(f,p,body);
+ fighterArt.drawHead(f,p,body);
+ if(f.state==='cast'||f.state==='super')abilityFx.drawCastCharge(f,body.frontHand);
+ if(f.flash>0){g.globalAlpha=.12;g.fillStyle='#fff';g.beginPath();g.ellipse(0,-d.h*.5,12,d.h*.42,0,0,7);g.fill();g.globalAlpha=1;}
+ g.restore();
+ if(f.frozen>0){const b=f.box;g.fillStyle='rgba(120,190,240,.45)';g.fillRect(b.x-cam,b.y-2,b.w,b.h+4);g.fillStyle='rgba(225,245,255,.85)';for(let i=0;i<3;i++){const sx=b.x-cam+3+i*(b.w-6)/2;g.beginPath();g.moveTo(sx-3,b.y-2);g.lineTo(sx,b.y-8-(i*7%5));g.lineTo(sx+3,b.y-2);g.fill();}}
+ if(f.netT>0){g.strokeStyle='#c8c8a0';g.lineWidth=1;const b=f.box;for(let i=0;i<4;i++)g.strokeRect(b.x-cam+2+i*3,b.y+i*4,b.w-4-i*6,4);}
+ if(f.state==='dizzy'){for(let i=0;i<3;i++){const a=f.animT*.15+i*2.09;g.fillStyle='#f8d060';g.fillRect(f.x-cam+Math.cos(a)*12-1,f.y-d.h-8+Math.sin(a)*3,3,3);}}}
 function drawGear(f,hx,hy){const d=f.def,ac=d.acc;
 if(f.charred){g.fillStyle='#e8e0d0';g.fillRect(hx-1,hy-4,2,2);return;}
 if(d.gear==='mask'){g.fillStyle=OUT;g.fillRect(hx-5,hy-7,11,5);g.fillStyle=ac;g.fillRect(hx-4,hy-6,9,4);g.fillStyle=shade(ac,.5);g.fillRect(hx-5,hy-7,2,8);g.fillRect(hx+4,hy-7,2,8);g.fillStyle='#141414';g.fillRect(hx+1,hy-5,2,2);g.fillStyle=mix(ac,'#ffffff',.45);g.fillRect(hx-3,hy-6,7,1);g.fillStyle=shade(ac,.75);g.fillRect(hx-4,hy-3,9,1);}// 30.09: блик и тень маски
@@ -193,7 +214,7 @@ else{if(d.id===0){for(let i=0;i<3;i++){const fx2=hx-3+i*3,hg=4+Math.sin(S.FRAME*
 else{g.fillStyle=OUT;g.fillRect(hx-6,hy-11,12,5);g.fillStyle=d.hair;g.fillRect(hx-5,hy-11,11,4);g.fillRect(hx-5,hy-8,3,5);g.fillStyle=mix(d.hair,'#ffffff',.22);g.fillRect(hx-5,hy-11,11,1);g.fillRect(hx-5,hy-8,1,4);}// 30.09: блик волос
 g.fillStyle='#141414';g.fillRect(hx-1,hy-6,3,2);g.fillStyle=shade(d.skin,.85);g.fillRect(hx-1,hy-3,3,1);}}// 30.09: нос
 function portraitTop(d){return d.gear==='halo'?-25:(d.gear==='horn'||d.gear==='corona')?-19:-15;}
-function drawPort(d,x,y,s){g.save();g.lineCap='round';g.translate(x,y);g.scale(s,s);
+function drawPortLegacy(d,x,y,s){g.save();g.lineCap='round';g.translate(x,y);g.scale(s,s);
 const top=portraitTop(d),ph=15-top;
 const bg2=g.createLinearGradient(0,top,0,15);bg2.addColorStop(0,shade(d.suit,.45));bg2.addColorStop(1,'#0c0a08');// 30.09: фон в цвете бойца
 g.fillStyle=bg2;g.fillRect(-12,top,24,ph);
@@ -212,6 +233,7 @@ g.fillStyle='#f0e8e0';g.fillRect(0,-7,3,2);g.fillStyle='#141414';g.fillRect(d.fe
 if(d.female){g.fillStyle='#141414';g.fillRect(2,-8,2,1);g.fillStyle=shade(d.skin,.6);g.fillRect(0,-5,1,1);g.fillStyle='#8a3040';g.fillRect(-1,-2,3,1);g.fillStyle='#c86070';g.fillRect(0,-2,2,1);g.fillStyle=shade(d.skin,.55);g.fillRect(3,0,1,1);}// 24.10: ресницы, нос, губы и родинка
 g.fillStyle=shade(d.skin,.72);g.fillRect(0,d.female?-9:-8,4,1);// бровь
 drawGear({def:d,animT:0,charred:0},0,-3);g.restore();}
+function drawPort(d,x,y,s){fighterArt.drawPortrait(d,x,y,s);}
 const FAKES=CH.map(d=>({def:d,x:0,y:FL+GR,face:1,animT:0,state:'idle',st:0,atk:null,tilt:0,squash:1,scale:1,invis:0,frozen:0,netT:0,charred:0,hidden:0,flash:0,hp:100}));
 function drawFake(i,px,py,sc,face){const fk=typeof i==='object'?Object.assign({},FAKES[i.id]||FAKES[0],{def:i}):FAKES[i];fk.animT=S.FRAME;fk.face=face;g.save();g.translate(px,py);g.scale(sc,sc);g.translate(-fk.x,-fk.y);drawF(fk,0);g.restore();}// 25.10: рисует и отдельный def босса
 /* HUD */
@@ -265,6 +287,7 @@ for(let i=0;i<n;i++){const x=sx+i*(bw+gap),on=i<prog;g.fillStyle=on?'#e04020':'#
 
 return {
   pose, drawF, drawFighterGlow, drawGear, portraitTop, drawPort, drawFake,
+  drawFLegacy, drawPortLegacy,
   drawHUD, bigText, frame, panel, seqTxt, drawFatalPanel,
   drawProjs, drawBolt, drawFx,
 };
