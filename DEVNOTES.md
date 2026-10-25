@@ -31,7 +31,7 @@
 | 7 | RUST | РЖАВЫЙ | RLP | RDK | RDRP | 8 |
 | 8 | NOCTURNE | НОКТЮРН | DRP | ULP | DRDP | 9 |
 | 9 | KAISER | КАЙЗЕР | DDK | URP | RLRP | 0 |
-| 10 | CARMINE | КАРМИН | RDP | RRK | RLDP | 9 |
+| 10 | CARMINE | КАРМИН | RDP | RRK | RDLP | 9 |
 | 11 | AYAME | АЯМЭ | DRP | RRP | LDRP | 4 |
 | 12 | VEGA | ВЕГА | UDK | RUK | UDRP | 1 |
 <!-- ROSTER:END -->

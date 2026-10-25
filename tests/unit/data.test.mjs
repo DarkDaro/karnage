@@ -43,6 +43,23 @@ test('fatalities end with an attack button', () => {
   }
 });
 
+test('special and super data is complete and unique', () => {
+  for (const fighter of [...CH, BOSS]) {
+    for (const field of ['spec', 'spec2', 'fat']) {
+      const command = fighter[field];
+      assert.match(command, valid, `${fighter.name} ${field}`);
+      assert.ok(command.length >= 2 && command.length <= 5, `${fighter.name} ${field}`);
+      assert.ok(command.endsWith('P') || command.endsWith('K'), `${fighter.name} ${field}`);
+    }
+    assert.notEqual(fighter.spec, fighter.spec2, `${fighter.name} spec collision`);
+    for (const field of ['specN', 'spec2N', 'sup']) {
+      assert.ok(fighter[field] && fighter[field].length <= 28, `${fighter.name} ${field}`);
+    }
+  }
+  const fatalityCommands = CH.map((fighter) => fighter.fat);
+  assert.equal(new Set(fatalityCommands).size, fatalityCommands.length, 'fatality commands must be unique');
+});
+
 test('every fighter has a named throw finisher', () => {
   for (const fighter of [...CH, BOSS]) {
     assert.ok(fighter.throwN && fighter.throwN.length <= 24, fighter.name);
