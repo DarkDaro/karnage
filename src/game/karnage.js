@@ -14,6 +14,7 @@ import { createAudio } from '../audio/audio.js';
 export function startKarnage(fxAssets = {}, arenaAssets = {}, uiAssets = {}) {
 const RW=424,RH=240,FL=206,AW=760,GR=8,OUT='#0e0b08';
 const UI_GOLD='#e8c040',UI_RED='#e02020',UI_BLUE='#3868c8',UI_TEXT='#e8e0c0',UI_MUTED='#807850',UI_ACCENT='#c8a040';
+const AI_DIFF_NAMES=['ЛЁГКАЯ','НОРМАЛЬНАЯ','ТЯЖЁЛАЯ'];
 const isTouchUI=()=>document.body.classList.contains('touch');
 const FATAL_FRAMES=600,FATAL_INPUT=240;// 25.10: 10 секунд на добивание и 4 секунды на ввод — запас для спокойного набора
 const FX=fxAssets||{},ARENA_IMG=arenaAssets||{},UI=uiAssets||{};
@@ -69,9 +70,9 @@ const topBest=()=>{const best=new Map();for(const e of topRaw()){const cur=best.
 const TOP=()=>topBest().slice(0,5);
 const addTop=(id,step,date)=>{try{if(!Number.isInteger(id)||id<0||id>=CH.length||!Number.isFinite(step)||step<0)return;const day=typeof date==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(date)?date:dayStamp();const best=new Map();for(const e of topRaw()){const cur=best.get(e.id);if(!cur||e.step>cur.step)best.set(e.id,{id:e.id,step:e.step,...(typeof e.date==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(e.date)?{date:e.date}:{})});}const cur=best.get(id);if(!cur||step>cur.step)best.set(id,{id,step,date:day});localStorage.karnageTop=JSON.stringify([...best.values()].sort((a,b)=>b.step-a.step||a.id-b.id).slice(0,5));}catch(e){}};
 const ARC_KEY='karnageArcRun',ARC_VERSION=1,ARC_TOTAL=CH.length-1;// 25.10: 11 обычных противников + финальный босс
-function validArcRun(run){if(!run||run.v!==ARC_VERSION)return false;if(!Number.isInteger(run.c1)||run.c1<0||run.c1>=CH.length)return false;if(!Array.isArray(run.ladder)||run.ladder.length!==CH.length-2)return false;if(!run.ladder.every(id=>Number.isInteger(id)&&id>=0&&id<CH.length&&id!==run.c1&&id!==BOSS.id))return false;if(new Set(run.ladder).size!==run.ladder.length)return false;if(!Number.isInteger(run.step)||run.step<0||run.step>=ARC_TOTAL)return false;return true;}
+function validArcRun(run){if(!run||run.v!==ARC_VERSION)return false;if(!Number.isInteger(run.c1)||run.c1<0||run.c1>=CH.length)return false;if(!Array.isArray(run.ladder)||run.ladder.length!==CH.length-2)return false;if(!run.ladder.every(id=>Number.isInteger(id)&&id>=0&&id<CH.length&&id!==run.c1&&id!==BOSS.id))return false;if(new Set(run.ladder).size!==run.ladder.length)return false;if(!Number.isInteger(run.step)||run.step<0||run.step>=ARC_TOTAL)return false;if(run.diff!==undefined&&(!Number.isInteger(run.diff)||run.diff<0||run.diff>2))return false;return true;}
 function loadArcRun(){try{const run=JSON.parse(localStorage[ARC_KEY]||'null');return validArcRun(run)?run:null;}catch(e){return null}}
-function saveArcRun(){try{if(!Number.isInteger(S.arcP1)||!S.ladder.length||!Number.isInteger(S.lStep))return;const run={v:ARC_VERSION,c1:S.arcP1,ladder:S.ladder.slice(),step:S.lStep};if(validArcRun(run))localStorage[ARC_KEY]=JSON.stringify(run);}catch(e){}}
+function saveArcRun(){try{if(!Number.isInteger(S.arcP1)||!S.ladder.length||!Number.isInteger(S.lStep))return;const run={v:ARC_VERSION,c1:S.arcP1,ladder:S.ladder.slice(),step:S.lStep,diff:S.arcDiff};if(validArcRun(run))localStorage[ARC_KEY]=JSON.stringify(run);}catch(e){}}
 function clearArcRun(){try{localStorage.removeItem(ARC_KEY);}catch(e){}}
 function arcTotal(){return S.ladder.length?S.ladder.length+1:ARC_TOTAL;}
 /* ВВОД */
@@ -208,6 +209,8 @@ function updFx(){for(let i=S.fx.length;i--;){const f=S.fx[i];f.t++;if(f.ty==='bo
 if(S.fx.length>200)S.fx.splice(0,S.fx.length-200);}}// 30.09: страховочный лимит эффектов; 08.09: +ring
 /* ИИ */
 const RANGED=[0,2,3,6,7,8,9,10,12];// 30.09: +Кармин, +Вега
+const ARC_AI=[{base:0,step:.35,boss:5},{base:1,step:.5,boss:7},{base:2,step:.6,boss:7}];// 25.10: лёгкая/нормальная/тяжёлая аркада
+function arcAiLevel(){const d=ARC_AI[S.arcDiff]||ARC_AI[1];const boss=S.lStep>=S.ladder.length;return clamp(boss?d.boss:Math.round(d.base+S.lStep*d.step),0,7);}
 function aiUpd(f,foe,lvl){const c=f.ctrl;c.ax={};
 if(['down','hit','frozen','net','super','cast','victim','dizzy','fatal','getup','win','grabbed'].includes(f.state))return;// 08.09: +win — ИИ в позе победы не должен действовать
 if(f.aiDir)c.ax[f.aiDir]=true;
@@ -239,7 +242,7 @@ S.battle.p1.foe=S.battle.p2;S.battle.p2.foe=S.battle.p1;beginBattle(S,S.battle,{
 startRound();S.GAME='fight';}// 08.09: newBattle теперь расставляет бойцов через startRound — раньше оба спавнились в одной точке x=200
 function newBattle(i1,c1,i2,c2,arena){newBattleDefs(typeof i1==='object'?i1:CH[i1],c1,typeof i2==='object'?i2:CH[i2],c2,arena);}// 25.10: бой принимает и def-объект финального босса
 function arcOpponent(step){if(step<S.ladder.length){const id=S.ladder[step];return{def:CH[id],arena:CH[id].arena};}return{def:BOSS,arena:BOSS.arena};}// 25.10: после 11 обычных противников — отдельный босс
-function arcFight(){if(!S.ladder.length)return;const o=arcOpponent(S.lStep);newBattleDefs(CH[S.arcP1],new Ctrl(KM1),o.def,new Ctrl(KM2),o.arena);S.battle.mode='arcade';S.battle.p2.ctrl.ai=true;S.battle.aiLvl=S.lStep>=S.ladder.length?7:Math.min(7,S.lStep);S.GAME='vs';S.vsT=0;S.vsEscT=0;saveArcRun();if(S.lStep>=S.ladder.length)say('Final boss');}// 25.10: единый запуск боя аркады + автосохранение
+function arcFight(){if(!S.ladder.length)return;const o=arcOpponent(S.lStep);newBattleDefs(CH[S.arcP1],new Ctrl(KM1),o.def,new Ctrl(KM2),o.arena);S.battle.mode='arcade';S.battle.p2.ctrl.ai=true;S.battle.aiLvl=arcAiLevel();S.GAME='vs';S.vsT=0;S.vsEscT=0;saveArcRun();if(S.lStep>=S.ladder.length)say('Final boss');}// 25.10: единый запуск боя аркады + автосохранение
 function startRound(){const b=S.battle;resetRound(S,OPT.reduce?0:24);b.p1.reset(180,1);b.p2.reset(AW-180,-1);b.phase='intro';b.phaseT=0;b.timer=60;// 08.09: бойцы по краям видимой области (180/580, дистанция 400) — раньше кучковались у центра
 b.p1.rage=Math.floor(b.p1.rage*.5);b.p2.rage=Math.floor(b.p2.rage*.5);// 08.09: ярость переносится наполовину — без мгновенного супера
 S.announce={txt:'РАУНД '+b.round,t:0,col:'#e8c040'};say('Round '+['one','two','three'][Math.min(2,b.round-1)]);}
@@ -341,7 +344,7 @@ arcFight();}// 25.10: 11 обычных боёв и финальный босс;
 else if(b.mode==='arcade'){saveArcRun();toLobby('continue');S.contT=600;say('Continue?');try{const rec=+(localStorage.karnageArc||0);if(S.lStep>rec)localStorage.karnageArc=S.lStep;addTop(S.arcP1,S.lStep);}catch(e){}}// 08.09: рекорд по достигнутому шагу + зал славы
 else toLobby(S.lastSel?'rematch':'menu');}// 08.09: экран реванша
 function resumeArc(){SFX.coin();arcFight();}// 25.10: продолжение идёт через общий запуск аркады
-function resumeSavedArcade(){const run=loadArcRun();if(!run)return false;S.arcP1=run.c1;S.ladder=run.ladder.slice();S.lStep=run.step;SFX.vsroar();arcFight();return true;}// 25.10: продолжение забега после перезагрузки
+function resumeSavedArcade(){const run=loadArcRun();if(!run)return false;S.arcP1=run.c1;S.ladder=run.ladder.slice();S.lStep=run.step;S.arcDiff=run.diff??1;SFX.vsroar();arcFight();return true;}// 25.10: продолжение забега после перезагрузки
 /* ЭКРАНЫ: ВВОД */
 function menuItems(){const saved=!!loadArcRun(),items=[];if(saved)items.push({id:'resume',label:'ПРОДОЛЖИТЬ АРКАДУ'});items.push({id:'arcade',label:saved?'НОВАЯ АРКАДА':'АРКАДА'},{id:'cpu',label:'БОЙ ПРОТИВ CPU'},{id:'training',label:'ТРЕНИРОВКА'},{id:'2p',label:'БОЙ НА ДВОИХ'},{id:'settings',label:'НАСТРОЙКИ'},{id:'controls',label:'УПРАВЛЕНИЕ'},{id:'top',label:'ЗАЛ СЛАВЫ'});return items;}// 25.10: сохранённый забег добавляет пункт продолжения + тренировка
 function pauseItems(){return['ПРОДОЛЖИТЬ','ЗВУК: '+(AU.on?'ВКЛ':'ВЫКЛ'),'ГОЛОС ДИКТОРА: '+(AU.voice?'ВКЛ':'ВЫКЛ'),'ГРОМКОСТЬ: '+AU.vol+'%','В МЕНЮ'];}// 08.09: +громкость
@@ -405,7 +408,7 @@ if(S.GAME==='continue'){if(k==='KeyJ'||k==='Enter'||k==='Space')resumeArc();else
 if(S.GAME==='rematch'){if(!S.lastSel){toLobby('menu');return;}if(k==='KeyJ'||k==='Enter'||k==='Space'){rematchStart();return;}if(k==='Escape'){toLobby('menu');return;}}// 08.09: экран реванша
 if(S.GAME==='ending'||S.GAME==='gameover'){if(k==='KeyJ'||k==='Enter'||k==='Escape'){toLobby('menu');SFX.sel();}return;}
 if(S.GAME==='top'){if(k==='KeyJ'||k==='Enter'||k==='Escape'){toLobby('menu');SFX.menu();}return;}}// 08.09: зал славы
-function startLadder(c1){clearArcRun();S.arcP1=c1;S.ladder=[];
+function startLadder(c1,diff){clearArcRun();S.arcP1=c1;S.arcDiff=clamp(Number.isInteger(diff)?diff:1,0,2);S.ladder=[];
 for(let i=0;i<CH.length;i++)if(i!==c1&&i!==BOSS.id)S.ladder.push(i);
 for(let i=S.ladder.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[S.ladder[i],S.ladder[j]]=[S.ladder[j],S.ladder[i]];}
 S.ladder=S.ladder.slice(0,CH.length-2);S.lStep=0;SFX.vsroar();arcFight();}// 25.10: 11 обычных противников, босс всегда последний
@@ -431,9 +434,11 @@ g.font='9px "Russo One"';g.fillStyle='#e8e0c0';g.fillText(CH[S.lastSel.c1].name+
 if(S.bstat){g.font='7px "Russo One"';g.fillStyle='#c8a040';g.fillText('УДАРЫ: '+S.bstat.h1+' — '+S.bstat.h2+' · УРОН: '+Math.round(S.bstat.d1)+' — '+Math.round(S.bstat.d2),RW/2,162);g.fillText('МАКС. КОМБО: '+S.bstat.c1+' — '+S.bstat.c2,RW/2,174);}
 uiHint(isTouchUI()?'P — ЕЩЁ БОЙ · B — МЕНЮ':'J — ЕЩЁ БОЙ · ESC — МЕНЮ',228,8);}// 08.09: статистика боя
 function selKey(k){const s=S.sel;
-if(k==='Escape'){if(s.mode==='cpu'&&s.ph===2){s.ph=1;SFX.menu();return;}// 08.09: назад из настроек
+if(k==='Escape'){if(s.mode==='arcade'&&s.ph===2){s.ph=0;SFX.menu();return;}// 25.10: назад к выбору бойца
+if(s.mode==='cpu'&&s.ph===2){s.ph=1;SFX.menu();return;}// 08.09: назад из настроек
 if(s.mode==='cpu'&&s.ph===1){s.ph=0;SFX.menu();return;}toLobby('menu');return;}
 if(s.ph===2){// 08.09: настройка боя — сложность (cpu) и арена
+if(s.mode==='arcade'){const dd=(k==='KeyD'||k==='ArrowRight')?1:(k==='KeyA'||k==='ArrowLeft')?-1:0;if(dd){s.diff=clamp(s.diff+dd,0,2);SFX.menu();}if(k==='KeyJ'||k==='Enter'||k==='Space'){SFX.sel();startLadder(s.c1,s.diff);}return;}// 25.10: сложность аркады до старта серии
 const rows=s.mode==='cpu'?2:1;
 if((k==='KeyW'||k==='ArrowUp')&&rows>1)s.row=0;// 08.09: в 2p одна строка — W не сбрасывает подсветку
 if((k==='KeyS'||k==='ArrowDown')&&rows>1)s.row=1;
@@ -446,7 +451,7 @@ const d1=k==='KeyD'?1:k==='KeyA'?-1:k==='KeyW'?-5:k==='KeyS'?5:0;
 const d2=k==='ArrowRight'?1:k==='ArrowLeft'?-1:k==='ArrowUp'?-5:k==='ArrowDown'?5:0;
 const move=(slot,d)=>{if(d){s[slot]=clamp(s[slot]+d,0,CH.length-1);s.last=slot;SFX.menu();}};// 30.09: 11 бойцов
 if(s.mode==='training'){move('c1',d1||d2);if(k==='KeyJ'||k==='Enter'||k==='Space'){SFX.sel();startSel();}return;}
-if(s.mode==='arcade'){move('c1',d1||d2);if(k==='KeyJ'||k==='Enter'||k==='Space'){SFX.sel();startLadder(s.c1);}return;}
+if(s.mode==='arcade'){move('c1',d1||d2);if(k==='KeyJ'||k==='Enter'||k==='Space'){SFX.sel();s.ph=2;s.row=0;}return;}// 25.10: после бойца — выбор сложности
 if(s.mode==='cpu'){move(s.ph===0?'c1':'c2',d1||d2);
 if(k==='KeyJ'||k==='Enter'||k==='Space'){SFX.sel();if(s.ph===0)s.ph=1;else s.ph=2;}return;}
 if(!s.l1)move('c1',d1);if(!s.l2)move('c2',d2);// 08.09: залоченный боец больше не двигается
@@ -466,13 +471,13 @@ const L1=['A / D — ходьба','W — прыжок','S — присед','J 
 const L2=['СТРЕЛКИ — движение','СТРЕЛКА ВВЕРХ — прыжок','СТРЕЛКА ВНИЗ — присед','I — удар рукой','O — удар ногой','P — блок (удерживать)','ВНИЗ + I — апперкот','ВНИЗ + O — подсечка','назад + O — удар с разворота','бег + P — рывок-уклон','СПЕЦ2 — вторая комбинация'];// 30.09
 L1.forEach((l,i)=>g.fillText(l,24,62+i*12));L2.forEach((l,i)=>g.fillText(l,228,62+i*12));
 g.font='7px "Russo One"';g.fillStyle=UI_ACCENT;g.textAlign='center';
-g.fillText('БРОСОК: P1 — J + K · P2 — I + O',RW/2,212);
+g.fillText('БРОСОК: P1 — J + K · P2 — I + O · ВНИЗ + БРОСОК — КОМАНДНЫЙ',RW/2,212);
 g.fillText('СПЕЦ — НАПРАВЛЕНИЯ + КНОПКА · СУПЕР — ВНИЗ, ВНИЗ + УДАР',RW/2,220);
 uiHint(isTouchUI()?'ФАТАЛИТИ — В ОКНЕ FINISH HIM · B — НАЗАД':'ФАТАЛИТИ — В ОКНЕ FINISH HIM · J / ESC — НАЗАД',228);}
 function drawSelect(){const s=S.sel;bgFill();
 g.font='15px "Russo One"';g.fillStyle=UI_GOLD;g.textAlign='center';g.fillText('ВЫБОР БОЙЦА',RW/2,16);
 g.font='7px "Russo One"';g.fillStyle='#807850';
-const hdr=s.mode==='training'?'ВЫБЕРИ БОЙЦА ДЛЯ ТРЕНИРОВКИ':s.mode==='arcade'?(loadArcRun()?'НОВАЯ АРКАДА ЗАМЕНИТ СОХРАНЁННУЮ':'ВЫБЕРИ БОЙЦА — '+ARC_TOTAL+' БОЁВ · БОСС В ФИНАЛЕ'):s.ph===2?'ПОДГОТОВКА К БОЮ':s.mode==='cpu'?(s.ph===0?'ВЫБЕРИ СВОЕГО БОЙЦА':'ВЫБЕРИ СОПЕРНИКА'):'P1: WASD + J · P2: СТРЕЛКИ + I';// 25.10: предупреждение о замене сохранения
+const hdr=s.mode==='training'?'ВЫБЕРИ БОЙЦА ДЛЯ ТРЕНИРОВКИ':s.mode==='arcade'?(s.ph===2?'СЛОЖНОСТЬ АРКАДЫ':(loadArcRun()?'НОВАЯ АРКАДА ЗАМЕНИТ СОХРАНЁННУЮ':'ВЫБЕРИ БОЙЦА — '+ARC_TOTAL+' БОЁВ · БОСС В ФИНАЛЕ')):s.ph===2?'ПОДГОТОВКА К БОЮ':s.mode==='cpu'?(s.ph===0?'ВЫБЕРИ СВОЕГО БОЙЦА':'ВЫБЕРИ СОПЕРНИКА'):'P1: WASD + J · P2: СТРЕЛКИ + I';// 25.10: предупреждение о замене сохранения
 g.fillText(hdr,RW/2,27);
 for(let i=0;i<CH.length;i++){const x=12+(i%5)*37,y=36+((i/5)|0)*46;
 g.fillStyle='#100d0a';g.fillRect(x,y,34,42);g.strokeStyle='#3a3128';g.lineWidth=1;g.strokeRect(x+.5,y+.5,33,41);
@@ -506,11 +511,12 @@ g.fillStyle='#807850';g.fillText('ФАТАЛИТИ: СЕКРЕТ',298,169);
 }else{// 25.10: настройка боя — отдельная карточка, без наложения на превью
 panel(206,80,204,96);drawPort(d,240,100,.8);
 g.fillStyle='rgba(200,160,64,.28)';g.fillRect(258,80,1,96);
-g.font='8px "Russo One"';g.fillStyle='#e8c040';g.textAlign='center';g.fillText('НАСТРОЙКА БОЯ',333,94);
-if(s.mode==='cpu'){if(s.row===0){g.fillStyle='rgba(224,32,32,.10)';g.fillRect(264,107,140,16);}g.fillStyle=s.row===0?(blink()?'#fff':'#e02020'):'#c8a040';g.fillText('СЛОЖНОСТЬ: '+['ЛЁГКАЯ','НОРМАЛЬНАЯ','ТЯЖЁЛАЯ'][s.diff],334,120);}
-if(s.row===1){g.fillStyle='rgba(224,32,32,.10)';g.fillRect(264,s.mode==='cpu'?125:115,140,16);}
-g.fillStyle=s.row===1?(blink()?'#fff':'#e02020'):'#c8a040';g.fillText('АРЕНА: '+(s.ar<0?'АРЕНА БОЙЦА':AR[s.ar].n),334,s.mode==='cpu'?138:128);
-g.font='7px "Russo One"';g.fillStyle='#807850';g.fillText(isTouchUI()?'D-PAD — СТРОКА/ЗНАЧЕНИЕ':'W/S — СТРОКА · A/D — ИЗМЕНИТЬ',333,156);g.fillText(isTouchUI()?'P — СТАРТ':'J — СТАРТ',333,166);}
+g.font='8px "Russo One"';g.fillStyle='#e8c040';g.textAlign='center';g.fillText(s.mode==='arcade'?'СЛОЖНОСТЬ АРКАДЫ':'НАСТРОЙКА БОЯ',333,94);
+if(s.mode==='cpu'||s.mode==='arcade'){if(s.row===0){g.fillStyle='rgba(224,32,32,.10)';g.fillRect(264,107,140,16);}g.fillStyle=s.row===0?(blink()?'#fff':'#e02020'):'#c8a040';g.fillText('СЛОЖНОСТЬ: '+AI_DIFF_NAMES[s.diff],334,120);}
+if(s.mode!=='arcade'&&s.row===1){g.fillStyle='rgba(224,32,32,.10)';g.fillRect(264,s.mode==='cpu'?125:115,140,16);}
+if(s.mode==='arcade'){g.fillStyle='#807850';g.fillText('СЕРИЯ: '+ARC_TOTAL+' БОЙЦОВ + ФИНАЛЬНЫЙ БОСС',334,138);}
+else{g.fillStyle=s.row===1?(blink()?'#fff':'#e02020'):'#c8a040';g.fillText('АРЕНА: '+(s.ar<0?'АРЕНА БОЙЦА':AR[s.ar].n),334,s.mode==='cpu'?138:128);}
+g.font='7px "Russo One"';g.fillStyle='#807850';g.fillText(s.mode==='arcade'?(isTouchUI()?'B — НАЗАД · D-PAD — СЛОЖНОСТЬ':'A/D — СЛОЖНОСТЬ · ESC — НАЗАД'):(isTouchUI()?'D-PAD — СТРОКА/ЗНАЧЕНИЕ':'W/S — СТРОКА · A/D — ИЗМЕНИТЬ'),333,156);g.fillText(isTouchUI()?'P — СТАРТ':'J — СТАРТ',333,166);}
 uiHint(isTouchUI()?'P — ПОДТВЕРДИТЬ · B — НАЗАД':'J — ПОДТВЕРДИТЬ · ESC — НАЗАД',228);}
 function drawVS(){bgFill();
 g.fillStyle='#2a0c0c';g.beginPath();g.moveTo(0,0);g.lineTo(RW*.62,0);g.lineTo(RW*.38,RH);g.lineTo(0,RH);g.fill();// 08.09: диагональный сплит — сторона P1
@@ -525,7 +531,8 @@ g.fillStyle=S.battle.p1.def.acc;g.fillRect(12,136,146,1);g.fillStyle=S.battle.p2
 g.font='10px "Russo One"';g.textAlign='center';
 g.fillStyle='#e02020';g.fillText(S.battle.p1.def.name,85,145);
 g.fillStyle=UI_BLUE;g.fillText(S.battle.p2.def.name+(S.battle.p2.ctrl.ai?' [CPU]':''),RW-85,145);
-if(S.battle.mode==='cpu'&&S.lastSel){g.font='7px "Russo One"';g.fillStyle='#c8a040';g.textAlign='center';g.fillText('СЛОЖНОСТЬ: '+['ЛЁГКАЯ','НОРМАЛЬНАЯ','ТЯЖЁЛАЯ'][S.lastSel.diff],RW/2,190);}// 08.09: арена уже есть в отдельной плашке, здесь только сложность
+if(S.battle.mode==='cpu'&&S.lastSel){g.font='7px "Russo One"';g.fillStyle='#c8a040';g.textAlign='center';g.fillText('СЛОЖНОСТЬ: '+AI_DIFF_NAMES[S.lastSel.diff],RW/2,190);}// 08.09: арена уже есть в отдельной плашке, здесь только сложность
+if(S.battle.mode==='arcade'){g.font='7px "Russo One"';g.fillStyle='#c8a040';g.textAlign='center';g.fillText('СЛОЖНОСТЬ: '+AI_DIFF_NAMES[S.arcDiff],RW/2,190);}// 25.10: сложность видна перед каждым боем аркады
 g.font='40px "Russo One"';g.fillStyle='#000';g.fillText('VS',RW/2+3,103);g.fillStyle='#e02020';g.fillText('VS',RW/2,100);
 panel(132,158,160,18);g.font='8px "Russo One"';g.fillStyle='#e8c040';g.textAlign='center';
 g.fillText('АРЕНА: '+AR[S.battle.arena].n,RW/2,170);
@@ -755,6 +762,8 @@ if (new URLSearchParams(location.search).has('debug')) {
     get ladder() { return S.ladder; },
     get lStep() { return S.lStep; },
     get arcP1() { return S.arcP1; },
+    get arcDiff() { return S.arcDiff; },
+    get sel() { return S.sel; },
     get arcTotal() { return arcTotal(); },
     arcEnding,
     BOSS,
@@ -797,6 +806,7 @@ if (new URLSearchParams(location.search).has('debug')) {
       if ('lastSel' in values) S.lastSel = values.lastSel;
       if ('contT' in values) S.contT = values.contT;
       if ('arcP1' in values) S.arcP1 = values.arcP1;
+      if ('arcDiff' in values) S.arcDiff = values.arcDiff;
       if ('ladder' in values) S.ladder = values.ladder;
       if ('lStep' in values) S.lStep = values.lStep;
       if ('sel' in values) S.sel = values.sel;

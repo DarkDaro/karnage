@@ -508,6 +508,100 @@ test('arcade saves progress, resumes and ends with final boss', async () => {
   assert.equal(finish.endingTitle, 'ПЕПЕЛ НА ВЕТРУ');
 });
 
+test('arcade difficulty is chosen before the series and saved', async () => {
+  const result = await page.evaluate(() => {
+    const K = window.KARNAGE;
+    localStorage.clear();
+    K.toLobby('menu');
+    K.setDebug({
+      GAME: 'select',
+      sel: { mode: 'arcade', c1: 0, c2: 1, ph: 0, l1: false, l2: false, diff: 1, ar: -1, row: 0 }
+    });
+    K.onKey('Enter');
+    const setup = { game: K.GAME, ph: K.sel.ph, diff: K.sel.diff };
+    K.onKey('KeyA');
+    const changed = { diff: K.sel.diff, game: K.GAME };
+    K.onKey('Enter');
+    const started = {
+      game: K.GAME,
+      diff: K.arcDiff,
+      ai: K.battle.aiLvl,
+      saved: K.loadArcRun()?.diff
+    };
+    localStorage.removeItem('karnageArcRun');
+    return { setup, changed, started };
+  });
+  assert.deepEqual(result.setup, { game: 'select', ph: 2, diff: 1 });
+  assert.deepEqual(result.changed, { diff: 0, game: 'select' });
+  assert.deepEqual(result.started, { game: 'vs', diff: 0, ai: 0, saved: 0 });
+});
+
+test('long combos shorten hitstun', async () => {
+  const result = await page.evaluate(() => {
+    const K = window.KARNAGE;
+    K.setDebug({ GAME: 'fight', paused: false });
+    K.newBattle(0, new K.Ctrl(K.KM1), 1, new K.Ctrl(K.KM2), 9);
+    const battle = K.battle;
+    battle.mode = '2p';
+    battle.phase = 'fight';
+    battle.phaseT = 200;
+    const hitStun = (combo) => {
+      battle.p1.combo = combo;
+      battle.p1.comboT = 0;
+      battle.p2.hp = 100;
+      battle.p2.state = 'idle';
+      battle.p2.defeated = 0;
+      battle.p2.invuln = 0;
+      K.resolveHit(battle.p1, battle.p2, 5, {});
+      return battle.p2.hitStun;
+    };
+    return { first: hitStun(0), long: hitStun(4) };
+  });
+  assert.deepEqual(result, { first: 18, long: 12 });
+});
+
+test('blocked punch can be canceled into a throw', async () => {
+  const result = await page.evaluate(() => {
+    const K = window.KARNAGE;
+    for (const code in K.keys) K.keys[code] = false;
+    K.setDebug({ GAME: 'fight', paused: false });
+    K.newBattle(0, new K.Ctrl(K.KM1), 1, new K.Ctrl(K.KM2), 9);
+    const battle = K.battle;
+    battle.mode = '2p';
+    battle.phase = 'fight';
+    battle.phaseT = 200;
+    battle.p1.x = 300;
+    battle.p2.x = 330;
+    battle.p1.face = 1;
+    battle.p2.face = -1;
+    battle.p1.state = 'idle';
+    battle.p2.state = 'idle';
+    battle.p1.ctrl.clear();
+    battle.p2.ctrl.clear();
+    K.keys.KeyP = true;
+    K.step();
+    K.keys.KeyJ = true;
+    K.step();
+    K.keys.KeyJ = false;
+    let blocked = false;
+    for (let i = 0; i < 7; i += 1) {
+      K.step();
+      if (battle.p1.atk?.blocked) blocked = true;
+    }
+    K.keys.KeyK = true;
+    K.step();
+    K.keys.KeyK = false;
+    const converted = battle.p1.atk?.t;
+    for (let i = 0; i < 10; i += 1) K.step();
+    const grabbed = battle.p2.state;
+    K.keys.KeyP = false;
+    return { blocked, converted, grabbed };
+  });
+  assert.equal(result.blocked, true);
+  assert.equal(result.converted, 'throw');
+  assert.equal(result.grabbed, 'grabbed');
+});
+
 test('main menu offers continue for a saved arcade run', async () => {
   const result = await page.evaluate(() => {
     const K = window.KARNAGE;
@@ -729,16 +823,23 @@ test('throws beat block but miss crouching targets', async () => {
     battle.p1.startAtk('throw');
     for (let i = 0; i < 8; i += 1) battle.p1.update(100 + i, battle.p2);
     const crouch = { hp: battle.p2.hp, state: battle.p2.state, hit: battle.p1.atk?.hit || 0 };
+    reset('crouch');
+    battle.p1.startCmdThrow();
+    for (let i = 0; i < 8; i += 1) battle.p1.update(140 + i, battle.p2);
+    const crouchCmd = { hp: battle.p2.hp, state: battle.p2.state, hit: battle.p1.atk?.hit || 0 };
     reset('idle');
     battle.p1.startAtk('throw');
     for (let i = 0; i < 8; i += 1) battle.p1.update(120 + i, battle.p2);
     const standing = { hp: battle.p2.hp, state: battle.p2.state, hit: battle.p1.atk?.hit || 0 };
-    return { blocked, normalBlock, crouch, standing };
+    return { blocked, normalBlock, crouch, crouchCmd, standing };
   });
   assert.deepEqual(result.blocked, { result: 'hit', hp: 88, state: 'down' });
   assert.deepEqual(result.normalBlock, { result: 'block', hp: 99, state: 'block' });
   assert.equal(result.crouch.hp, 100);
   assert.equal(result.crouch.hit, 0);
+  assert.equal(result.crouchCmd.hit, 1);
+  assert.equal(result.crouchCmd.state, 'grabbed');
+  assert.ok(result.crouchCmd.hp < 100);
   assert.ok(result.standing.hp < 100);
   assert.equal(result.standing.hit, 1);
 });

@@ -34,6 +34,7 @@ export function createState() {
     titleT: 0,
     contT: 0,
     arcP1: 0,
+    arcDiff: 1, // сложность аркадной серии
     lastSel: null, // реванш теми же бойцами
     vsEscT: 0, // подтверждение выхода из аркады
     bstat: null, // статистика боя для экрана реванша

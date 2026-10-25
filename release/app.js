@@ -1057,6 +1057,8 @@
       titleT: 0,
       contT: 0,
       arcP1: 0,
+      arcDiff: 1,
+      // сложность аркадной серии
       lastSel: null,
       // реванш теми же бойцами
       vsEscT: 0,
@@ -1190,7 +1192,7 @@
   }
 
   // src/game/fighter.js
-  var ATK = { punch: { d: 6, wd: 5, ac: 3, rc: 8, rng: 28, hh: 0.72 }, kick: { d: 9, wd: 7, ac: 4, rc: 11, rng: 36, hh: 0.6 }, upper: { d: 15, wd: 6, ac: 4, rc: 15, rng: 24, hh: 0.5, launch: 1 }, sweep: { d: 10, wd: 6, ac: 3, rc: 13, rng: 38, hh: 0.12, low: 1 }, jkick: { d: 10, wd: 4, ac: 8, rc: 20, rng: 34, hh: 0.4, overhead: 1 }, rh: { d: 12, wd: 8, ac: 4, rc: 15, rng: 40, hh: 0.55, knock: 1 }, throw: { d: 1, wd: 5, ac: 3, rc: 20, rng: 30, hh: 0.55, throw: 1, grab: 1 } };
+  var ATK = { punch: { d: 6, wd: 5, ac: 3, rc: 8, rng: 28, hh: 0.72 }, kick: { d: 9, wd: 7, ac: 4, rc: 11, rng: 36, hh: 0.6 }, upper: { d: 15, wd: 6, ac: 4, rc: 15, rng: 24, hh: 0.5, launch: 1 }, sweep: { d: 10, wd: 6, ac: 3, rc: 13, rng: 38, hh: 0.12, low: 1 }, jkick: { d: 10, wd: 4, ac: 8, rc: 20, rng: 34, hh: 0.4, overhead: 1 }, rh: { d: 12, wd: 8, ac: 4, rc: 15, rng: 40, hh: 0.55, knock: 1 }, throw: { d: 1, wd: 5, ac: 3, rc: 20, rng: 32, hh: 0.55, throw: 1, grab: 1 } };
   var ZEROC = { l: 0, r: 0, u: 0, d: 0, P: 0, K: 0, B: 0, pP: 0, pK: 0, pl: 0, pr: 0, pu: 0, pd: 0 };
   var WM = { 0: [0.24, 1, 1, 1.5, 0.02], 1: [0.15, 0.65, 0.4, 0.6, 0.1], 2: [0.27, 1.1, 1.3, 1.8, 0], 3: [0.14, 1.2, 0.8, 2.6, 0.06], 4: [0.3, 0.9, 1.4, 1, 0.12], 5: [0.2, 0.7, 0.5, 0.8, -0.03], 6: [0.2, 0.9, 0.7, 1, 0], 7: [0.22, 1.1, 0.5, 1.6, 0.04], 8: [0.13, 0.5, 0.3, 0.4, -0.05], 9: [0.21, 0.95, 1.1, 1.6, 0.03], 10: [0.19, 0.75, 0.6, 0.9, -0.04], 11: [0.28, 0.85, 1.2, 0.9, 0.1], 12: [0.17, 0.6, 0.4, 0.5, -0.02] };
   function hitR(a, b) {
@@ -1296,6 +1298,7 @@
         this.jumpGrace = 0;
         this.chain = "";
         this.chainT = 0;
+        this.hitStun = 18;
         this.ctrl.clear();
       }
       get onGround() {
@@ -1360,7 +1363,7 @@
         const d = this.def;
         return [d.spec, d.spec2].some((seq) => {
           const p = (seq || "").slice(0, -1);
-          return p.endsWith("U") && this.ctrl.matchRel(p, this.face, 16);
+          return p.endsWith("U") && this.ctrl.matchRel(p, this.face, 20);
         });
       }
       update(FR, foe) {
@@ -1465,16 +1468,16 @@
           if (this.jumpGrace > 0) {
             this.jumpGrace--;
             if (this.jumpGrace === 0 && this.onGround && ["idle", "walk", "crouch"].includes(this.state)) this.jump();
-          } else if (!this.onGround && c.pu) this.jbuf = 8;
+          } else if (!this.onGround && c.pu) this.jbuf = 10;
           else if (this.jbuf > 0) this.jbuf--;
           if (this.onGround && c.B && ["idle", "walk", "crouch"].includes(this.state)) this.state = "block";
           else if (this.state === "block" && !c.B) this.state = c.d ? "crouch" : "idle";
           this.blockLow = this.state === "block" ? !!c.d : 0;
           if (!stunned && ["idle", "walk", "crouch", "block"].includes(this.state) && this.onGround && (c.pP || c.pK)) {
             const btn = c.pP ? "P" : "K", fwd = this.face > 0 ? c.r : c.l, back = this.face > 0 ? c.l : c.r;
-            if (this.rage >= 100 && this.ctrl.match("DDP", 60)) this.startSuper();
-            else if (this.ctrl.matchRel(d.spec, this.face, 60)) this.startSpec(foe);
-            else if (this.ctrl.matchRel(d.spec2, this.face, 60)) this.startSpec2(foe);
+            if (this.rage >= 100 && this.ctrl.match("DDP", 75)) this.startSuper();
+            else if (this.ctrl.matchRel(d.spec, this.face, 75)) this.startSpec(foe);
+            else if (this.ctrl.matchRel(d.spec2, this.face, 75)) this.startSpec2(foe);
             else if (c.pkChord && c.pkChord()) {
               if (c.d || this.def.grappler && fwd) this.startCmdThrow();
               else this.startAtk("throw");
@@ -1486,14 +1489,14 @@
             else this.startAtk(c.l && !c.r && this.face > 0 || c.r && !c.l && this.face < 0 ? "rh" : "kick");
           }
           if (this.state === "jump" && (c.pP || c.pK)) {
-            if (this.ctrl.matchRel(d.spec, this.face, 60)) this.startSpec(foe);
-            else if (this.ctrl.matchRel(d.spec2, this.face, 60)) this.startSpec2(foe);
+            if (this.ctrl.matchRel(d.spec, this.face, 75)) this.startSpec(foe);
+            else if (this.ctrl.matchRel(d.spec2, this.face, 75)) this.startSpec2(foe);
             else this.startAtk("jkick");
           }
         } else this.vx *= 0.98;
         if (this.state === "hit") {
           this.vx = this.hvx;
-          if (this.st > 18 && this.onGround) {
+          if (this.st > (this.hitStun || 18) && this.onGround) {
             this.state = "idle";
             this.vx = 0;
           }
@@ -1504,7 +1507,7 @@
           if (this.st > 40) {
             this.state = "getup";
             this.st = 0;
-            this.invuln = 8;
+            this.invuln = 12;
           }
         } else if (this.state === "getup") {
           this.tilt = lerp(this.tilt, 0, 0.15);
@@ -1553,7 +1556,7 @@
           foe.x = clamp2(foe.x, 16, AW - 16);
         }
         if (["idle", "walk", "crouch", "block"].includes(this.state)) this.face = foe.x < this.x ? -1 : 1;
-        if (this.state === "atk" && this.atk && !this.atk.hit && this.atk.btn && !this.atk.target && this.st <= this.atk.A.wd + this.atk.A.ac && c.pkChord && c.pkChord()) {
+        if (this.state === "atk" && this.atk && (!this.atk.hit || this.atk.blocked) && this.atk.btn && !this.atk.target && this.st <= this.atk.A.wd + this.atk.A.ac + 4 && c.pkChord && c.pkChord()) {
           const pressed = this.atk.btn === "P" ? c.pK : c.pP;
           if (pressed) {
             const fwd2 = this.face > 0 ? c.r : c.l;
@@ -1564,15 +1567,15 @@
         if (this.state === "atk" && this.atk) {
           const A = this.atk.A;
           if (c.pP) {
-            this.abuf = 8;
+            this.abuf = 12;
             this.abufB = "punch";
           } else if (c.pK) {
-            this.abuf = 8;
+            this.abuf = 12;
             this.abufB = c.d ? "sweep" : "kick";
           } else if (this.abuf > 0) this.abuf--;
           if (this.st > A.wd && this.st <= A.wd + A.ac && !this.atk.hit && foe.state !== "down") {
             const hb = this.atkBox();
-            if (hb && hitR(hb, foe.box) && (!A.throw || foe.onGround && ["idle", "walk", "block"].includes(foe.state))) {
+            if (hb && hitR(hb, foe.box) && (!A.throw || foe.onGround && (["idle", "walk", "block"].includes(foe.state) || this.atk.cmdThrow && foe.state === "crouch"))) {
               const res = resolveHit(this, foe, A.d, { launch: A.launch, low: A.low, overhead: A.overhead, throw: A.throw, knock: A.knock, grab: A.grab, kb: A.kb, status: A.status, chain: this.atk.chainPart, target: this.atk.target });
               this.atk.hit = 1;
               this.atk.blocked = res === "block" ? 1 : 0;
@@ -1585,13 +1588,13 @@
             SFX.whiff();
             const hb = this.atkBox();
             S.fx.push({ ty: "whiff", x: hb ? hb.x + hb.w / 2 : this.x + this.face * 22, y: hb ? hb.y + hb.h / 2 : this.y - this.def.h * 0.6, face: this.face, t: 0, life: 12, col: this.def.acc || "#cfe8ff" });
-            if (A.throw) S.fx.push({ ty: "name", x: this.x + this.face * 12, y: this.y - this.def.h - 6, txt: "\u041F\u0420\u041E\u041C\u0410\u0425", col: "#c8a0a0", life: 34, t: 0 });
+            if (A.throw) S.fx.push({ ty: "name", x: this.x + this.face * 12, y: this.y - this.def.h - 6, txt: foe.state === "crouch" && !this.atk.cmdThrow ? "\u041F\u0420\u0418\u0421\u0415\u0412 \xB7 D+\u0411\u0420\u041E\u0421\u041E\u041A" : "\u041F\u0420\u041E\u041C\u0410\u0425", col: "#c8a0a0", life: 34, t: 0 });
           }
-          if (this.atk.hit && this.atk.connected && !this.atk.blocked && !this.atk.cancel && !A.throw && this.st > A.wd + A.ac && this.st <= A.wd + A.ac + 10 && this.onGround) {
-            if (this.ctrl.matchRel(d.spec, this.face, 60)) {
+          if (this.atk.hit && this.atk.connected && !this.atk.blocked && !this.atk.cancel && !A.throw && this.st > A.wd + A.ac && this.st <= A.wd + A.ac + 16 && this.onGround) {
+            if (this.ctrl.matchRel(d.spec, this.face, 75)) {
               this.atk.cancel = 1;
               this.startSpec(foe);
-            } else if (this.ctrl.matchRel(d.spec2, this.face, 60)) {
+            } else if (this.ctrl.matchRel(d.spec2, this.face, 75)) {
               this.atk.cancel = 1;
               this.startSpec2(foe);
             }
@@ -2109,6 +2112,10 @@
       const chain = f.comboT !== void 0 && f.comboT < 60 ? f.combo || 0 : 0;
       return Math.max(0.55, 1 - chain * 0.07);
     }
+    function hitStunFor(att, opts) {
+      const combo = att.comboT !== void 0 && att.comboT < 60 ? att.combo || 0 : 0;
+      return opts && opts.launch ? 18 : Math.max(12, 18 - combo * 2);
+    }
     function autoHit(a, dmg) {
       const f = a.foe;
       if (!f || f.hidden || f.dodging || f.defeated) return;
@@ -2139,6 +2146,7 @@
       f.flash = 4;
       f.state = "hit";
       f.st = 0;
+      f.hitStun = hitStunFor(a);
       f.vx = 0;
       f.hvx = 0;
       f.atk = null;
@@ -2250,6 +2258,7 @@
       }
       def.hp = Math.max(0, def.hp - d);
       if (def.hp <= 0) S.freeze = Math.max(S.freeze, 12);
+      def.hitStun = hitStunFor(att, opts);
       def.blockStun = 0;
       def.damageTaken = (def.damageTaken || 0) + d;
       def.netT = 0;
@@ -2380,7 +2389,7 @@
       }
       // 25.10: P+K — дружелюбный к человеческому вводу аккорд: обе кнопки одновременно, одна удерживается, либо нажаты с малым зазором
       pkChord(win) {
-        win = win || 8;
+        win = win || 12;
         return this.P && this.K || this.fr - this.tP <= win && this.fr - this.tK <= win;
       }
       match(seq, win) {
@@ -7463,6 +7472,7 @@
   function startKarnage(fxAssets = {}, arenaAssets = {}, uiAssets = {}) {
     const RW = 424, RH = 240, FL = 206, AW = 760, GR = 8, OUT = "#0e0b08";
     const UI_GOLD = "#e8c040", UI_RED = "#e02020", UI_BLUE = "#3868c8", UI_TEXT = "#e8e0c0", UI_MUTED = "#807850", UI_ACCENT = "#c8a040";
+    const AI_DIFF_NAMES = ["\u041B\u0401\u0413\u041A\u0410\u042F", "\u041D\u041E\u0420\u041C\u0410\u041B\u042C\u041D\u0410\u042F", "\u0422\u042F\u0416\u0401\u041B\u0410\u042F"];
     const isTouchUI = () => document.body.classList.contains("touch");
     const FATAL_FRAMES = 600, FATAL_INPUT = 240;
     const FX = fxAssets || {}, ARENA_IMG = arenaAssets || {}, UI = uiAssets || {};
@@ -7635,6 +7645,7 @@
       if (!run.ladder.every((id) => Number.isInteger(id) && id >= 0 && id < CH.length && id !== run.c1 && id !== BOSS.id)) return false;
       if (new Set(run.ladder).size !== run.ladder.length) return false;
       if (!Number.isInteger(run.step) || run.step < 0 || run.step >= ARC_TOTAL) return false;
+      if (run.diff !== void 0 && (!Number.isInteger(run.diff) || run.diff < 0 || run.diff > 2)) return false;
       return true;
     }
     function loadArcRun() {
@@ -7648,7 +7659,7 @@
     function saveArcRun() {
       try {
         if (!Number.isInteger(S.arcP1) || !S.ladder.length || !Number.isInteger(S.lStep)) return;
-        const run = { v: ARC_VERSION, c1: S.arcP1, ladder: S.ladder.slice(), step: S.lStep };
+        const run = { v: ARC_VERSION, c1: S.arcP1, ladder: S.ladder.slice(), step: S.lStep, diff: S.arcDiff };
         if (validArcRun(run)) localStorage[ARC_KEY] = JSON.stringify(run);
       } catch (e) {
       }
@@ -8210,6 +8221,12 @@
       }
     }
     const RANGED = [0, 2, 3, 6, 7, 8, 9, 10, 12];
+    const ARC_AI = [{ base: 0, step: 0.35, boss: 5 }, { base: 1, step: 0.5, boss: 7 }, { base: 2, step: 0.6, boss: 7 }];
+    function arcAiLevel() {
+      const d = ARC_AI[S.arcDiff] || ARC_AI[1];
+      const boss = S.lStep >= S.ladder.length;
+      return clamp2(boss ? d.boss : Math.round(d.base + S.lStep * d.step), 0, 7);
+    }
     function aiUpd(f, foe, lvl) {
       const c = f.ctrl;
       c.ax = {};
@@ -8347,7 +8364,7 @@
       newBattleDefs(CH[S.arcP1], new Ctrl(KM12), o.def, new Ctrl(KM22), o.arena);
       S.battle.mode = "arcade";
       S.battle.p2.ctrl.ai = true;
-      S.battle.aiLvl = S.lStep >= S.ladder.length ? 7 : Math.min(7, S.lStep);
+      S.battle.aiLvl = arcAiLevel();
       S.GAME = "vs";
       S.vsT = 0;
       S.vsEscT = 0;
@@ -8823,6 +8840,7 @@
       S.arcP1 = run.c1;
       S.ladder = run.ladder.slice();
       S.lStep = run.step;
+      S.arcDiff = run.diff ?? 1;
       SFX.vsroar();
       arcFight();
       return true;
@@ -9117,9 +9135,10 @@
         return;
       }
     }
-    function startLadder(c1) {
+    function startLadder(c1, diff) {
       clearArcRun();
       S.arcP1 = c1;
+      S.arcDiff = clamp2(Number.isInteger(diff) ? diff : 1, 0, 2);
       S.ladder = [];
       for (let i = 0; i < CH.length; i++) if (i !== c1 && i !== BOSS.id) S.ladder.push(i);
       for (let i = S.ladder.length - 1; i > 0; i--) {
@@ -9231,6 +9250,11 @@
     function selKey(k) {
       const s = S.sel;
       if (k === "Escape") {
+        if (s.mode === "arcade" && s.ph === 2) {
+          s.ph = 0;
+          SFX.menu();
+          return;
+        }
         if (s.mode === "cpu" && s.ph === 2) {
           s.ph = 1;
           SFX.menu();
@@ -9245,6 +9269,18 @@
         return;
       }
       if (s.ph === 2) {
+        if (s.mode === "arcade") {
+          const dd2 = k === "KeyD" || k === "ArrowRight" ? 1 : k === "KeyA" || k === "ArrowLeft" ? -1 : 0;
+          if (dd2) {
+            s.diff = clamp2(s.diff + dd2, 0, 2);
+            SFX.menu();
+          }
+          if (k === "KeyJ" || k === "Enter" || k === "Space") {
+            SFX.sel();
+            startLadder(s.c1, s.diff);
+          }
+          return;
+        }
         const rows = s.mode === "cpu" ? 2 : 1;
         if ((k === "KeyW" || k === "ArrowUp") && rows > 1) s.row = 0;
         if ((k === "KeyS" || k === "ArrowDown") && rows > 1) s.row = 1;
@@ -9282,7 +9318,8 @@
         move("c1", d1 || d2);
         if (k === "KeyJ" || k === "Enter" || k === "Space") {
           SFX.sel();
-          startLadder(s.c1);
+          s.ph = 2;
+          s.row = 0;
         }
         return;
       }
@@ -9347,7 +9384,7 @@
       g.font = '7px "Russo One"';
       g.fillStyle = UI_ACCENT;
       g.textAlign = "center";
-      g.fillText("\u0411\u0420\u041E\u0421\u041E\u041A: P1 \u2014 J + K \xB7 P2 \u2014 I + O", RW / 2, 212);
+      g.fillText("\u0411\u0420\u041E\u0421\u041E\u041A: P1 \u2014 J + K \xB7 P2 \u2014 I + O \xB7 \u0412\u041D\u0418\u0417 + \u0411\u0420\u041E\u0421\u041E\u041A \u2014 \u041A\u041E\u041C\u0410\u041D\u0414\u041D\u042B\u0419", RW / 2, 212);
       g.fillText("\u0421\u041F\u0415\u0426 \u2014 \u041D\u0410\u041F\u0420\u0410\u0412\u041B\u0415\u041D\u0418\u042F + \u041A\u041D\u041E\u041F\u041A\u0410 \xB7 \u0421\u0423\u041F\u0415\u0420 \u2014 \u0412\u041D\u0418\u0417, \u0412\u041D\u0418\u0417 + \u0423\u0414\u0410\u0420", RW / 2, 220);
       uiHint(isTouchUI() ? "\u0424\u0410\u0422\u0410\u041B\u0418\u0422\u0418 \u2014 \u0412 \u041E\u041A\u041D\u0415 FINISH HIM \xB7 B \u2014 \u041D\u0410\u0417\u0410\u0414" : "\u0424\u0410\u0422\u0410\u041B\u0418\u0422\u0418 \u2014 \u0412 \u041E\u041A\u041D\u0415 FINISH HIM \xB7 J / ESC \u2014 \u041D\u0410\u0417\u0410\u0414", 228);
     }
@@ -9360,7 +9397,7 @@
       g.fillText("\u0412\u042B\u0411\u041E\u0420 \u0411\u041E\u0419\u0426\u0410", RW / 2, 16);
       g.font = '7px "Russo One"';
       g.fillStyle = "#807850";
-      const hdr = s.mode === "training" ? "\u0412\u042B\u0411\u0415\u0420\u0418 \u0411\u041E\u0419\u0426\u0410 \u0414\u041B\u042F \u0422\u0420\u0415\u041D\u0418\u0420\u041E\u0412\u041A\u0418" : s.mode === "arcade" ? loadArcRun() ? "\u041D\u041E\u0412\u0410\u042F \u0410\u0420\u041A\u0410\u0414\u0410 \u0417\u0410\u041C\u0415\u041D\u0418\u0422 \u0421\u041E\u0425\u0420\u0410\u041D\u0401\u041D\u041D\u0423\u042E" : "\u0412\u042B\u0411\u0415\u0420\u0418 \u0411\u041E\u0419\u0426\u0410 \u2014 " + ARC_TOTAL + " \u0411\u041E\u0401\u0412 \xB7 \u0411\u041E\u0421\u0421 \u0412 \u0424\u0418\u041D\u0410\u041B\u0415" : s.ph === 2 ? "\u041F\u041E\u0414\u0413\u041E\u0422\u041E\u0412\u041A\u0410 \u041A \u0411\u041E\u042E" : s.mode === "cpu" ? s.ph === 0 ? "\u0412\u042B\u0411\u0415\u0420\u0418 \u0421\u0412\u041E\u0415\u0413\u041E \u0411\u041E\u0419\u0426\u0410" : "\u0412\u042B\u0411\u0415\u0420\u0418 \u0421\u041E\u041F\u0415\u0420\u041D\u0418\u041A\u0410" : "P1: WASD + J \xB7 P2: \u0421\u0422\u0420\u0415\u041B\u041A\u0418 + I";
+      const hdr = s.mode === "training" ? "\u0412\u042B\u0411\u0415\u0420\u0418 \u0411\u041E\u0419\u0426\u0410 \u0414\u041B\u042F \u0422\u0420\u0415\u041D\u0418\u0420\u041E\u0412\u041A\u0418" : s.mode === "arcade" ? s.ph === 2 ? "\u0421\u041B\u041E\u0416\u041D\u041E\u0421\u0422\u042C \u0410\u0420\u041A\u0410\u0414\u042B" : loadArcRun() ? "\u041D\u041E\u0412\u0410\u042F \u0410\u0420\u041A\u0410\u0414\u0410 \u0417\u0410\u041C\u0415\u041D\u0418\u0422 \u0421\u041E\u0425\u0420\u0410\u041D\u0401\u041D\u041D\u0423\u042E" : "\u0412\u042B\u0411\u0415\u0420\u0418 \u0411\u041E\u0419\u0426\u0410 \u2014 " + ARC_TOTAL + " \u0411\u041E\u0401\u0412 \xB7 \u0411\u041E\u0421\u0421 \u0412 \u0424\u0418\u041D\u0410\u041B\u0415" : s.ph === 2 ? "\u041F\u041E\u0414\u0413\u041E\u0422\u041E\u0412\u041A\u0410 \u041A \u0411\u041E\u042E" : s.mode === "cpu" ? s.ph === 0 ? "\u0412\u042B\u0411\u0415\u0420\u0418 \u0421\u0412\u041E\u0415\u0413\u041E \u0411\u041E\u0419\u0426\u0410" : "\u0412\u042B\u0411\u0415\u0420\u0418 \u0421\u041E\u041F\u0415\u0420\u041D\u0418\u041A\u0410" : "P1: WASD + J \xB7 P2: \u0421\u0422\u0420\u0415\u041B\u041A\u0418 + I";
       g.fillText(hdr, RW / 2, 27);
       for (let i = 0; i < CH.length; i++) {
         const x = 12 + i % 5 * 37, y = 36 + (i / 5 | 0) * 46;
@@ -9451,24 +9488,29 @@
         g.font = '8px "Russo One"';
         g.fillStyle = "#e8c040";
         g.textAlign = "center";
-        g.fillText("\u041D\u0410\u0421\u0422\u0420\u041E\u0419\u041A\u0410 \u0411\u041E\u042F", 333, 94);
-        if (s.mode === "cpu") {
+        g.fillText(s.mode === "arcade" ? "\u0421\u041B\u041E\u0416\u041D\u041E\u0421\u0422\u042C \u0410\u0420\u041A\u0410\u0414\u042B" : "\u041D\u0410\u0421\u0422\u0420\u041E\u0419\u041A\u0410 \u0411\u041E\u042F", 333, 94);
+        if (s.mode === "cpu" || s.mode === "arcade") {
           if (s.row === 0) {
             g.fillStyle = "rgba(224,32,32,.10)";
             g.fillRect(264, 107, 140, 16);
           }
           g.fillStyle = s.row === 0 ? blink() ? "#fff" : "#e02020" : "#c8a040";
-          g.fillText("\u0421\u041B\u041E\u0416\u041D\u041E\u0421\u0422\u042C: " + ["\u041B\u0401\u0413\u041A\u0410\u042F", "\u041D\u041E\u0420\u041C\u0410\u041B\u042C\u041D\u0410\u042F", "\u0422\u042F\u0416\u0401\u041B\u0410\u042F"][s.diff], 334, 120);
+          g.fillText("\u0421\u041B\u041E\u0416\u041D\u041E\u0421\u0422\u042C: " + AI_DIFF_NAMES[s.diff], 334, 120);
         }
-        if (s.row === 1) {
+        if (s.mode !== "arcade" && s.row === 1) {
           g.fillStyle = "rgba(224,32,32,.10)";
           g.fillRect(264, s.mode === "cpu" ? 125 : 115, 140, 16);
         }
-        g.fillStyle = s.row === 1 ? blink() ? "#fff" : "#e02020" : "#c8a040";
-        g.fillText("\u0410\u0420\u0415\u041D\u0410: " + (s.ar < 0 ? "\u0410\u0420\u0415\u041D\u0410 \u0411\u041E\u0419\u0426\u0410" : AR[s.ar].n), 334, s.mode === "cpu" ? 138 : 128);
+        if (s.mode === "arcade") {
+          g.fillStyle = "#807850";
+          g.fillText("\u0421\u0415\u0420\u0418\u042F: " + ARC_TOTAL + " \u0411\u041E\u0419\u0426\u041E\u0412 + \u0424\u0418\u041D\u0410\u041B\u042C\u041D\u042B\u0419 \u0411\u041E\u0421\u0421", 334, 138);
+        } else {
+          g.fillStyle = s.row === 1 ? blink() ? "#fff" : "#e02020" : "#c8a040";
+          g.fillText("\u0410\u0420\u0415\u041D\u0410: " + (s.ar < 0 ? "\u0410\u0420\u0415\u041D\u0410 \u0411\u041E\u0419\u0426\u0410" : AR[s.ar].n), 334, s.mode === "cpu" ? 138 : 128);
+        }
         g.font = '7px "Russo One"';
         g.fillStyle = "#807850";
-        g.fillText(isTouchUI() ? "D-PAD \u2014 \u0421\u0422\u0420\u041E\u041A\u0410/\u0417\u041D\u0410\u0427\u0415\u041D\u0418\u0415" : "W/S \u2014 \u0421\u0422\u0420\u041E\u041A\u0410 \xB7 A/D \u2014 \u0418\u0417\u041C\u0415\u041D\u0418\u0422\u042C", 333, 156);
+        g.fillText(s.mode === "arcade" ? isTouchUI() ? "B \u2014 \u041D\u0410\u0417\u0410\u0414 \xB7 D-PAD \u2014 \u0421\u041B\u041E\u0416\u041D\u041E\u0421\u0422\u042C" : "A/D \u2014 \u0421\u041B\u041E\u0416\u041D\u041E\u0421\u0422\u042C \xB7 ESC \u2014 \u041D\u0410\u0417\u0410\u0414" : isTouchUI() ? "D-PAD \u2014 \u0421\u0422\u0420\u041E\u041A\u0410/\u0417\u041D\u0410\u0427\u0415\u041D\u0418\u0415" : "W/S \u2014 \u0421\u0422\u0420\u041E\u041A\u0410 \xB7 A/D \u2014 \u0418\u0417\u041C\u0415\u041D\u0418\u0422\u042C", 333, 156);
         g.fillText(isTouchUI() ? "P \u2014 \u0421\u0422\u0410\u0420\u0422" : "J \u2014 \u0421\u0422\u0410\u0420\u0422", 333, 166);
       }
       uiHint(isTouchUI() ? "P \u2014 \u041F\u041E\u0414\u0422\u0412\u0415\u0420\u0414\u0418\u0422\u042C \xB7 B \u2014 \u041D\u0410\u0417\u0410\u0414" : "J \u2014 \u041F\u041E\u0414\u0422\u0412\u0415\u0420\u0414\u0418\u0422\u042C \xB7 ESC \u2014 \u041D\u0410\u0417\u0410\u0414", 228);
@@ -9518,7 +9560,13 @@
         g.font = '7px "Russo One"';
         g.fillStyle = "#c8a040";
         g.textAlign = "center";
-        g.fillText("\u0421\u041B\u041E\u0416\u041D\u041E\u0421\u0422\u042C: " + ["\u041B\u0401\u0413\u041A\u0410\u042F", "\u041D\u041E\u0420\u041C\u0410\u041B\u042C\u041D\u0410\u042F", "\u0422\u042F\u0416\u0401\u041B\u0410\u042F"][S.lastSel.diff], RW / 2, 190);
+        g.fillText("\u0421\u041B\u041E\u0416\u041D\u041E\u0421\u0422\u042C: " + AI_DIFF_NAMES[S.lastSel.diff], RW / 2, 190);
+      }
+      if (S.battle.mode === "arcade") {
+        g.font = '7px "Russo One"';
+        g.fillStyle = "#c8a040";
+        g.textAlign = "center";
+        g.fillText("\u0421\u041B\u041E\u0416\u041D\u041E\u0421\u0422\u042C: " + AI_DIFF_NAMES[S.arcDiff], RW / 2, 190);
       }
       g.font = '40px "Russo One"';
       g.fillStyle = "#000";
@@ -10311,6 +10359,12 @@
         get arcP1() {
           return S.arcP1;
         },
+        get arcDiff() {
+          return S.arcDiff;
+        },
+        get sel() {
+          return S.sel;
+        },
         get arcTotal() {
           return arcTotal();
         },
@@ -10357,6 +10411,7 @@
           if ("lastSel" in values) S.lastSel = values.lastSel;
           if ("contT" in values) S.contT = values.contT;
           if ("arcP1" in values) S.arcP1 = values.arcP1;
+          if ("arcDiff" in values) S.arcDiff = values.arcDiff;
           if ("ladder" in values) S.ladder = values.ladder;
           if ("lStep" in values) S.lStep = values.lStep;
           if ("sel" in values) S.sel = values.sel;

@@ -1,5 +1,6 @@
 export function createCombat({ S, SFX, P, blood, spriteFx, rnd, pick }) {
   function comboScale(f){const chain=(f.comboT!==undefined&&f.comboT<60)?(f.combo||0):0;return Math.max(.55,1-chain*.07);}// 24.10: спад урона в длинной серии
+  function hitStunFor(att,opts){const combo=(att.comboT!==undefined&&att.comboT<60)?(att.combo||0):0;return opts&&opts.launch?18:Math.max(12,18-combo*2);}// 25.10: длинная серия быстрее отпускает жертву
   function autoHit(a,dmg){
   const f=a.foe;
   if(!f||f.hidden||f.dodging||f.defeated)return;
@@ -16,7 +17,7 @@ export function createCombat({ S, SFX, P, blood, spriteFx, rnd, pick }) {
   return;}
   let d=dmg*a.def.dmg*comboScale(a);
   f.hp=Math.max(0,f.hp-d);f.damageTaken=(f.damageTaken||0)+d;
-  f.flash=4;f.state='hit';f.st=0;f.vx=0;f.hvx=0;f.atk=null;f.spec2go=0;f.invis=0;f.netT=0;f.combo=0;f.chain='';f.chainT=0;f.blockStun=0;
+  f.flash=4;f.state='hit';f.st=0;f.hitStun=hitStunFor(a);f.vx=0;f.hvx=0;f.atk=null;f.spec2go=0;f.invis=0;f.netT=0;f.combo=0;f.chain='';f.chainT=0;f.blockStun=0;
   if(f.frozen>0)f.frozen=0;
   a.rage=Math.min(100,a.rage+2);f.rage=Math.min(100,f.rage+d*.9);
   a.combo=(a.comboT!==undefined&&a.comboT<60?a.combo:0)+1;a.comboT=0;
@@ -43,7 +44,7 @@ export function createCombat({ S, SFX, P, blood, spriteFx, rnd, pick }) {
   return'block';}
   let d=dmg*att.def.dmg*comboScale(att);if(opts.target){d*=1.2;S.fx.push({ty:'name',x:att.x+att.face*10,y:att.y-att.def.h-20,txt:opts.target.n,col:att.def.acc,life:45,t:0});S.shake=Math.max(S.shake,3);}if(def.frozen>0){d*=1.4;def.frozen=0;for(let i=0;i<6;i++)P(def.x+rnd(-8,8),def.y-rnd(10,50),rnd(-2,2),rnd(-3,0),'#c8ecff',18,2,.04);}
   // 08.09: баланс Крио — урон по льду 1.6→1.4// 08.09: осколки льда при разбивании
-  def.hp=Math.max(0,def.hp-d);if(def.hp<=0)S.freeze=Math.max(S.freeze,12);def.blockStun=0;def.damageTaken=(def.damageTaken||0)+d;def.netT=0;def.spec2go=0;def.atk=null;def.invis=0;def.chain='';def.chainT=0;
+  def.hp=Math.max(0,def.hp-d);if(def.hp<=0)S.freeze=Math.max(S.freeze,12);def.hitStun=hitStunFor(att,opts);def.blockStun=0;def.damageTaken=(def.damageTaken||0)+d;def.netT=0;def.spec2go=0;def.atk=null;def.invis=0;def.chain='';def.chainT=0;
   att.combo=(att.comboT!==undefined&&att.comboT<60?att.combo:0)+1;att.comboT=0;if(def.combo>=3)SFX.cbreak();// 30.09: разрыв длинной серии звучит
   def.combo=0;
   // 08.09: комбо-счётчик — серия без ответа, сброс при получении урона; блок не считается (ранний return выше)
