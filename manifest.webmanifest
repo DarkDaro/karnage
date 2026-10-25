@@ -1,0 +1,26 @@
+{
+  "name": "KARNAGE",
+  "short_name": "KARNAGE",
+  "description": "Браузерный файтинг KARNAGE",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "display_override": ["fullscreen", "standalone"],
+  "orientation": "landscape",
+  "background_color": "#050404",
+  "theme_color": "#050404",
+  "icons": [
+    {
+      "src": "./assets/ui/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./assets/ui/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

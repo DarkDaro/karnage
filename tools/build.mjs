@@ -17,6 +17,7 @@ for (const assetDir of ['fonts', 'styles', 'fx', 'arenas', 'ui', 'audio']) {
     if (error.code !== 'ENOENT') throw error;
   }
 }
+await cp(join(root, 'manifest.webmanifest'), join(release, 'manifest.webmanifest'));
 
 const bundle = await build({
   entryPoints: [entry],

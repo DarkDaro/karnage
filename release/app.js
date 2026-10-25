@@ -7766,8 +7766,24 @@
       }
       scaleDirty = false;
     }
+    function syncLayoutViewport() {
+      const vv = window.visualViewport;
+      if (!vv || !(vv.width > 0) || !(vv.height > 0)) return;
+      for (const id of ["wrap", "touch"]) {
+        const el = document.getElementById(id);
+        if (!el) continue;
+        el.style.left = vv.offsetLeft + "px";
+        el.style.top = vv.offsetTop + "px";
+        el.style.right = "auto";
+        el.style.bottom = "auto";
+        el.style.width = vv.width + "px";
+        el.style.height = vv.height + "px";
+      }
+    }
     function fit() {
-      const touch = navigator.maxTouchPoints > 0, aspect = innerWidth / Math.max(1, innerHeight);
+      const touch = navigator.maxTouchPoints > 0, vv = window.visualViewport;
+      const vw = Math.max(1, Math.round(vv && vv.width > 0 ? vv.width : innerWidth)), vh = Math.max(1, Math.round(vv && vv.height > 0 ? vv.height : innerHeight));
+      const aspect = vw / vh;
       const nextRW = touch ? Math.max(BASE_RW, Math.min(AW, Math.round(RH * aspect))) : BASE_RW;
       if (nextRW !== RW) {
         RW = nextRW;
@@ -7775,11 +7791,11 @@
         resizeUi(RW, RH);
         resizeArenas();
       }
-      let s = Math.min(innerWidth / RW, innerHeight / RH);
+      let s = Math.min(vw / RW, vh / RH);
       if (s >= 2 && !touch) s = Math.floor(s);
       cv.style.width = s * RW + "px";
       cv.style.height = s * RH + "px";
-      document.body.classList.toggle("portrait", innerHeight > innerWidth);
+      document.body.classList.toggle("portrait", vh > vw);
       const dpr = Math.min(3, window.devicePixelRatio || 1), cap = touch ? 4 : 6;
       lastDpr = window.devicePixelRatio || 1;
       MAX_SCALE = Math.max(touch ? 3 : 4, Math.min(cap, Math.round(s * dpr * 1.5)));
@@ -7791,8 +7807,12 @@
       resetPerf();
       perfWarm = Math.max(perfWarm, 300);
       applyRScale();
+      syncLayoutViewport();
     }
     addEventListener("resize", fit);
+    if (window.visualViewport) window.visualViewport.addEventListener("resize", fit);
+    if (window.screen.orientation) window.screen.orientation.addEventListener("change", fit);
+    addEventListener("orientationchange", () => setTimeout(fit, 50));
     fit();
     if (document.fonts) document.fonts.load('20px "Russo One"');
     const clamp2 = (v, a, b) => v < a ? a : v > b ? b : v, lerp = (a, b, t) => a + (b - a) * t, rnd = (a, b) => a + Math.random() * (b - a), pick = (a) => a[Math.random() * a.length | 0], blink = () => (S.FRAME >> 4) % 2 === 0;
@@ -7997,10 +8017,73 @@
       document.body.classList.add("touch");
       const root = document.createElement("div");
       root.id = "touch";
-      root.innerHTML = '<div class="dpad"><button class="up" data-key="u">\u25B2</button><button class="left" data-key="l">\u25C0</button><button class="down" data-key="d">\u25BC</button><button class="right" data-key="r">\u25B6</button></div><div class="actions"><button class="punch" data-key="P" aria-label="\u0420\u0443\u043A\u0430">P</button><button class="kick" data-key="K" aria-label="\u041D\u043E\u0433\u0430">K</button><button class="block" data-key="B" aria-label="\u0411\u043B\u043E\u043A">\u0411\u041B\u041E\u041A</button><button class="throw" data-keys="P K" aria-label="\u0411\u0440\u043E\u0441\u043E\u043A P+K">P+K</button><button class="cmdthrow" data-keys="d P K" aria-label="\u041A\u043E\u043C\u0430\u043D\u0434\u043D\u044B\u0439 \u0431\u0440\u043E\u0441\u043E\u043A D+P+K">D+P+K</button></div><button class="pause" data-key="pause" aria-label="\u041F\u0430\u0443\u0437\u0430">\u2161</button>';
+      root.innerHTML = '<div class="dpad"><button class="up" data-key="u">\u25B2</button><button class="left" data-key="l">\u25C0</button><button class="down" data-key="d">\u25BC</button><button class="right" data-key="r">\u25B6</button></div><div class="actions"><button class="punch" data-key="P" aria-label="\u0420\u0443\u043A\u0430">P</button><button class="kick" data-key="K" aria-label="\u041D\u043E\u0433\u0430">K</button><button class="block" data-key="B" aria-label="\u0411\u043B\u043E\u043A">\u0411\u041B\u041E\u041A</button><button class="throw" data-keys="P K" aria-label="\u0411\u0440\u043E\u0441\u043E\u043A P+K">P+K</button><button class="cmdthrow" data-keys="d P K" aria-label="\u041A\u043E\u043C\u0430\u043D\u0434\u043D\u044B\u0439 \u0431\u0440\u043E\u0441\u043E\u043A D+P+K">D+P+K</button></div><button class="pause" data-key="pause" aria-label="\u041F\u0430\u0443\u0437\u0430">\u2161</button><button class="fullscreen" data-action="fullscreen" aria-label="\u041F\u043E\u043B\u043D\u044B\u0439 \u044D\u043A\u0440\u0430\u043D">\u042D\u041A\u0420\u0410\u041D</button><button class="rotate" data-action="rotate" aria-label="\u0420\u0430\u0437\u0432\u0435\u0440\u043D\u0443\u0442\u044C \u043D\u0430 \u0432\u0435\u0441\u044C \u044D\u043A\u0440\u0430\u043D">\u0420\u0410\u0417\u0412\u0415\u0420\u041D\u0423\u0422\u042C</button>';
       document.body.appendChild(root);
+      syncLayoutViewport();
       const codes = { l: "ArrowLeft", r: "ArrowRight", u: "ArrowUp", d: "ArrowDown", P: "Enter", K: "KeyK", B: "Escape" };
       const held = /* @__PURE__ */ new Map(), active = /* @__PURE__ */ new Map();
+      const fullscreenButton = root.querySelector(".fullscreen");
+      let wantLandscape = false;
+      const lockLandscape = () => {
+        try {
+          if (window.screen.orientation && window.screen.orientation.lock) window.screen.orientation.lock("landscape").catch(() => {
+          });
+        } catch (e) {
+        }
+      };
+      const syncFullscreen = () => {
+        const on = !!document.fullscreenElement;
+        fullscreenButton.classList.toggle("on", on);
+        fullscreenButton.textContent = on ? "\u0412\u042B\u0419\u0422\u0418" : "\u042D\u041A\u0420\u0410\u041D";
+        fullscreenButton.setAttribute("aria-label", on ? "\u0412\u044B\u0439\u0442\u0438 \u0438\u0437 \u043F\u043E\u043B\u043D\u043E\u0433\u043E \u044D\u043A\u0440\u0430\u043D\u0430" : "\u041F\u043E\u043B\u043D\u044B\u0439 \u044D\u043A\u0440\u0430\u043D");
+      };
+      async function toggleFullscreen() {
+        const el = document.documentElement;
+        try {
+          if (document.fullscreenElement) {
+            wantLandscape = false;
+            try {
+              if (window.screen.orientation && window.screen.orientation.unlock) window.screen.orientation.unlock();
+            } catch (e) {
+            }
+            await document.exitFullscreen();
+            return;
+          }
+          const request = el.requestFullscreen || el.webkitRequestFullscreen;
+          if (!request) return;
+          wantLandscape = true;
+          try {
+            await request.call(el, { navigationUI: "hide" });
+          } catch (e) {
+            await request.call(el);
+          }
+          lockLandscape();
+        } catch (e) {
+          wantLandscape = false;
+        }
+      }
+      fullscreenButton.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        toggleFullscreen();
+      });
+      const rotateButton = root.querySelector(".rotate");
+      rotateButton.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (document.fullscreenElement) {
+          wantLandscape = true;
+          lockLandscape();
+          return;
+        }
+        toggleFullscreen();
+      });
+      document.addEventListener("fullscreenchange", () => {
+        syncFullscreen();
+        fit();
+        if (document.fullscreenElement && wantLandscape) setTimeout(lockLandscape, 150);
+      });
+      syncFullscreen();
       const release = (id) => {
         const rec = active.get(id);
         if (!rec) return;
@@ -8020,7 +8103,7 @@
         for (const id of [...active.keys()]) release(id);
       };
       resetTouch = releaseAll;
-      for (const btn of root.querySelectorAll("button")) {
+      for (const btn of root.querySelectorAll("button[data-key],button[data-keys]")) {
         const keys2 = (btn.dataset.keys || btn.dataset.key || "").split(/\s+/).filter(Boolean);
         const down = (e) => {
           e.preventDefault();

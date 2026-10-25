@@ -68,8 +68,8 @@ canvas {
 }
 
 #touch {
-  --dpad: clamp(38px, 10.5vw, 46px);
-  --act: clamp(44px, 13vw, 56px);
+  --dpad: clamp(36px, min(10.5vw, 13vh), 46px);
+  --act: clamp(44px, min(13vw, 15vh), 56px);
   display: none;
   position: fixed;
   inset: 0;
@@ -96,7 +96,7 @@ body.touch.portrait #cv {
 }
 
 body.touch.portrait #touch::before {
-  content: "ЛУЧШЕ ПОВЕРНУТЬ ТЕЛЕФОН";
+  content: "ИГРА РАССЧИТАНА НА ГОРИЗОНТАЛЬНЫЙ ЭКРАН";
   position: absolute;
   left: 50%;
   bottom: calc(172px + env(safe-area-inset-bottom));
@@ -164,4 +164,35 @@ body.touch.portrait #touch::before {
   height: 44px;
   border-radius: 12px;
   font-size: 13px;
+}
+
+#touch .fullscreen {
+  position: absolute;
+  top: calc(100px + env(safe-area-inset-top));
+  right: calc(14px + env(safe-area-inset-right));
+  width: 64px;
+  height: 44px;
+  border-radius: 12px;
+  font: 10px "Russo One", sans-serif;
+}
+
+#touch .rotate {
+  display: none;
+  position: absolute;
+  left: 50%;
+  bottom: calc(190px + env(safe-area-inset-bottom));
+  width: 180px;
+  height: 48px;
+  transform: translateX(-50%);
+  border-radius: 14px;
+  font-size: 12px;
+  letter-spacing: .08em;
+}
+
+body.touch.portrait #touch .fullscreen {
+  display: none;
+}
+
+body.touch.portrait #touch .rotate {
+  display: block;
 }

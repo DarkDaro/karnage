@@ -53,6 +53,7 @@ test('mobile layout exposes touch controls and fills landscape width', async () 
     const canvas = document.getElementById('cv').getBoundingClientRect();
     return {
       touch: Boolean(document.getElementById('touch')),
+      fullscreen: Boolean(document.querySelector('[data-action="fullscreen"]')),
       body: document.body.className,
       viewport: { width: window.innerWidth, height: window.innerHeight },
       canvas: { width: canvas.width, height: canvas.height },
@@ -62,6 +63,7 @@ test('mobile layout exposes touch controls and fills landscape width', async () 
     };
   });
   assert.equal(state.touch, true);
+  assert.equal(state.fullscreen, true);
   assert.match(state.body, /touch/);
   assert.ok(state.rw > state.baseRW);
   assert.ok(Math.abs(state.canvas.width - state.viewport.width) <= 1);
@@ -243,6 +245,7 @@ test('portrait touch layout keeps controls inside the viewport', async () => {
         body: document.body.className,
         viewport: { width: window.innerWidth, height: window.innerHeight },
         canvas: rect('#cv'),
+        fullscreen: rect('[data-action="rotate"]'),
         dpad: ['l', 'r', 'u', 'd', 'pause'].map((key) => rect(`[data-key="${key}"]`)),
         actions: [
           '[data-key="P"]',
@@ -261,10 +264,11 @@ test('portrait touch layout keeps controls inside the viewport', async () => {
     for (const control of layout.dpad) {
       assert.ok(control.width >= 38 && control.height >= 38, JSON.stringify(control));
     }
+    assert.ok(layout.fullscreen.width >= 44 && layout.fullscreen.height >= 44, JSON.stringify(layout.fullscreen));
     for (const control of layout.actions) {
       assert.ok(control.width >= 44 && control.height >= 44, JSON.stringify(control));
     }
-    for (const control of [...layout.dpad, ...layout.actions]) {
+    for (const control of [...layout.dpad, layout.fullscreen, ...layout.actions]) {
       assert.ok(control.left >= 0 && control.top >= 0, JSON.stringify(control));
       assert.ok(control.right <= layout.viewport.width && control.bottom <= layout.viewport.height, JSON.stringify(control));
     }
