@@ -22,16 +22,16 @@
 | id | key | имя | spec | spec2 | fat | arena |
 |---:|---|---|---|---|---|---:|
 | 0 | EMBER | ЭМБЕР | DRP | DRK | RRLP | 6 |
-| 1 | GEIST | ГЕЙСТ | RRP | RRK | LLRP | 1 |
+| 1 | GEIST | ГЕЙСТ | RRP | RRK | LURP | 1 |
 | 2 | VOLT | ВОЛЬТ | DUP | UUP | DDRP | 2 |
 | 3 | BASALT | БАЗАЛЬТ | LRK | LLP | LRDP | 3 |
-| 4 | FANG | ФЭНГ | DRK | RDP | RLDP | 4 |
+| 4 | FANG | ФЭНГ | DRK | RDP | RDLK | 4 |
 | 5 | SAHRA | САХРА | LLK | RRP | DLLP | 5 |
 | 6 | KRYO | КРИО | DLP | URK | LDDP | 7 |
-| 7 | RUST | РЖАВЫЙ | RLP | RDK | RDRP | 8 |
+| 7 | RUST | РЖАВЫЙ | RLP | RDK | RDRK | 8 |
 | 8 | NOCTURNE | НОКТЮРН | DRP | ULP | DRDP | 9 |
 | 9 | KAISER | КАЙЗЕР | DDK | URP | RLRP | 0 |
-| 10 | CARMINE | КАРМИН | RDP | RRK | RDLP | 9 |
+| 10 | CARMINE | КАРМИН | RDP | RRK | RLDK | 9 |
 | 11 | AYAME | АЯМЭ | DRP | RRP | LDRP | 4 |
 | 12 | VEGA | ВЕГА | UDK | RUK | UDRP | 1 |
 <!-- ROSTER:END -->

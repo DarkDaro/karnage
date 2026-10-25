@@ -519,13 +519,13 @@
   // src/data/characters.js
   var CH = [
     { id: 0, name: "\u042D\u041C\u0411\u0415\u0420", en: "EMBER", skin: "#c8845a", suit: "#8a2418", acc: "#f0a032", hair: "#3a1408", gear: "hair", h: 60, bulk: 1, spd: 2, jmp: 8.4, dmg: 1, specN: "\u041E\u0433\u043D\u0435\u043D\u043D\u044B\u0439 \u0448\u0430\u0440", spec: "DRP", sup: "\u041C\u0435\u0442\u0435\u043E\u0440\u0438\u0442\u043D\u044B\u0439 \u0434\u043E\u0436\u0434\u044C", fat: "RRLP", arena: 6 },
-    { id: 1, name: "\u0413\u0415\u0419\u0421\u0422", en: "GEIST", skin: "#a9b6bd", suit: "#3d4750", acc: "#9fb4bd", hair: "#111", gear: "mask", h: 62, bulk: 0.95, spd: 2.3, jmp: 8.8, dmg: 0.95, specN: "\u0422\u0435\u043D\u0438-\u0441\u043A\u0430\u0447\u043E\u043A", spec: "RRP", sup: "\u041A\u0443\u043D\u0430\u0439-\u0446\u0435\u043F\u044C", fat: "LLRP", arena: 1 },
+    { id: 1, name: "\u0413\u0415\u0419\u0421\u0422", en: "GEIST", skin: "#a9b6bd", suit: "#3d4750", acc: "#9fb4bd", hair: "#111", gear: "mask", h: 62, bulk: 0.95, spd: 2.3, jmp: 8.8, dmg: 0.95, specN: "\u0422\u0435\u043D\u0438-\u0441\u043A\u0430\u0447\u043E\u043A", spec: "RRP", sup: "\u041A\u0443\u043D\u0430\u0439-\u0446\u0435\u043F\u044C", fat: "LURP", arena: 1 },
     { id: 2, name: "\u0412\u041E\u041B\u042C\u0422", en: "VOLT", skin: "#d8a05a", suit: "#2b4a8a", acc: "#f2d23a", hair: "#1a1a1a", gear: "helm", h: 63, bulk: 1.05, spd: 2.1, jmp: 8.5, dmg: 1, specN: "\u0421\u0442\u043E\u043B\u043F \u043C\u043E\u043B\u043D\u0438\u0439", spec: "DUP", sup: "\u0413\u0440\u043E\u0437\u0430", fat: "DDRP", arena: 2 },
     { id: 3, name: "\u0411\u0410\u0417\u0410\u041B\u042C\u0422", en: "BASALT", skin: "#8a7256", suit: "#4a4038", acc: "#7a6a54", hair: "#2a241e", gear: "horn", h: 74, bulk: 1.45, spd: 1.6, jmp: 7.2, dmg: 1.2, specN: "\u0421\u0435\u0439\u0441\u043C\u0438\u0447\u0435\u0441\u043A\u0430\u044F \u0432\u043E\u043B\u043D\u0430", spec: "LRK", sup: "\u041A\u0443\u043B\u0430\u043A\u0438 \u043D\u0435\u0434\u0440", fat: "LRDP", arena: 3 },
-    { id: 4, name: "\u0424\u042D\u041D\u0413", en: "FANG", skin: "#c8965e", suit: "#8a7218", acc: "#e8e0c0", hair: "#141210", gear: "mask", claws: 1, h: 61, bulk: 0.95, spd: 2.4, jmp: 8.8, dmg: 0.9, specN: "\u041E\u0442\u0440\u0430\u0432\u043B\u0435\u043D\u043D\u044B\u0439 \u043A\u043E\u0433\u043E\u0442\u044C", spec: "DRK", sup: "\u0421\u043E\u0442\u043D\u044F \u043F\u043E\u0440\u0435\u0437\u043E\u0432", fat: "RLDP", arena: 4 },
+    { id: 4, name: "\u0424\u042D\u041D\u0413", en: "FANG", skin: "#c8965e", suit: "#8a7218", acc: "#e8e0c0", hair: "#141210", gear: "mask", claws: 1, h: 61, bulk: 0.95, spd: 2.4, jmp: 8.8, dmg: 0.9, specN: "\u041E\u0442\u0440\u0430\u0432\u043B\u0435\u043D\u043D\u044B\u0439 \u043A\u043E\u0433\u043E\u0442\u044C", spec: "DRK", sup: "\u0421\u043E\u0442\u043D\u044F \u043F\u043E\u0440\u0435\u0437\u043E\u0432", fat: "RDLK", arena: 4 },
     { id: 5, name: "\u0421\u0410\u0425\u0420\u0410", en: "SAHRA", skin: "#b8824e", suit: "#7a6a3a", acc: "#3aa8a0", hair: "#201408", gear: "hood", h: 55, bulk: 0.85, spd: 2.6, jmp: 9.2, dmg: 0.9, specN: "\u041F\u0435\u0441\u0447\u0430\u043D\u0430\u044F \u0434\u044B\u043C\u043A\u0430", spec: "LLK", sup: "\u0417\u0435\u0440\u043A\u0430\u043B\u0430 \u043F\u0443\u0441\u0442\u044B\u043D\u0438", fat: "DLLP", arena: 5 },
     { id: 6, name: "\u041A\u0420\u0418\u041E", en: "KRYO", skin: "#8ab4c8", suit: "#1e4a6a", acc: "#c8ecff", hair: "#0a1420", gear: "mask", h: 62, bulk: 1, spd: 2, jmp: 8.4, dmg: 1, specN: "\u041B\u0435\u0434\u044F\u043D\u0430\u044F \u0441\u0444\u0435\u0440\u0430", spec: "DLP", sup: "\u0410\u0431\u0441\u043E\u043B\u044E\u0442\u043D\u044B\u0439 \u043D\u043E\u043B\u044C", fat: "LDDP", arena: 7 },
-    { id: 7, name: "\u0420\u0416\u0410\u0412\u042B\u0419", en: "RUST", skin: "#9aa48a", suit: "#4a5240", acc: "#d84a2a", hair: "#333", gear: "visor", h: 64, bulk: 1.1, spd: 2, jmp: 8.2, dmg: 1.05, specN: "\u0421\u0435\u0442\u044C-\u043B\u043E\u0432\u0443\u0448\u043A\u0430", spec: "RLP", sup: "\u041A\u043E\u0432\u0440\u043E\u0432\u044B\u0439 \u0437\u0430\u043B\u043F", fat: "RDRP", arena: 8 },
+    { id: 7, name: "\u0420\u0416\u0410\u0412\u042B\u0419", en: "RUST", skin: "#9aa48a", suit: "#4a5240", acc: "#d84a2a", hair: "#333", gear: "visor", h: 64, bulk: 1.1, spd: 2, jmp: 8.2, dmg: 1.05, specN: "\u0421\u0435\u0442\u044C-\u043B\u043E\u0432\u0443\u0448\u043A\u0430", spec: "RLP", sup: "\u041A\u043E\u0432\u0440\u043E\u0432\u044B\u0439 \u0437\u0430\u043B\u043F", fat: "RDRK", arena: 8 },
     { id: 8, name: "\u041D\u041E\u041A\u0422\u042E\u0420\u041D", en: "NOCTURNE", skin: "#d8d0d8", suit: "#2a1a3a", acc: "#7a3aa8", hair: "#0a0612", gear: "hood", cape: 1, h: 63, bulk: 1, spd: 2.2, jmp: 8.6, dmg: 1, specN: "\u0421\u0433\u0443\u0441\u0442\u043E\u043A \u0442\u044C\u043C\u044B", spec: "DRP", sup: "\u0412\u043E\u0440\u043E\u043D\u043A\u0430 \u0434\u0443\u0448", fat: "DRDP", arena: 9 },
     { id: 9, name: "\u041A\u0410\u0419\u0417\u0415\u0420", en: "KAISER", skin: "#c89868", suit: "#3a4a2a", acc: "#c8b060", hair: "#3a2a14", gear: "band", h: 65, bulk: 1.15, spd: 1.9, jmp: 8, dmg: 1.1, specN: "\u042D\u043D\u0435\u0440\u0433\u043E\u0432\u043E\u043B\u043D\u0430", spec: "DDK", sup: "\u041E\u0440\u0431\u0438\u0442\u0430\u043B\u044C\u043D\u044B\u0439 \u0437\u0430\u043B\u043F", fat: "RLRP", arena: 0 }
   ];
@@ -549,7 +549,7 @@
   CH[8].spec2N = "\u041F\u0440\u043E\u043A\u043B\u044F\u0442\u0438\u0435";
   CH[9].spec2 = "URP";
   CH[9].spec2N = "\u0422\u044F\u0436\u0451\u043B\u044B\u0439 \u0441\u043D\u0430\u0440\u044F\u0434";
-  CH.push({ id: 10, name: "\u041A\u0410\u0420\u041C\u0418\u041D", en: "CARMINE", skin: "#e8d8d0", suit: "#6a1020", acc: "#d82040", hair: "#d8d0e0", gear: "corona", dress: 1, longhair: 1, fan: 1, female: 1, h: 58, bulk: 0.9, spd: 2.2, jmp: 8.6, dmg: 0.95, specN: "\u041A\u0440\u043E\u0432\u0430\u0432\u044B\u0435 \u0438\u0433\u043B\u044B", spec: "RDP", sup: "\u0410\u043B\u044B\u0439 \u043F\u0438\u043E\u043D", fat: "RDLP", arena: 9 });
+  CH.push({ id: 10, name: "\u041A\u0410\u0420\u041C\u0418\u041D", en: "CARMINE", skin: "#e8d8d0", suit: "#6a1020", acc: "#d82040", hair: "#d8d0e0", gear: "corona", dress: 1, longhair: 1, fan: 1, female: 1, h: 58, bulk: 0.9, spd: 2.2, jmp: 8.6, dmg: 0.95, specN: "\u041A\u0440\u043E\u0432\u0430\u0432\u044B\u0435 \u0438\u0433\u043B\u044B", spec: "RDP", sup: "\u0410\u043B\u044B\u0439 \u043F\u0438\u043E\u043D", fat: "RLDK", arena: 9 });
   CH.push({ id: 11, name: "\u0410\u042F\u041C\u042D", en: "AYAME", skin: "#e0c8b8", suit: "#1a1f33", acc: "#7ac8d8", hair: "#0a0d1a", gear: "tail", blade: 1, h: 57, bulk: 0.85, spd: 2.7, jmp: 9.2, dmg: 1, specN: "\u041F\u043E\u043B\u0443\u043C\u0435\u0441\u044F\u0446", spec: "DRP", sup: "\u0421\u0442\u043E \u0442\u0435\u043D\u0435\u0439", fat: "LDRP", arena: 4 });
   CH.push({ id: 12, name: "\u0412\u0415\u0413\u0410", en: "VEGA", skin: "#c8a888", suit: "#241540", acc: "#b89aff", hair: "#e8e8ff", gear: "halo", bow: 1, ponytail: 1, skirt: 1, female: 1, h: 60, bulk: 0.95, spd: 2.3, jmp: 8.8, dmg: 1.05, specN: "\u0417\u0432\u0451\u0437\u0434\u043D\u0430\u044F \u043C\u0435\u0442\u043A\u0430", spec: "UDK", sup: "\u041D\u0435\u0431\u0435\u0441\u043D\u044B\u0439 \u043B\u043E\u0432\u0435\u0446", fat: "UDRP", arena: 1 });
   CH[10].spec2 = "RRK";
@@ -596,6 +596,41 @@
   };
   for (const c of CH) Object.assign(c, THROW_DATA[c.id]);
   Object.assign(BOSS, { throwN: "\u041F\u0420\u0418\u0413\u041E\u0412\u041E\u0420 \u041A\u041E\u0420\u041E\u041D\u042B", throwT: "royal", throwC: "#f0c850", throwD: 14 });
+  var FATAL_DATA = {
+    0: { fatN: "\u041F\u0415\u041F\u0415\u041B\u042C\u041D\u042B\u0419 \u041A\u041E\u0421\u0422\u0401\u0420", fatT: "burn", fatC: "#f06020" },
+    1: { fatN: "\u0422\u0415\u041D\u0415\u0412\u041E\u0419 \u041F\u041E\u0425\u041E\u0420\u041E\u041D", fatT: "soul", fatC: "#9fb4bd" },
+    2: { fatN: "\u041A\u0418\u041D\u0415\u0422\u0418\u0427\u0415\u0421\u041A\u0418\u0419 \u0420\u0410\u0417\u0420\u042F\u0414", fatT: "shock", fatC: "#f8f860" },
+    3: { fatN: "\u0413\u041E\u0420\u041D\u042B\u0419 \u041F\u0420\u0415\u0421\u0421", fatT: "crush", fatC: "#8a7a5c" },
+    4: { fatN: "\u041A\u041E\u0413\u0422\u0415\u0412\u041E\u0419 \u0421\u0410\u041B\u042E\u0422", fatT: "claw", fatC: "#7ac83a" },
+    5: { fatN: "\u041F\u0415\u0421\u0427\u0410\u041D\u042B\u0419 \u0421\u0410\u0420\u041A\u041E\u0424\u0410\u0413", fatT: "sand", fatC: "#c8a060" },
+    6: { fatN: "\u041E\u0421\u041A\u041E\u041B\u041A\u0418 \u0412\u0415\u0427\u041D\u041E\u0421\u0422\u0418", fatT: "ice", fatC: "#c8ecff" },
+    7: { fatN: "\u041C\u0415\u0422\u0410\u041B\u041B\u041E\u041B\u041E\u041C", fatT: "bomb", fatC: "#c8c8a0" },
+    8: { fatN: "\u041F\u041E\u0416\u0418\u0420\u0410\u0422\u0415\u041B\u042C \u0421\u041D\u041E\u0412", fatT: "drain", fatC: "#7a3aa8" },
+    9: { fatN: "\u041A\u041E\u0420\u041E\u041B\u0415\u0412\u0421\u041A\u0418\u0419 \u0417\u0410\u041B\u041F", fatT: "laser", fatC: "#f8f860" },
+    10: { fatN: "\u0410\u041B\u042B\u0419 \u041F\u0420\u0418\u0413\u041E\u0412\u041E\u0420", fatT: "blood", fatC: "#d82040" },
+    11: { fatN: "\u0421\u0415\u0420\u041F \u041B\u0423\u041D\u042B", fatT: "blade", fatC: "#9adcee" },
+    12: { fatN: "\u0417\u0412\u0401\u0417\u0414\u041D\u042B\u0419 \u041F\u0420\u0410\u0425", fatT: "star", fatC: "#b89aff" }
+  };
+  var SUPER_DATA = {
+    0: "meteor",
+    1: "kunai",
+    2: "storm",
+    3: "fists",
+    4: "flurry",
+    5: "mirrors",
+    6: "zero",
+    7: "barrage",
+    8: "vortex",
+    9: "orbital",
+    10: "petals",
+    11: "shadows",
+    12: "hunter"
+  };
+  for (const c of CH) {
+    Object.assign(c, FATAL_DATA[c.id]);
+    c.supT = SUPER_DATA[c.id];
+  }
+  Object.assign(BOSS, { fatN: "\u0417\u041E\u041B\u041E\u0422\u041E\u0419 \u041F\u0420\u0418\u0413\u041E\u0412\u041E\u0420", fatT: "laser", fatC: "#f0c850", supT: "crown" });
   var CMD_THROW_NAMES = ["\u041F\u0415\u041F\u0415\u041B\u042C\u041D\u042B\u0419 \u041E\u0411\u0425\u0412\u0410\u0422", "\u0422\u0415\u041D\u0415\u0412\u041E\u0419 \u041F\u0415\u0420\u0415\u041B\u041E\u041C", "\u041A\u041E\u0420\u041E\u0422\u041A\u041E\u0415 \u0417\u0410\u041C\u042B\u041A\u0410\u041D\u0418\u0415", "\u0413\u041E\u0420\u041D\u042B\u0419 \u0421\u041B\u041E\u041C", "\u042F\u0414\u041E\u0412\u0418\u0422\u042B\u0419 \u0417\u0410\u0425\u0412\u0410\u0422", "\u041F\u0415\u0421\u0427\u0410\u041D\u042B\u0419 \u041F\u041B\u0415\u041D", "\u041B\u0415\u0414\u042F\u041D\u041E\u0419 \u041A\u0410\u041F\u041A\u0410\u041D", "\u0420\u0416\u0410\u0412\u042B\u0419 \u0417\u0410\u0416\u0418\u041C", "\u0421\u041E\u041D\u041D\u042B\u0419 \u041F\u041B\u0415\u041D", "\u041A\u041E\u0420\u041E\u041B\u0415\u0412\u0421\u041A\u0418\u0419 \u0417\u0410\u0425\u0412\u0410\u0422", "\u0410\u041B\u042B\u0419 \u041F\u041B\u0415\u041D", "\u041B\u0423\u041D\u041D\u042B\u0419 \u0417\u0410\u0425\u0412\u0410\u0422", "\u0417\u0412\u0401\u0417\u0414\u041D\u042B\u0419 \u0417\u0410\u0425\u0412\u0410\u0422"];
   for (const c of CH) c.throwCmdN = CMD_THROW_NAMES[c.id];
   BOSS.throwCmdN = "\u041A\u041E\u0420\u041E\u041D\u0410-\u0417\u0410\u0425\u0412\u0410\u0422";
@@ -1282,6 +1317,7 @@
         this.jbuf = 0;
         this.abuf = 0;
         this.abufB = "punch";
+        this.abufQ = [];
         this.dodging = 0;
         this.dvx = 0;
         this.marks = [];
@@ -1362,6 +1398,18 @@
         this.startAtk("throw");
         this.atk.cmdThrow = 1;
         if (this.def.grappler) this.armor = Math.max(this.armor, 6);
+      }
+      queueAtk(type) {
+        const q = this.abufQ;
+        q.push({ type, at: this.ctrl.fr });
+        while (q.length > 4) q.shift();
+      }
+      bufferAtk() {
+        if (this.state !== "atk" || !this.atk) return;
+        const c = this.ctrl, chordWin = this.atk.blocked || S.battle && S.battle.phase === "finish" ? 12 : 5;
+        if (c.pkChord && c.pkChord(chordWin)) return;
+        if (c.pP) this.queueAtk("punch");
+        else if (c.pK) this.queueAtk(c.d ? "sweep" : "kick");
       }
       jump() {
         this.vy = -this.def.jmp;
@@ -1568,7 +1616,8 @@
           foe.x = clamp2(foe.x, 16, AW - 16);
         }
         if (["idle", "walk", "crouch", "block"].includes(this.state)) this.face = foe.x < this.x ? -1 : 1;
-        if (this.state === "atk" && this.atk && (!this.atk.hit || this.atk.blocked || this.atk.connected || S.battle && S.battle.phase === "finish") && this.atk.btn && !this.atk.target && this.st <= this.atk.A.wd + this.atk.A.ac + 4 && c.pkChord && c.pkChord()) {
+        const chordWin = this.atk && (this.atk.blocked || S.battle && S.battle.phase === "finish") ? 12 : 5;
+        if (this.state === "atk" && this.atk && (!this.atk.hit || this.atk.blocked || this.atk.connected || S.battle && S.battle.phase === "finish") && this.atk.btn && !this.atk.target && this.st <= this.atk.A.wd + this.atk.A.ac + 4 && c.pkChord && c.pkChord(chordWin)) {
           const pressed = this.atk.btn === "P" ? c.pK : c.pP;
           if (pressed) {
             const fwd2 = this.face > 0 ? c.r : c.l, fromHit = !!(this.atk.hit && this.atk.connected);
@@ -1579,13 +1628,6 @@
         }
         if (this.state === "atk" && this.atk) {
           const A = this.atk.A;
-          if (c.pP) {
-            this.abuf = 12;
-            this.abufB = "punch";
-          } else if (c.pK) {
-            this.abuf = 12;
-            this.abufB = c.d ? "sweep" : "kick";
-          } else if (this.abuf > 0) this.abuf--;
           if (this.st > A.wd && this.st <= A.wd + A.ac && !this.atk.hit && foe.state !== "down") {
             const hb = this.atkBox(), fin = S.battle && S.battle.phase === "finish";
             if (hb && hitR(hb, foe.box) && (!A.throw || fin || foe.onGround && (["idle", "walk", "block", "crouch"].includes(foe.state) || this.atk.fromHit && foe.state === "hit" || this.armorHit && foe.state === "atk"))) {
@@ -1613,10 +1655,10 @@
             }
           }
           if (this.state === "atk" && this.st > A.wd + A.ac + A.rc) {
-            if (this.abuf > 0 && this.onGround) {
-              this.abuf = 0;
-              this.startAtk(this.abufB);
-            } else {
+            const now = this.ctrl.fr;
+            while (this.abufQ.length && now - this.abufQ[0].at > 40) this.abufQ.shift();
+            if (this.abufQ.length && this.onGround) this.startAtk(this.abufQ.shift().type);
+            else {
               this.state = "idle";
               this.atk = null;
             }
@@ -1780,13 +1822,14 @@
         SFX.supwave();
         const sy = this.y - this.def.h * 0.55;
         S.fx.push({ ty: "super", x: this.x, y: sy, gy: this.y, t: 0, life: 26, col: this.def.acc || "#e8c040" });
+        S.fx.push({ ty: "name", x: this.x, y: this.y - this.def.h - 14, txt: this.def.sup, col: this.def.acc || "#e8c040", life: 46, t: 0, big: 1 });
         for (let i = 0; i < 18; i++) {
           const a = i / 18 * Math.PI * 2;
           P(this.x + Math.cos(a) * 7, sy + Math.sin(a) * 7, Math.cos(a) * rnd(1.2, 3), Math.sin(a) * rnd(1.2, 3), i % 2 ? this.def.acc : "#f8e8b0", 26, 2, -0.02);
         }
         const me = this;
         const E = (t, fn) => this.supEv.push({ t, fn, done: 0 });
-        const id = this.def.id;
+        const st = this.def.supT || "";
         if (this.def.boss) {
           SFX.fire();
           SFX.boom();
@@ -1803,29 +1846,30 @@
               P(me.x + Math.cos(a) * 8, me.y - 30 + Math.sin(a) * 8, Math.cos(a) * rnd(1, 3), Math.sin(a) * rnd(1, 3), "#f0c850", 30, 2, -0.02);
             }
           });
-        } else if (id === 0) {
+        } else if (st === "meteor") {
           SFX.fire();
           for (let i = 0; i < 10; i++) E(14 + i * 7, () => {
             S.projs.push({ ty: "meteor", x: me.foe.x + rnd(-34, 34), y: -10, vx: 0, vy: 5.5, o: me, d: 2.6, l: 120 });
             SFX.shoot();
           });
-        } else if (id === 1) {
-          E(10, () => {
+        } else if (st === "kunai") {
+          for (let i = 0; i < 4; i++) E(14 + i * 9, () => {
+            SFX.shoot();
+            const oh = castOrigin(me);
+            S.projs.push({ ty: "shard", c: "#9fb4bd", x: oh.x, y: oh.y, vx: me.face * 4.6, vy: -0.6, o: me, d: 2.6, l: 90, s: 3, hom: 1 });
+          });
+          E(68, () => {
             me.x = clamp2(me.foe.x - me.foe.face * 26, 20, AW - 20);
             smoke(me.x, me.y - 30);
             SFX.tele();
           });
-          for (let i = 0; i < 8; i++) E(20 + i * 6, () => {
-            autoHit(me, 3);
-            SFX.slash();
-          });
-          E(78, () => resolveHit(me, me.foe, 8, { launch: 1 }));
-        } else if (id === 2) {
+          E(80, () => resolveHit(me, me.foe, 8, { launch: 1 }));
+        } else if (st === "storm") {
           for (let i = 0; i < 6; i++) E(14 + i * 9, () => {
             S.projs.push({ ty: "bolt", x: me.foe.x + rnd(-30, 30), y: FL, vx: 0, vy: 0, o: me, d: 3.4, l: 14 });
             SFX.zap();
           });
-        } else if (id === 3) {
+        } else if (st === "fists") {
           for (let i = 0; i < 6; i++) E(14 + i * 10, () => {
             const rx = me.foe.x + rnd(-24, 24);
             S.fx.push({ ty: "rock", x: rx, t: 0 });
@@ -1833,18 +1877,25 @@
             S.shake = 6;
             if (Math.abs(me.foe.x - rx) < 26 && me.foe.onGround && me.foe.state !== "down") resolveHit(me, me.foe, 4, {});
           });
-        } else if (id === 4) {
+        } else if (st === "flurry") {
           E(10, () => {
-            me.x = clamp2(me.foe.x - me.foe.face * 24, 20, AW - 20);
-            smoke(me.x, me.y - 30);
-            SFX.tele();
+            me.face = me.foe.x < me.x ? -1 : 1;
+            me.x = clamp2(me.foe.x - me.face * 28, 20, AW - 20);
           });
-          for (let i = 0; i < 15; i++) E(18 + i * 4, () => {
-            autoHit(me, 1.7);
+          for (let i = 0; i < 15; i++) E(16 + i * 4, () => {
+            autoHit(me, 1.5);
             SFX.slash();
+            S.fx.push({ ty: "slashimpact", x: me.foe.x + rnd(-12, 12), y: me.foe.y - rnd(12, 55), t: 0, col: "#7ac83a", face: me.face });
+            for (let j = 0; j < 3; j++) P(me.foe.x + rnd(-10, 10), me.foe.y - rnd(10, 55), rnd(-1.2, 1.2), rnd(-2, 0), "#7ac83a", 24, 2, 0);
           });
-          E(85, () => resolveHit(me, me.foe, 9, { launch: 1 }));
-        } else if (id === 5) {
+          E(78, () => {
+            resolveHit(me, me.foe, 8, { launch: 1 });
+            if (S.battle.phase === "fight" && me.foe.hp > 0) {
+              me.foe.poison = 180;
+              me.foe.poisonC = "#7ac83a";
+            }
+          });
+        } else if (st === "mirrors") {
           SFX.tele();
           SFX.mirror();
           E(10, () => {
@@ -1852,12 +1903,13 @@
             smoke(me.x, me.y - 30);
             SFX.tele();
           });
-          for (let i = 0; i < 9; i++) E(16 + i * 7, () => {
-            autoHit(me, 2.6);
-            SFX.hit();
+          for (let i = 0; i < 6; i++) E(18 + i * 7, () => {
+            const side = i % 2 ? 1 : -1, sx = clamp2(me.foe.x + side * 92, 20, AW - 20);
+            S.projs.push({ ty: "shard", c: "#c8a060", x: sx, y: clamp2(me.foe.y - rnd(18, 52), 20, FL + GR), vx: -side * 4.8, vy: 0, o: me, d: 2.6, l: 70, s: 4, hom: 1 });
+            SFX.mirror();
           });
-          E(85, () => resolveHit(me, me.foe, 8, { launch: 1 }));
-        } else if (id === 6) {
+          E(80, () => resolveHit(me, me.foe, 8, { launch: 1 }));
+        } else if (st === "zero") {
           E(14, () => {
             SFX.ice();
             S.fx.push({ ty: "nova", x: me.x, y: me.y - 30, t: 0 });
@@ -1874,13 +1926,13 @@
             }
             for (let i = 0; i < 14; i++) P(me.x, me.y - 30, Math.cos(i / 14 * 6.28) * 3.4, Math.sin(i / 14 * 6.28) * 3.4, "#c8ecff", 30, 2, 0);
           });
-        } else if (id === 7) {
+        } else if (st === "barrage") {
           for (let i = 0; i < 8; i++) E(14 + i * 8, () => {
             SFX.shoot();
             const oh = castOrigin(me);
             S.projs.push({ ty: "bomb", x: oh.x, y: oh.y - 4, vx: me.face * rnd(2, 4.4), vy: -4.5, o: me, d: 3, l: 130 });
           });
-        } else if (id === 8) {
+        } else if (st === "vortex") {
           SFX.sting();
           S.fx.push({ ty: "drain", x: me.foe.x, t: 0 });
           for (let i = 0; i < 8; i++) E(16 + i * 8, () => {
@@ -1900,7 +1952,7 @@
               SFX.hit();
             }
           });
-        } else if (id === 10) {
+        } else if (st === "petals") {
           SFX.sting();
           for (let i = 0; i < 7; i++) E(14 + i * 6, () => {
             const oh = castOrigin(me);
@@ -1909,26 +1961,37 @@
             for (let j = 0; j < 3; j++) P(me.foe.x + rnd(-12, 12), me.foe.y - rnd(10, 55), rnd(-1.5, 1.5), rnd(-2, 0), "#d82040", 26, 2, 0);
           });
           E(80, () => resolveHit(me, me.foe, 10, { launch: 1 }));
-        } else if (id === 11) {
+        } else if (st === "shadows") {
           SFX.tele();
-          E(10, () => {
-            me.x = clamp2(me.foe.x - me.foe.face * 26, 20, AW - 20);
+          for (let i = 0; i < 4; i++) E(14 + i * 17, () => {
+            const side = i % 2 ? 1 : -1;
+            me.x = clamp2(me.foe.x + side * 30, 20, AW - 20);
+            me.face = me.foe.x < me.x ? -1 : 1;
             smoke(me.x, me.y - 30);
             SFX.tele();
-          });
-          for (let i = 0; i < 10; i++) E(16 + i * 5, () => {
-            autoHit(me, 2.2);
+            autoHit(me, 4);
+            S.fx.push({ ty: "slashimpact", x: me.foe.x + rnd(-10, 10), y: me.foe.y - rnd(16, 54), t: 0, col: "#9adcee", face: me.face });
             SFX.slash();
             for (let j = 0; j < 2; j++) P(me.foe.x + rnd(-10, 10), me.foe.y - rnd(10, 55), rnd(-1.2, 1.2), rnd(-2, 0), "#9adcee", 24, 2, 0);
           });
-          E(78, () => resolveHit(me, me.foe, 9, { launch: 1 }));
-        } else if (id === 12) {
+          E(82, () => resolveHit(me, me.foe, 9, { launch: 1 }));
+        } else if (st === "hunter") {
           SFX.cast2();
           for (let i = 0; i < 3; i++) E(14 + i * 10, () => {
             SFX.shoot();
             const oh = castOrigin(me);
             S.projs.push({ ty: "shard", c: "#b89aff", x: oh.x, y: oh.y - 4, vx: me.face * 3.2, vy: -2.6, o: me, d: 8, l: 130, s: 5, hom: 1 });
           });
+        } else if (st === "orbital") {
+          SFX.shoot();
+          for (let i = 0; i < 6; i++) E(14 + i * 10, () => {
+            const ox = clamp2(me.foe.x + rnd(-28, 28), 20, AW - 20);
+            S.fx.push({ ty: "orbital", x: ox, y: FL + GR, t: 0, life: 20, col: "#f8d060" });
+            S.shake = Math.max(S.shake, 5);
+            SFX.boom();
+            if (me.foe.state !== "down" && me.foe.state !== "victim") resolveHit(me, me.foe, 4, { still: 1 });
+          });
+          E(78, () => resolveHit(me, me.foe, 7, { launch: 1 }));
         } else {
           for (let i = 0; i < 6; i++) E(14 + i * 8, () => {
             S.projs.push({ ty: "rocket", x: me.foe.x + rnd(-30, 30), y: -8, vx: 0, vy: 4.6, o: me, d: 4, l: 120 });
@@ -2256,6 +2319,7 @@
         return "grab";
       }
       if (def.defeated) return "miss";
+      if (def.abufQ) def.abufQ.length = 0;
       if (def.armor > 0 && !opts.grab) {
         def.armor--;
         def.armorHit = 1;
@@ -2466,9 +2530,9 @@
         }
         if (this.buf.length > 14) this.buf.splice(0, this.buf.length - 14);
       }
-      // 25.10: P+K — дружелюбный к человеческому вводу аккорд: обе кнопки одновременно, одна удерживается, либо нажаты с малым зазором
+      // 25.10: P+K — реальное перекрытие или очень короткий зазор; 12-кадровый хвост съедал K после P и ломал цепочки
       pkChord(win) {
-        win = win || 12;
+        win = win || 5;
         return this.P && this.K || this.fr - this.tP <= win && this.fr - this.tK <= win;
       }
       match(seq, win) {
@@ -5100,6 +5164,26 @@
           g.fillStyle = "rgba(248,248,96,.5)";
           g.fillRect(x - 3, FL - 2, 6, 3);
           g.restore();
+        } else if (f.ty === "orbital") {
+          const p = Math.min(1, f.t / (f.life || 20)), a = 1 - p;
+          g.save();
+          g.globalCompositeOperation = "lighter";
+          g.globalAlpha = a * 0.85;
+          const gr = g.createLinearGradient(0, 0, 0, FL + GR);
+          gr.addColorStop(0, "rgba(255,255,240,0)");
+          gr.addColorStop(0.2, "rgba(248,240,150,.95)");
+          gr.addColorStop(1, "rgba(248,208,96,.15)");
+          g.fillStyle = gr;
+          g.fillRect(x - 8, 0, 16, FL + GR);
+          g.globalAlpha = a;
+          g.fillStyle = "#fffbe0";
+          g.fillRect(x - 2, 0, 4, FL + GR);
+          g.strokeStyle = f.col || "#f8d060";
+          g.lineWidth = 2;
+          g.beginPath();
+          g.ellipse(x, FL + GR, 10 + p * 22, 2 + p * 4, 0, 0, 7);
+          g.stroke();
+          g.restore();
         }
         if (f.ty === "castbolt") {
           const by2 = f.y;
@@ -6555,7 +6639,7 @@
         g.font = '7px "Russo One"';
         g.fillStyle = "#c8a040";
         g.textAlign = "left";
-        g.fillText("\u0424\u0410\u0422\u0410\u041B\u0418\u0422\u0418", 124, 63);
+        g.fillText("\u0424\u0410\u0422\u0410\u041B\u0418\u0422\u0418 \xB7 " + (w.def.fatN || ""), 124, 63);
         g.textAlign = "right";
         g.fillStyle = secs > 3 ? "#c8a040" : "#e04020";
         g.fillText(secs + " \u0421", 300, 63);
@@ -8590,48 +8674,49 @@
       say("Fatality");
     }
     function fatalStep(w, l) {
-      const t = S.battle.phaseT, id = w.def.id;
+      const t = S.battle.phaseT, fx = w.def.fatT || "laser", fc = w.def.fatC || w.def.acc || "#f8f860";
       if (t === 50) {
         S.flashS = 8;
         S.shake = 10;
-        if (id === 0) {
+        if (fx === "burn") {
           SFX.fire();
           l.burnT = 1;
-        } else if (id === 1) {
+        } else if (fx === "soul") {
           SFX.tele();
           S.fx.push({ ty: "drain", x: l.x, t: 0 });
           l.soulT = 1;
-        } else if (id === 2) {
+        } else if (fx === "shock") {
           SFX.zap();
           l.shockT = 1;
           for (let i = 0; i < 14; i++) S.fx.push({ ty: "boltfx", x: l.x + rnd(-16, 16), t: -(i % 3) });
-        } else if (id === 3) {
+        } else if (fx === "crush") {
           SFX.bone();
           l.crushT = 1;
-        } else if (id === 4) {
+        } else if (fx === "claw") {
           SFX.slash();
+          l.clawT = 1;
           l.sliceT = 1;
-        } else if (id === 5) {
+        } else if (fx === "sand") {
           SFX.tele();
           l.sandT = 1;
-        } else if (id === 6) {
+        } else if (fx === "ice") {
           SFX.ice();
           l.frozen = 999;
           l.shatterT = 1;
-        } else if (id === 7) {
+        } else if (fx === "bomb") {
           SFX.shoot();
           l.bombT = 1;
-        } else if (id === 8) {
+        } else if (fx === "drain") {
           SFX.sting();
           l.drainT = 1;
-        } else if (id === 10) {
+        } else if (fx === "blood") {
           SFX.sting();
           l.drainB = 1;
-        } else if (id === 11) {
+        } else if (fx === "blade") {
           SFX.slash();
           l.sliceT = 1;
           l.cutT = 1;
-        } else if (id === 12) {
+        } else if (fx === "star") {
           SFX.cast2();
           l.floatT = 1;
           l.float0 = l.y;
@@ -8641,11 +8726,13 @@
         }
       }
       if (t > 50 && t < 160) {
-        const WC = { 0: "#f06020", 1: "#8899aa", 2: "#f8f860", 3: "#8a7a5c", 4: "#7ac83a", 5: "#c8a060", 6: "#c8ecff", 7: "#c8c8a0", 8: "#7a3aa8", 9: "#f8f860", 10: "#d82040", 11: "#9adcee", 12: "#b89aff" };
-        if (t % 6 === 0) P(w.x + w.face * 22, w.y - w.def.h * 0.72, rnd(-0.4, 0.4) + w.face * 0.5, rnd(-1, -0.2), WC[id], 14, 2, -0.01);
+        if (t % 6 === 0) P(w.x + w.face * 22, w.y - w.def.h * 0.72, rnd(-0.4, 0.4) + w.face * 0.5, rnd(-1, -0.2), fc, 14, 2, -0.01);
         if (l.burnT) {
           for (let i = 0; i < 3; i++) P(l.x + rnd(-8, 8), l.y - rnd(5, 60), rnd(-0.4, 0.4), rnd(-2, -0.6), "#f06020", 22, 3, -0.02);
           if (t > 110) l.charred = 1;
+        }
+        if (l.clawT) {
+          for (let i = 0; i < 2; i++) P(l.x + rnd(-10, 10), l.y - rnd(5, 65), rnd(-0.8, 0.8), rnd(-1.6, -0.2), "#7ac83a", 22, 2, -0.01);
         }
         if (l.shockT && t % 4 === 0) {
           SFX.zap();
@@ -8736,41 +8823,34 @@
         }
       }
       if (t === 170) {
-        if (id === 0 || id === 9) {
+        if (fx === "burn" || fx === "laser") {
           l.hidden = 1;
           gibs(l, "#181818");
-        }
-        if (id === 5) {
+        } else if (fx === "sand") {
           l.hidden = 1;
           gibs(l, "#e8e0d0");
-        }
-        if (id === 4) {
+        } else if (fx === "claw") {
           l.hidden = 1;
-          gibs(l, "#b01818");
+          gibs(l, "#7ac83a");
           gibs(l, l.def.skin);
-        }
-        if (id === 2) l.charred = 1;
-        if (id === 3) {
+        } else if (fx === "shock") l.charred = 1;
+        else if (fx === "crush") {
           blood(l.x, l.y - 30, 16, 2.5);
           S.shake = 10;
-        }
-        if (id === 1) l.tilt = -1.4;
-        if (id === 8) {
+        } else if (fx === "soul") l.tilt = -1.4;
+        else if (fx === "drain") {
           l.hidden = 1;
           gibs(l, "#7a3aa8");
-        }
-        if (id === 10) {
+        } else if (fx === "blood") {
           l.hidden = 1;
           gibs(l, "#d82040");
           SFX.sting();
-        }
-        if (id === 11) {
+        } else if (fx === "blade") {
           l.hidden = 1;
           gibs(l, "#b01818");
           gibs(l, "#c8d8e0");
           SFX.slash();
-        }
-        if (id === 12) {
+        } else if (fx === "star") {
           l.hidden = 1;
           gibs(l, "#b89aff");
           gibs(l, "#e8e8ff");
@@ -8830,6 +8910,7 @@
         return;
       }
       if (S.freeze > 0) {
+        for (const f of [b.p1, b.p2]) f.bufferAtk();
         S.freeze--;
         return;
       }
@@ -8849,6 +8930,7 @@
     }
     function updFs(act) {
       const b = S.battle;
+      for (const f of [b.p1, b.p2]) f.bufferAtk();
       for (const f of [b.p1, b.p2]) {
         f.comboT = (f.comboT || 0) + 1;
         if (f.ctrl.ai && act && b.phase !== "finish" && b.mode !== "training") aiUpd(f, f.foe, b.aiLvl);
@@ -10152,14 +10234,18 @@
         g.fillText("\u0421\u0423\u041F\u0415\u0420: " + d.sup, x, 141);
         g.fillStyle = "#c8a040";
         g.fillText("[" + seqTxt("DDP", p2, f.face) + "] \u043F\u0440\u0438 \u044F\u0440\u043E\u0441\u0442\u0438 100", x, 150);
+        g.font = '6px "Russo One"';
         g.fillStyle = "#e8e0c0";
-        g.fillText("\u0424\u0410\u0422\u0410\u041B\u0418\u0422\u0418: [" + seqTxt(d.fat, p2, f.face) + "]", x, 161);
-        g.fillStyle = "#e8e0c0";
-        g.fillText("\u0411\u0420\u041E\u0421\u041E\u041A [P+K]: " + (d.throwN || "\u0417\u0410\u0425\u0412\u0410\u0422"), x, 172, 118);
+        g.fillText("\u0424\u0410\u0422\u0410\u041B\u0418\u0422\u0418: " + (d.fatN || "\u2014"), x, 161);
+        g.font = '7px "Russo One"';
         g.fillStyle = "#c8a040";
-        g.fillText("\u0417\u0410\u0425\u0412\u0410\u0422: " + seqTxt("DPK", p2, f.face).replace(/ /g, "") + (d.grappler ? " \xB7 " + seqTxt("RPK", p2, f.face).replace(/ /g, "") : ""), x, 183);
+        g.fillText("[" + seqTxt(d.fat, p2, f.face) + "]", x, 168);
         g.fillStyle = "#e8e0c0";
-        g.fillText("\u0426\u0415\u041F\u042C: " + d.target.seq.split("").join("+"), x, 194);
+        g.fillText("\u0411\u0420\u041E\u0421\u041E\u041A [P+K]: " + (d.throwN || "\u0417\u0410\u0425\u0412\u0410\u0422"), x, 178, 118);
+        g.fillStyle = "#c8a040";
+        g.fillText("\u0417\u0410\u0425\u0412\u0410\u0422: " + seqTxt("DPK", p2, f.face).replace(/ /g, "") + (d.grappler ? " \xB7 " + seqTxt("RPK", p2, f.face).replace(/ /g, "") : ""), x, 187);
+        g.fillStyle = "#e8e0c0";
+        g.fillText("\u0426\u0415\u041F\u042C: " + d.target.seq.split("").join("+"), x, 196);
         g.font = '6px "Russo One"';
         g.fillStyle = "#807850";
         g.fillText("P " + Math.round(d.norm.punch.d * d.dmg) + "/" + Math.round(d.norm.punch.rng * d.bulk) + " \xB7 K " + Math.round(d.norm.kick.d * d.dmg) + "/" + Math.round(d.norm.kick.rng * d.bulk) + " \xB7 RH " + Math.round(d.norm.rh.d * d.dmg) + "/" + Math.round(d.norm.rh.rng * d.bulk), x, 205);

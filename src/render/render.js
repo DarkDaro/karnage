@@ -50,6 +50,7 @@ else if(f.ty==='slashimpact'){const p=Math.min(1,f.t/(f.life||10)),a=1-p;g.save(
 else if(f.ty==='ring'){const p=Math.min(1,f.t/14),a=1-p,r=f.t*3.2;g.save();g.globalCompositeOperation='lighter';g.globalAlpha=a;g.strokeStyle=f.col;g.lineWidth=2;g.beginPath();g.arc(x,f.y,r,0,7);g.stroke();g.globalAlpha=a*.5;g.strokeStyle='#fff';g.lineWidth=1;g.beginPath();g.arc(x,f.y,r*.7,0,7);g.stroke();g.restore();}// 08.09: ударное кольцо
 else if(f.ty==='name'){const pr=f.t/(f.life||60),a=1-pr;g.save();g.globalAlpha=a;g.font=(f.big?'12px':'9px')+' "Russo One"';g.textAlign='center';g.lineWidth=2;g.strokeStyle='rgba(0,0,0,.85)';g.strokeText(f.txt,x,f.y-pr*14);g.fillStyle=f.col;g.fillText(f.txt,x,f.y-pr*14);g.restore();}// 25.10: название броска над бойцом; 25.10: крупная подпись захвата/добивания с обводкой
 else if(f.ty==='boltfx'){drawBolt(x,FL,x,FL-90,{amp:5,segs:7});g.save();g.globalCompositeOperation='lighter';g.fillStyle='rgba(248,248,96,.5)';g.fillRect(x-3,FL-2,6,3);g.restore();}
+else if(f.ty==='orbital'){const p=Math.min(1,f.t/(f.life||20)),a=1-p;g.save();g.globalCompositeOperation='lighter';g.globalAlpha=a*.85;const gr=g.createLinearGradient(0,0,0,FL+GR);gr.addColorStop(0,'rgba(255,255,240,0)');gr.addColorStop(.2,'rgba(248,240,150,.95)');gr.addColorStop(1,'rgba(248,208,96,.15)');g.fillStyle=gr;g.fillRect(x-8,0,16,FL+GR);g.globalAlpha=a;g.fillStyle='#fffbe0';g.fillRect(x-2,0,4,FL+GR);g.strokeStyle=f.col||'#f8d060';g.lineWidth=2;g.beginPath();g.ellipse(x,FL+GR,10+p*22,2+p*4,0,0,7);g.stroke();g.restore();}
 if(f.ty==='castbolt'){const by2=f.y;drawBolt(x,by2-4,x+Math.sin(f.t)*3,by2-76,{amp:5,segs:6});g.save();g.globalCompositeOperation='lighter';g.fillStyle='rgba(248,248,96,.75)';g.fillRect(x-2,by2-6,4,6);g.restore();}// 30.09: канал молнии из руки Вольта
 }}
 /* БОЙЦЫ */
@@ -305,7 +306,7 @@ function drawFatalPanel(b){
 const left=Math.max(0,1-b.phaseT/fatalFrames);g.fillStyle='rgba(0,0,0,.6)';g.fillRect(RW/2-80,220,160,5);g.fillStyle=left>.35?'#c8a040':'#e04020';g.fillRect(RW/2-80,220,160*left,5);g.strokeStyle='#c8a040';g.lineWidth=1;g.strokeRect(RW/2-80.5,219.5,161,6);
 if(!b.winner.ctrl.ai){const w=b.winner,p2=w===b.p2,fdir=b.fatalFace||w.face,prog=b.fatalProg||0,seq=fatalMapped(w.def.fat,fdir),n=seq.length,secs=Math.max(0,Math.ceil((fatalFrames-b.phaseT)/60));
 g.fillStyle='rgba(8,5,4,.86)';g.fillRect(116,52,192,36);frame(116,52,192,36);
-g.font='7px "Russo One"';g.fillStyle='#c8a040';g.textAlign='left';g.fillText('ФАТАЛИТИ',124,63);
+g.font='7px "Russo One"';g.fillStyle='#c8a040';g.textAlign='left';g.fillText('ФАТАЛИТИ · '+(w.def.fatN||''),124,63);
 g.textAlign='right';g.fillStyle=secs>3?'#c8a040':'#e04020';g.fillText(secs+' С',300,63);
 g.font='12px "Russo One"';g.fillStyle=blink()?'#e02020':'#f0e8d0';g.textAlign='center';g.fillText(seqTxt(w.def.fat,p2,fdir),212,76);
 g.font='6px "Russo One"';g.fillStyle='#807850';g.fillText((p2?'I+O':'J+K')+' \u2014 \u0437\u0430\u0445\u0432\u0430\u0442',212,96);

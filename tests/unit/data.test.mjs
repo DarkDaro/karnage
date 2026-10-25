@@ -52,12 +52,25 @@ test('special and super data is complete and unique', () => {
       assert.ok(command.endsWith('P') || command.endsWith('K'), `${fighter.name} ${field}`);
     }
     assert.notEqual(fighter.spec, fighter.spec2, `${fighter.name} spec collision`);
-    for (const field of ['specN', 'spec2N', 'sup']) {
+    for (const field of ['specN', 'spec2N', 'sup', 'fatN']) {
       assert.ok(fighter[field] && fighter[field].length <= 28, `${fighter.name} ${field}`);
     }
+    assert.ok(fighter.fatT, `${fighter.name} fatality type`);
+    assert.match(fighter.fatC, /^#[0-9a-f]{6}$/i, `${fighter.name} fatality colour`);
   }
   const fatalityCommands = CH.map((fighter) => fighter.fat);
   assert.equal(new Set(fatalityCommands).size, fatalityCommands.length, 'fatality commands must be unique');
+  const mirrors = fatalityCommands.map((command) => command.replace(/[LR]/g, (side) => side === 'L' ? 'R' : 'L'));
+  assert.equal(new Set([...fatalityCommands, ...mirrors]).size, fatalityCommands.length * 2, 'fatality commands must not mirror each other');
+  const fatalityNames = CH.map((fighter) => fighter.fatN);
+  assert.equal(new Set(fatalityNames).size, fatalityNames.length, 'fatality names must be unique');
+  const fatalityTypes = CH.map((fighter) => fighter.fatT);
+  assert.equal(new Set(fatalityTypes).size, fatalityTypes.length, 'fatality effects must be unique');
+  const superNames = CH.map((fighter) => fighter.sup);
+  assert.equal(new Set(superNames).size, superNames.length, 'super names must be unique');
+  const superTypes = CH.map((fighter) => fighter.supT);
+  assert.equal(new Set(superTypes).size, superTypes.length, 'super mechanics must be unique');
+  assert.ok(superTypes.every(Boolean), 'every fighter needs a super mechanic');
 });
 
 test('normal and command normal data is complete and distinct', () => {

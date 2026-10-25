@@ -1100,6 +1100,83 @@ test('throw grabs, holds and finishes with character combo', async () => {
   assert.equal(result.final.combo, 2);
 });
 
+test('real input keeps P then K as a kick and completes a target combo', async () => {
+  const result = await page.evaluate(() => {
+    const K = window.KARNAGE;
+    const setup = (id) => {
+      for (const code in K.keys) K.keys[code] = false;
+      K.setDebug({ GAME: 'fight', paused: false });
+      K.newBattle(id, new K.Ctrl(K.KM1), (id + 1) % K.CH.length, new K.Ctrl(K.KM2), 9);
+      const battle = K.battle;
+      battle.mode = '2p';
+      battle.phase = 'fight';
+      battle.phaseT = 200;
+      battle.p1.ctrl.ai = false;
+      battle.p2.ctrl.ai = false;
+      battle.p1.x = 300;
+      battle.p2.x = 330;
+      battle.p1.y = battle.p2.y = 214;
+      battle.p1.face = 1;
+      battle.p2.face = -1;
+      battle.p1.state = 'idle';
+      battle.p1.st = 0;
+      battle.p1.atk = null;
+      battle.p2.state = 'idle';
+      battle.p2.st = 0;
+      battle.p2.atk = null;
+      battle.p2.hp = 100;
+      battle.p2.defeated = 0;
+      battle.p1.ctrl.clear();
+      battle.p2.ctrl.clear();
+      return battle;
+    };
+    const tap = (code, gap) => {
+      K.keys[code] = true;
+      K.step();
+      K.keys[code] = false;
+      for (let i = 0; i < gap; i += 1) K.step();
+    };
+
+    const loneBattle = setup(0);
+    tap('KeyJ', 7);
+    tap('KeyK', 0);
+    let loneKick = '';
+    for (let i = 0; i < 30; i += 1) {
+      K.step();
+      const type = loneBattle.p1.atk?.t;
+      if (type === 'kick' || type === 'throw') {
+        loneKick = type;
+        break;
+      }
+    }
+
+    const chainBattle = setup(0);
+    tap('KeyJ', 7);
+    tap('KeyJ', 7);
+    tap('KeyK', 0);
+    let target = '';
+    for (let i = 0; i < 55; i += 1) {
+      K.step();
+      const name = chainBattle.p1.atk?.target?.n;
+      if (name) target = name;
+    }
+
+    const throwBattle = setup(0);
+    K.keys.KeyJ = true;
+    K.keys.KeyK = true;
+    K.step();
+    K.keys.KeyJ = false;
+    K.keys.KeyK = false;
+    const chord = throwBattle.p1.atk?.t || '';
+
+    return { loneKick, target, expected: K.CH[0].target.n, hp: chainBattle.p2.hp, chord };
+  });
+  assert.equal(result.loneKick, 'kick');
+  assert.equal(result.chord, 'throw');
+  assert.equal(result.target, result.expected);
+  assert.ok(result.hp < 100, 'target combo must deal damage');
+});
+
 test('throw input forgives sequential P and K and shows feedback', async () => {
   const result = await page.evaluate(() => {
     const K = window.KARNAGE;

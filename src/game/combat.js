@@ -34,6 +34,7 @@ export function createCombat({ S, SFX, P, blood, spriteFx, rnd, pick }) {
   def.defeated=0;def.hp=0;def.state='grabbed';def.st=0;def.vx=0;def.vy=0;def.grabbedBy=att;def.atk=null;def.spec2go=0;def.invis=0;def.netT=0;def.chain='';def.chainT=0;def.blockStun=0;def.frozen=0;def.face=-att.face;att.throwTarget=def;
   SFX.hitV();S.freeze=Math.max(S.freeze,2);S.fx.push({ty:'ring',x:def.x,y:def.y-def.def.h*.5,t:0,col:att.def.acc||'#f8d060'});S.fx.push({ty:'name',x:att.x+att.face*12,y:att.y-att.def.h-12,txt:'ЗАХВАТ!',col:'#f8d060',life:30,t:0,big:1});return'grab';}
   if(def.defeated)return'miss';
+  if(def.abufQ)def.abufQ.length=0;
   if(def.armor>0&&!opts.grab){def.armor--;def.armorHit=1;def.flash=4;SFX.block();return'miss';}
   if(def.state==='super'&&def.st<20)def.rage=Math.min(100,def.rage+50);
   if(def.invuln>0)return'miss';if(def.dodging){for(let i=0;i<5;i++)P(def.x+rnd(-6,6),def.y-rnd(8,44),-att.face*rnd(.6,1.6),rnd(-1,-.2),'#9a9080',14,2,.03);SFX.whiff();return'miss';}// 30.09: рывок сквозь удар — пыль и свист
