@@ -6302,7 +6302,7 @@
       return ["\u041F\u0420\u041E\u0414\u041E\u041B\u0416\u0418\u0422\u042C", "\u0417\u0412\u0423\u041A: " + (AU.on ? "\u0412\u041A\u041B" : "\u0412\u042B\u041A\u041B"), "\u0413\u041E\u041B\u041E\u0421 \u0414\u0418\u041A\u0422\u041E\u0420\u0410: " + (AU.voice ? "\u0412\u041A\u041B" : "\u0412\u042B\u041A\u041B"), "\u0413\u0420\u041E\u041C\u041A\u041E\u0421\u0422\u042C: " + AU.vol + "%", "\u0412 \u041C\u0415\u041D\u042E"];
     }
     function settingsItems() {
-      return ["\u0417\u0412\u0423\u041A: " + (AU.on ? "\u0412\u041A\u041B" : "\u0412\u042B\u041A\u041B"), "\u0413\u041E\u041B\u041E\u0421: " + (AU.voice ? "\u0412\u041A\u041B" : "\u0412\u042B\u041A\u041B"), "\u0413\u0420\u041E\u041C\u041A\u041E\u0421\u0422\u042C: " + AU.vol + "%", "CRT-\u0424\u0418\u041B\u042C\u0422\u0420: " + (OPT.crt ? "\u0412\u041A\u041B" : "\u0412\u042B\u041A\u041B"), "\u041A\u0420\u041E\u0412\u042C: " + (OPT.blood ? "\u0412\u041A\u041B" : "\u0412\u042B\u041A\u041B"), "\u0422\u0420\u042F\u0421\u041A\u0410: " + (OPT.shake ? "\u0412\u041A\u041B" : "\u0412\u042B\u041A\u041B"), "\u041C\u0415\u041D\u042C\u0428\u0415 \u0414\u0412\u0418\u0416\u0415\u041D\u0418\u042F: " + (OPT.reduce ? "\u0412\u041A\u041B" : "\u0412\u042B\u041A\u041B"), "\u041D\u0410\u0417\u0410\u0414"];
+      return ["\u0417\u0412\u0423\u041A: " + (AU.on ? "\u0412\u041A\u041B" : "\u0412\u042B\u041A\u041B"), "\u0413\u041E\u041B\u041E\u0421 \u0414\u0418\u041A\u0422\u041E\u0420\u0410: " + (AU.voice ? "\u0412\u041A\u041B" : "\u0412\u042B\u041A\u041B"), "\u0413\u0420\u041E\u041C\u041A\u041E\u0421\u0422\u042C: " + AU.vol + "%", "CRT-\u0424\u0418\u041B\u042C\u0422\u0420: " + (OPT.crt ? "\u0412\u041A\u041B" : "\u0412\u042B\u041A\u041B"), "\u041A\u0420\u041E\u0412\u042C: " + (OPT.blood ? "\u0412\u041A\u041B" : "\u0412\u042B\u041A\u041B"), "\u0422\u0420\u042F\u0421\u041A\u0410: " + (OPT.shake ? "\u0412\u041A\u041B" : "\u0412\u042B\u041A\u041B"), "\u041C\u0415\u041D\u042C\u0428\u0415 \u0414\u0412\u0418\u0416\u0415\u041D\u0418\u042F: " + (OPT.reduce ? "\u0412\u041A\u041B" : "\u0412\u042B\u041A\u041B"), "\u041D\u0410\u0417\u0410\u0414"];
     }
     function settingsChange(i, dir) {
       if (i === 0) {
@@ -6611,22 +6611,19 @@
       bgFill();
       panel(102, 70, 220, 116);
       g.font = '16px "Rubik Mono One","Russo One",sans-serif';
-      g.fillStyle = "#e8c040";
+      g.fillStyle = UI_GOLD;
       g.textAlign = "center";
       g.fillText("\u0420\u0415\u0412\u0410\u041D\u0428?", RW / 2, 100);
       g.font = '9px "Russo One"';
       g.fillStyle = "#e8e0c0";
       g.fillText(CH[S.lastSel.c1].name + "  VS  " + CH[S.lastSel.c2].name, RW / 2, 124);
-      if (blink()) {
-        g.font = '8px "Russo One"';
-        g.fillStyle = "#807850";
-        g.fillText(isTouchUI() ? "P \u2014 \u0415\u0429\u0401 \u0411\u041E\u0419 \xB7 B \u2014 \u041C\u0415\u041D\u042E" : "J \u2014 \u0415\u0429\u0401 \u0411\u041E\u0419 \xB7 ESC \u2014 \u041C\u0415\u041D\u042E", RW / 2, 150);
-      }
       if (S.bstat) {
         g.font = '7px "Russo One"';
         g.fillStyle = "#c8a040";
-        g.fillText("\u0423\u0414\u0410\u0420\u042B " + S.bstat.h1 + " \u2014 " + S.bstat.h2 + "   \u0423\u0420\u041E\u041D " + Math.round(S.bstat.d1) + " \u2014 " + Math.round(S.bstat.d2) + "   \u041C\u0410\u041A\u0421 \u041A\u041E\u041C\u0411\u041E " + S.bstat.c1 + " \u2014 " + S.bstat.c2, RW / 2, 172);
+        g.fillText("\u0423\u0414\u0410\u0420\u042B: " + S.bstat.h1 + " \u2014 " + S.bstat.h2 + " \xB7 \u0423\u0420\u041E\u041D: " + Math.round(S.bstat.d1) + " \u2014 " + Math.round(S.bstat.d2), RW / 2, 162);
+        g.fillText("\u041C\u0410\u041A\u0421. \u041A\u041E\u041C\u0411\u041E: " + S.bstat.c1 + " \u2014 " + S.bstat.c2, RW / 2, 174);
       }
+      uiHint(isTouchUI() ? "P \u2014 \u0415\u0429\u0401 \u0411\u041E\u0419 \xB7 B \u2014 \u041C\u0415\u041D\u042E" : "J \u2014 \u0415\u0429\u0401 \u0411\u041E\u0419 \xB7 ESC \u2014 \u041C\u0415\u041D\u042E", 228, 8);
     }
     function selKey(k) {
       const s = S.sel;
@@ -6704,7 +6701,16 @@
       }
     }
     const isTouchUI = () => document.body.classList.contains("touch");
-    const bgFill = () => {
+    const UI_GOLD = "#e8c040", UI_RED = "#e02020", UI_BLUE = "#3868c8", UI_TEXT = "#e8e0c0", UI_MUTED = "#807850", UI_ACCENT = "#c8a040";
+    function uiHint(text, y = 228, size = 7, col = UI_MUTED) {
+      g.font = size + 'px "Russo One"';
+      g.textAlign = "center";
+      g.fillStyle = col;
+      g.globalAlpha = 0.72 + 0.28 * (0.5 + 0.5 * Math.sin(S.FRAME * 0.08));
+      g.fillText(text, RW / 2, y);
+      g.globalAlpha = 1;
+    }
+    function bgFill() {
       const sky = g.createLinearGradient(0, 0, 0, RH);
       sky.addColorStop(0, "#0b0706");
       sky.addColorStop(0.58, "#090605");
@@ -6728,11 +6734,11 @@
       vg.addColorStop(1, "rgba(0,0,0,.55)");
       g.fillStyle = vg;
       g.fillRect(0, 0, RW, RH);
-    };
+    }
     function drawControls() {
       bgFill();
       g.font = '16px "Russo One"';
-      g.fillStyle = "#e8c040";
+      g.fillStyle = UI_GOLD;
       g.textAlign = "center";
       g.fillText("\u0423\u041F\u0420\u0410\u0412\u041B\u0415\u041D\u0418\u0415", RW / 2, 20);
       panel(12, 30, 196, 176);
@@ -6747,28 +6753,27 @@
       g.font = '7px "Russo One"';
       g.fillStyle = "#e8e0c0";
       g.textAlign = "left";
-      const L1 = ["A / D \u2014 \u0445\u043E\u0434\u044C\u0431\u0430", "W \u2014 \u043F\u0440\u044B\u0436\u043E\u043A", "S \u2014 \u043F\u0440\u0438\u0441\u0435\u0434", "J \u2014 \u0443\u0434\u0430\u0440 \u0440\u0443\u043A\u043E\u0439", "K \u2014 \u0443\u0434\u0430\u0440 \u043D\u043E\u0433\u043E\u0439", "L \u2014 \u0431\u043B\u043E\u043A (\u0443\u0434\u0435\u0440\u0436\u0438\u0432\u0430\u0442\u044C)", "S + J \u2014 \u0430\u043F\u043F\u0435\u0440\u043A\u043E\u0442", "S + K \u2014 \u043F\u043E\u0434\u0441\u0435\u0447\u043A\u0430", "\u043D\u0430\u0437\u0430\u0434 + K \u2014 roundhouse", "\u0431\u0435\u0433 + L \u2014 \u0440\u044B\u0432\u043E\u043A-\u0443\u043A\u043B\u043E\u043D", "\u0421\u041F\u0415\u04262 \u2014 \u0441\u0432\u043E\u044F \u043A\u043E\u043C\u0431\u0438\u043D\u0430\u0446\u0438\u044F"];
-      const L2 = ["\u0421\u0422\u0420\u0415\u041B\u041A\u0418 \u2014 \u0434\u0432\u0438\u0436\u0435\u043D\u0438\u0435", "\u0421\u0422\u0420\u0415\u041B\u041A\u0410 \u0412\u0412\u0415\u0420\u0425 \u2014 \u043F\u0440\u044B\u0436\u043E\u043A", "\u0421\u0422\u0420\u0415\u041B\u041A\u0410 \u0412\u041D\u0418\u0417 \u2014 \u043F\u0440\u0438\u0441\u0435\u0434", "I \u2014 \u0443\u0434\u0430\u0440 \u0440\u0443\u043A\u043E\u0439", "O \u2014 \u0443\u0434\u0430\u0440 \u043D\u043E\u0433\u043E\u0439", "P \u2014 \u0431\u043B\u043E\u043A (\u0443\u0434\u0435\u0440\u0436\u0438\u0432\u0430\u0442\u044C)", "\u0412\u041D\u0418\u0417 + I \u2014 \u0430\u043F\u043F\u0435\u0440\u043A\u043E\u0442", "\u0412\u041D\u0418\u0417 + O \u2014 \u043F\u043E\u0434\u0441\u0435\u0447\u043A\u0430", "\u043D\u0430\u0437\u0430\u0434 + O \u2014 roundhouse", "\u0431\u0435\u0433 + P \u2014 \u0440\u044B\u0432\u043E\u043A-\u0443\u043A\u043B\u043E\u043D", "\u0421\u041F\u0415\u04262 \u2014 \u0441\u0432\u043E\u044F \u043A\u043E\u043C\u0431\u0438\u043D\u0430\u0446\u0438\u044F"];
+      const L1 = ["A / D \u2014 \u0445\u043E\u0434\u044C\u0431\u0430", "W \u2014 \u043F\u0440\u044B\u0436\u043E\u043A", "S \u2014 \u043F\u0440\u0438\u0441\u0435\u0434", "J \u2014 \u0443\u0434\u0430\u0440 \u0440\u0443\u043A\u043E\u0439", "K \u2014 \u0443\u0434\u0430\u0440 \u043D\u043E\u0433\u043E\u0439", "L \u2014 \u0431\u043B\u043E\u043A (\u0443\u0434\u0435\u0440\u0436\u0438\u0432\u0430\u0442\u044C)", "S + J \u2014 \u0430\u043F\u043F\u0435\u0440\u043A\u043E\u0442", "S + K \u2014 \u043F\u043E\u0434\u0441\u0435\u0447\u043A\u0430", "\u043D\u0430\u0437\u0430\u0434 + K \u2014 \u0443\u0434\u0430\u0440 \u0441 \u0440\u0430\u0437\u0432\u043E\u0440\u043E\u0442\u0430", "\u0431\u0435\u0433 + L \u2014 \u0440\u044B\u0432\u043E\u043A-\u0443\u043A\u043B\u043E\u043D", "\u0421\u041F\u0415\u04262 \u2014 \u0432\u0442\u043E\u0440\u0430\u044F \u043A\u043E\u043C\u0431\u0438\u043D\u0430\u0446\u0438\u044F"];
+      const L2 = ["\u0421\u0422\u0420\u0415\u041B\u041A\u0418 \u2014 \u0434\u0432\u0438\u0436\u0435\u043D\u0438\u0435", "\u0421\u0422\u0420\u0415\u041B\u041A\u0410 \u0412\u0412\u0415\u0420\u0425 \u2014 \u043F\u0440\u044B\u0436\u043E\u043A", "\u0421\u0422\u0420\u0415\u041B\u041A\u0410 \u0412\u041D\u0418\u0417 \u2014 \u043F\u0440\u0438\u0441\u0435\u0434", "I \u2014 \u0443\u0434\u0430\u0440 \u0440\u0443\u043A\u043E\u0439", "O \u2014 \u0443\u0434\u0430\u0440 \u043D\u043E\u0433\u043E\u0439", "P \u2014 \u0431\u043B\u043E\u043A (\u0443\u0434\u0435\u0440\u0436\u0438\u0432\u0430\u0442\u044C)", "\u0412\u041D\u0418\u0417 + I \u2014 \u0430\u043F\u043F\u0435\u0440\u043A\u043E\u0442", "\u0412\u041D\u0418\u0417 + O \u2014 \u043F\u043E\u0434\u0441\u0435\u0447\u043A\u0430", "\u043D\u0430\u0437\u0430\u0434 + O \u2014 \u0443\u0434\u0430\u0440 \u0441 \u0440\u0430\u0437\u0432\u043E\u0440\u043E\u0442\u0430", "\u0431\u0435\u0433 + P \u2014 \u0440\u044B\u0432\u043E\u043A-\u0443\u043A\u043B\u043E\u043D", "\u0421\u041F\u0415\u04262 \u2014 \u0432\u0442\u043E\u0440\u0430\u044F \u043A\u043E\u043C\u0431\u0438\u043D\u0430\u0446\u0438\u044F"];
       L1.forEach((l, i) => g.fillText(l, 24, 62 + i * 12));
       L2.forEach((l, i) => g.fillText(l, 228, 62 + i * 12));
       g.font = '7px "Russo One"';
-      g.fillStyle = "#c8a040";
+      g.fillStyle = UI_ACCENT;
       g.textAlign = "center";
-      g.fillText(isTouchUI() ? "P+K \u2014 \u0437\u0430\u0445\u0432\u0430\u0442/\u0431\u0440\u043E\u0441\u043E\u043A \xB7 \u0421\u041F\u0415\u0426 \u2014 D-PAD + P/K \xB7 \u0421\u0423\u041F\u0415\u0420 \u2014 \u0412\u041D\u0418\u0417, \u0412\u041D\u0418\u0417 + P" : "P+K \u2014 \u0437\u0430\u0445\u0432\u0430\u0442/\u0431\u0440\u043E\u0441\u043E\u043A \xB7 \u0421\u041F\u0415\u0426 \u2014 \u043D\u0430\u043F\u0440\u0430\u0432\u043B\u0435\u043D\u0438\u044F+\u043A\u043D\u043E\u043F\u043A\u0430 \xB7 \u0421\u0423\u041F\u0415\u0420 \u2014 S,S+J", RW / 2, 214);
-      g.fillStyle = "#807850";
-      g.fillText("\u0424\u0410\u0422\u0410\u041B\u0418\u0422\u0418 \u2014 \u0432 \u043E\u043A\u043D\u0435 FINISH HIM \xB7 \u0441\u0442\u0440\u0435\u043B\u043A\u0438 \u2014 \u0441 \u0443\u0447\u0451\u0442\u043E\u043C \u0432\u0437\u0433\u043B\u044F\u0434\u0430", RW / 2, 222);
-      g.fillText(isTouchUI() ? "P/K \u2014 \u0443\u0434\u0430\u0440\u044B \xB7 B \u2014 \u0431\u043B\u043E\u043A \xB7 \u2161 \u2014 \u043F\u0430\u0443\u0437\u0430" : "J / ESC \u2014 \u043D\u0430\u0437\u0430\u0434", RW / 2, 230);
+      g.fillText("\u0411\u0420\u041E\u0421\u041E\u041A: P1 \u2014 J + K \xB7 P2 \u2014 I + O", RW / 2, 212);
+      g.fillText("\u0421\u041F\u0415\u0426 \u2014 \u041D\u0410\u041F\u0420\u0410\u0412\u041B\u0415\u041D\u0418\u042F + \u041A\u041D\u041E\u041F\u041A\u0410 \xB7 \u0421\u0423\u041F\u0415\u0420 \u2014 \u0412\u041D\u0418\u0417, \u0412\u041D\u0418\u0417 + \u0423\u0414\u0410\u0420", RW / 2, 220);
+      uiHint(isTouchUI() ? "\u0424\u0410\u0422\u0410\u041B\u0418\u0422\u0418 \u2014 \u0412 \u041E\u041A\u041D\u0415 FINISH HIM \xB7 B \u2014 \u041D\u0410\u0417\u0410\u0414" : "\u0424\u0410\u0422\u0410\u041B\u0418\u0422\u0418 \u2014 \u0412 \u041E\u041A\u041D\u0415 FINISH HIM \xB7 J / ESC \u2014 \u041D\u0410\u0417\u0410\u0414", 228);
     }
     function drawSelect() {
       const s = S.sel;
       bgFill();
       g.font = '15px "Russo One"';
-      g.fillStyle = "#e8c040";
+      g.fillStyle = UI_GOLD;
       g.textAlign = "center";
       g.fillText("\u0412\u042B\u0411\u041E\u0420 \u0411\u041E\u0419\u0426\u0410", RW / 2, 16);
       g.font = '7px "Russo One"';
       g.fillStyle = "#807850";
-      const hdr = s.mode === "arcade" ? loadArcRun() ? "\u041D\u041E\u0412\u0410\u042F \u0410\u0420\u041A\u0410\u0414\u0410 \u0417\u0410\u041C\u0415\u041D\u0418\u0422 \u0421\u041E\u0425\u0420\u0410\u041D\u0401\u041D\u041D\u0423\u042E" : "\u0412\u042B\u0411\u0415\u0420\u0418 \u0411\u041E\u0419\u0426\u0410 \u2014 " + ARC_TOTAL + " \u0411\u041E\u0401\u0412, \u0424\u0418\u041D\u0410\u041B\u042C\u041D\u042B\u0419 \u0411\u041E\u0421\u0421" : s.ph === 2 ? "\u041D\u0410\u0421\u0422\u0420\u041E\u0419\u041A\u0410 \u0411\u041E\u042F" : s.mode === "cpu" ? s.ph === 0 ? "\u0412\u042B\u0411\u0415\u0420\u0418 \u0421\u0412\u041E\u0415\u0413\u041E \u0411\u041E\u0419\u0426\u0410" : "\u0412\u042B\u0411\u0415\u0420\u0418 \u0421\u041E\u041F\u0415\u0420\u041D\u0418\u041A\u0410" : "P1: WASD + J    P2: \u0421\u0422\u0420\u0415\u041B\u041A\u0418 + I";
+      const hdr = s.mode === "arcade" ? loadArcRun() ? "\u041D\u041E\u0412\u0410\u042F \u0410\u0420\u041A\u0410\u0414\u0410 \u0417\u0410\u041C\u0415\u041D\u0418\u0422 \u0421\u041E\u0425\u0420\u0410\u041D\u0401\u041D\u041D\u0423\u042E" : "\u0412\u042B\u0411\u0415\u0420\u0418 \u0411\u041E\u0419\u0426\u0410 \u2014 " + ARC_TOTAL + " \u0411\u041E\u0401\u0412, \u0424\u0418\u041D\u0410\u041B\u042C\u041D\u042B\u0419 \u0411\u041E\u0421\u0421" : s.ph === 2 ? "\u041F\u041E\u0414\u0413\u041E\u0422\u041E\u0412\u041A\u0410 \u041A \u0411\u041E\u042E" : s.mode === "cpu" ? s.ph === 0 ? "\u0412\u042B\u0411\u0415\u0420\u0418 \u0421\u0412\u041E\u0415\u0413\u041E \u0411\u041E\u0419\u0426\u0410" : "\u0412\u042B\u0411\u0415\u0420\u0418 \u0421\u041E\u041F\u0415\u0420\u041D\u0418\u041A\u0410" : "P1: WASD + J \xB7 P2: \u0421\u0422\u0420\u0415\u041B\u041A\u0418 + I";
       g.fillText(hdr, RW / 2, 27);
       for (let i = 0; i < CH.length; i++) {
         const x = 12 + i % 5 * 37, y = 36 + (i / 5 | 0) * 46;
@@ -6799,7 +6804,7 @@
       g.fillStyle = "#e02020";
       g.fillText("P1: " + CH[s.c1].name, lx, 187);
       if (s.mode !== "arcade") {
-        g.fillStyle = "#3868c8";
+        g.fillStyle = UI_BLUE;
         g.fillText((s.mode === "2p" ? "P2" : "CPU") + ": " + CH[s.c2].name, lx, 197);
       }
       g.fillStyle = "rgba(200,160,64,.22)";
@@ -6825,7 +6830,7 @@
         g.moveTo(290.5, 74);
         g.lineTo(290.5, 174);
         g.stroke();
-        const st = [[Math.round(9 * d.dmg), 9, "\u0421\u0418\u041B\u0410"], [Math.round(d.spd * 4), 9, "\u0421\u041A\u041E\u0420"], [Math.round(9 / d.bulk), 9, "\u0412\u0415\u0421"]];
+        const st = [[Math.round(9 * d.dmg), 9, "\u0421\u0418\u041B\u0410"], [Math.round(d.spd * 4), 9, "\u0421\u041A\u041E\u0420\u041E\u0421\u0422\u042C"], [Math.round(9 / d.bulk), 9, "\u0412\u0415\u0421"]];
         st.forEach((s2, i) => {
           const sy = 78 + i * 12;
           g.font = '7px "Russo One"';
@@ -6833,9 +6838,9 @@
           g.textAlign = "left";
           g.fillText(s2[2], 298, sy);
           g.fillStyle = "#2a0808";
-          g.fillRect(332, sy - 6, 76, 5);
+          g.fillRect(338, sy - 6, 70, 5);
           g.fillStyle = s2[0] >= 7 ? "#e04020" : s2[0] >= 6 ? "#e8c040" : "#7a8a4a";
-          g.fillRect(332, sy - 6, Math.max(2, Math.min(76, s2[0] / s2[1] * 76)), 5);
+          g.fillRect(338, sy - 6, Math.max(2, Math.min(70, s2[0] / s2[1] * 70)), 5);
         });
         g.font = '7px "Russo One"';
         g.fillStyle = "#e8c040";
@@ -6847,7 +6852,7 @@
         g.fillStyle = "#e8c040";
         g.fillText("\u0421\u0423\u041F\u0415\u0420: " + d.sup, 298, 157);
         g.fillStyle = "#807850";
-        g.fillText("\u0424\u0410\u0422\u0410\u041B\u0418\u0422\u0418: \u0441\u0435\u043A\u0440\u0435\u0442", 298, 169);
+        g.fillText("\u0424\u0410\u0422\u0410\u041B\u0418\u0422\u0418: \u0421\u0415\u041A\u0420\u0415\u0422", 298, 169);
       } else {
         panel(206, 80, 204, 96);
         drawPort(d, 240, 100, 0.8);
@@ -6873,13 +6878,10 @@
         g.fillText("\u0410\u0420\u0415\u041D\u0410: " + (s.ar < 0 ? "\u0410\u0420\u0415\u041D\u0410 \u0411\u041E\u0419\u0426\u0410" : AR[s.ar].n), 334, s.mode === "cpu" ? 138 : 128);
         g.font = '7px "Russo One"';
         g.fillStyle = "#807850";
-        g.fillText(isTouchUI() ? "D-PAD \u2014 \u0421\u0422\u0420\u041E\u041A\u0410/\u0417\u041D\u0410\u0427\u0415\u041D\u0418\u0415" : "A/D \u2014 \u0438\u0437\u043C\u0435\u043D\u0438\u0442\u044C \xB7 W/S \u2014 \u0441\u0442\u0440\u043E\u043A\u0430", 333, 156);
+        g.fillText(isTouchUI() ? "D-PAD \u2014 \u0421\u0422\u0420\u041E\u041A\u0410/\u0417\u041D\u0410\u0427\u0415\u041D\u0418\u0415" : "W/S \u2014 \u0421\u0422\u0420\u041E\u041A\u0410 \xB7 A/D \u2014 \u0418\u0417\u041C\u0415\u041D\u0418\u0422\u042C", 333, 156);
         g.fillText(isTouchUI() ? "P \u2014 \u0421\u0422\u0410\u0420\u0422" : "J \u2014 \u0421\u0422\u0410\u0420\u0422", 333, 166);
       }
-      g.font = '7px "Russo One"';
-      g.textAlign = "center";
-      g.fillStyle = "#807850";
-      g.fillText(isTouchUI() ? "P \u2014 \u041F\u041E\u0414\u0422\u0412\u0415\u0420\u0414\u0418\u0422\u042C \xB7 B \u2014 \u041D\u0410\u0417\u0410\u0414" : "J \u2014 \u043F\u043E\u0434\u0442\u0432\u0435\u0440\u0434\u0438\u0442\u044C \xB7 ESC \u2014 \u043D\u0430\u0437\u0430\u0434", RW / 2, 230);
+      uiHint(isTouchUI() ? "P \u2014 \u041F\u041E\u0414\u0422\u0412\u0415\u0420\u0414\u0418\u0422\u042C \xB7 B \u2014 \u041D\u0410\u0417\u0410\u0414" : "J \u2014 \u041F\u041E\u0414\u0422\u0412\u0415\u0420\u0414\u0418\u0422\u042C \xB7 ESC \u2014 \u041D\u0410\u0417\u0410\u0414", 228);
     }
     function drawVS() {
       bgFill();
@@ -6920,13 +6922,13 @@
       g.textAlign = "center";
       g.fillStyle = "#e02020";
       g.fillText(S.battle.p1.def.name, 85, 145);
-      g.fillStyle = "#3868c8";
+      g.fillStyle = UI_BLUE;
       g.fillText(S.battle.p2.def.name + (S.battle.p2.ctrl.ai ? " [CPU]" : ""), RW - 85, 145);
-      if (S.battle.mode !== "arcade" && (S.sel.diff > 0 || S.sel.ar >= 0)) {
+      if (S.battle.mode === "cpu" && S.lastSel) {
         g.font = '7px "Russo One"';
         g.fillStyle = "#c8a040";
         g.textAlign = "center";
-        g.fillText((S.sel.ar < 0 ? "\u0410\u0420\u0415\u041D\u0410 \u0411\u041E\u0419\u0426\u0410" : AR[S.sel.ar].n) + (S.battle.p2.ctrl.ai ? " \xB7 " + ["\u041B\u0401\u0413\u041A\u0410\u042F", "\u041D\u041E\u0420\u041C\u0410\u041B\u042C\u041D\u0410\u042F", "\u0422\u042F\u0416\u0401\u041B\u0410\u042F"][S.sel.diff] : ""), RW / 2, 232);
+        g.fillText("\u0421\u041B\u041E\u0416\u041D\u041E\u0421\u0422\u042C: " + ["\u041B\u0401\u0413\u041A\u0410\u042F", "\u041D\u041E\u0420\u041C\u0410\u041B\u042C\u041D\u0410\u042F", "\u0422\u042F\u0416\u0401\u041B\u0410\u042F"][S.lastSel.diff], RW / 2, 190);
       }
       g.font = '40px "Russo One"';
       g.fillStyle = "#000";
@@ -6938,14 +6940,10 @@
       g.fillStyle = "#e8c040";
       g.textAlign = "center";
       g.fillText("\u0410\u0420\u0415\u041D\u0410: " + AR[S.battle.arena].n, RW / 2, 170);
-      if (S.vsEscT > 0 && blink()) {
-        g.font = '8px "Russo One"';
-        g.fillStyle = "#e04020";
-        g.fillText(isTouchUI() ? "\u0415\u0429\u0401 \u0420\u0410\u0417 B \u2014 \u041F\u041E\u041A\u0418\u041D\u0423\u0422\u042C \u0422\u0423\u0420\u041D\u0418\u0420" : "\u0415\u0429\u0401 \u0420\u0410\u0417 ESC \u2014 \u041F\u041E\u041A\u0418\u041D\u0423\u0422\u042C \u0422\u0423\u0420\u041D\u0418\u0420", RW / 2, 200);
-      } else if (S.vsT > 50 && blink()) {
-        g.font = '9px "Russo One"';
-        g.fillStyle = "#e8e0c0";
-        g.fillText(isTouchUI() ? "P \u2014 \u041D\u0410\u0427\u0410\u0422\u042C \u0411\u041E\u0419" : "J \u2014 \u041D\u0410\u0427\u0410\u0422\u042C \u0411\u041E\u0419", RW / 2, 214);
+      if (S.vsEscT > 0) {
+        uiHint(isTouchUI() ? "\u0415\u0429\u0401 \u0420\u0410\u0417 B \u2014 \u041F\u041E\u041A\u0418\u041D\u0423\u0422\u042C \u0422\u0423\u0420\u041D\u0418\u0420" : "\u0415\u0429\u0401 \u0420\u0410\u0417 ESC \u2014 \u041F\u041E\u041A\u0418\u041D\u0423\u0422\u042C \u0422\u0423\u0420\u041D\u0418\u0420", 202, 8, UI_RED);
+      } else if (S.vsT > 50) {
+        uiHint(isTouchUI() ? "P \u2014 \u041D\u0410\u0427\u0410\u0422\u042C \u0411\u041E\u0419" : "J \u2014 \u041D\u0410\u0427\u0410\u0422\u042C \u0411\u041E\u0419", 228, 9, UI_TEXT);
       }
     }
     function arcEnding() {
@@ -6978,20 +6976,17 @@
       g.fillText(e.title, RW / 2, 166);
       g.font = '7px "Russo One"';
       g.fillStyle = "#c8a040";
-      for (let i = 0; i < e.lines.length && i < 2; i++) g.fillText(e.lines[i], RW / 2, 182 + i * 12);
+      const lines = (e.lines || []).filter((l) => typeof l === "string" && l.trim()).slice(0, 2);
+      for (let i = 0; i < lines.length; i++) g.fillText(lines[i], RW / 2, 182 + i * 12);
       g.font = '7px "Russo One"';
       g.fillStyle = "#807850";
       g.fillText("\u041A\u0410\u0419\u0417\u0415\u0420-\u041F\u0420\u0410\u0419\u041C \u041F\u041E\u0412\u0415\u0420\u0416\u0415\u041D", RW / 2, 212);
-      if (blink()) {
-        g.fillStyle = "#807850";
-        g.font = '8px "Russo One"';
-        g.fillText(isTouchUI() ? "P \u2014 \u0432 \u043C\u0435\u043D\u044E" : "J \u2014 \u0432 \u043C\u0435\u043D\u044E", RW / 2, 228);
-      }
+      uiHint(isTouchUI() ? "P \u2014 \u0412 \u041C\u0415\u041D\u042E" : "J \u2014 \u0412 \u041C\u0415\u041D\u042E", 228, 8);
     }
     function drawTop() {
       bgFill();
       g.font = '15px "Russo One"';
-      g.fillStyle = "#e8c040";
+      g.fillStyle = UI_GOLD;
       g.textAlign = "center";
       g.fillText("\u0417\u0410\u041B \u0421\u041B\u0410\u0412\u042B", RW / 2, 24);
       panel(102, 40, 220, 170);
@@ -7018,12 +7013,7 @@
           g.fillText(e.date.slice(8, 10) + "." + e.date.slice(5, 7) + "." + e.date.slice(2, 4), 300, y + 9);
         }
       });
-      if (blink()) {
-        g.font = '8px "Russo One"';
-        g.fillStyle = "#807850";
-        g.textAlign = "center";
-        g.fillText(isTouchUI() ? "P / B \u2014 \u041D\u0410\u0417\u0410\u0414" : "J / ESC \u2014 \u041D\u0410\u0417\u0410\u0414", RW / 2, 228);
-      }
+      uiHint(isTouchUI() ? "P / B \u2014 \u041D\u0410\u0417\u0410\u0414" : "J / ESC \u2014 \u041D\u0410\u0417\u0410\u0414", 228, 8);
     }
     function drawOver() {
       bgFill();
@@ -7036,10 +7026,7 @@
       g.font = '9px "Russo One"';
       g.fillStyle = "#e8e0c0";
       g.fillText("\u0422\u0443\u0440\u043D\u0438\u0440 \u043D\u0435 \u043F\u0440\u043E\u0449\u0430\u0435\u0442 \u0441\u043B\u0430\u0431\u043E\u0441\u0442\u0438.", RW / 2, 140);
-      if (blink()) {
-        g.fillStyle = "#807850";
-        g.fillText(isTouchUI() ? "P \u2014 \u0432 \u043C\u0435\u043D\u044E" : "J \u2014 \u0432 \u043C\u0435\u043D\u044E", RW / 2, 180);
-      }
+      uiHint(isTouchUI() ? "P \u2014 \u0412 \u041C\u0415\u041D\u042E" : "J \u2014 \u0412 \u041C\u0415\u041D\u042E", 228, 8);
     }
     function drawCont() {
       bgFill();
@@ -7056,12 +7043,7 @@
       g.fillStyle = "#e02020";
       g.fillText("" + n, 0, 0);
       g.restore();
-      if (blink()) {
-        g.font = '10px "Russo One"';
-        g.fillStyle = "#e8e0c0";
-        g.textAlign = "center";
-        g.fillText(isTouchUI() ? "P \u2014 \u0414\u0410 \xB7 B \u2014 \u0412 \u041C\u0415\u041D\u042E" : "J \u2014 \u0414\u0410 \xB7 ESC \u2014 \u0412 \u041C\u0415\u041D\u042E", RW / 2, 206);
-      }
+      uiHint(isTouchUI() ? "P \u2014 \u0414\u0410 \xB7 B \u2014 \u0412 \u041C\u0415\u041D\u042E" : "J \u2014 \u0414\u0410 \xB7 ESC \u2014 \u0412 \u041C\u0415\u041D\u042E", 228, 10, UI_TEXT);
     }
     const SK = ["....SSSSSSSS....", "..SSSSSSSSSSSS..", ".SSSSSSSSSSSSSS.", ".SSSSSSSSSSSSSS.", "SSSSSSSSSSSSSSS", "SSSSSSSSSSSSSSSS", "SSSSSSSSSSSSSSSS", "SSEESSSSSSEESSSS", "SSEESSSSSSEESSSS", "SSSSSSSSSSSSSSSS", ".SSSSSDDDSSSSSS.", "..SSDDDDDDDSS...", "...TDTDTDTDT....", "....SSSSSSSS...."];
     function drawSkull(cx, cy, px) {
@@ -7111,11 +7093,7 @@
         }
       } catch (e) {
       }
-      if (blink()) {
-        g.fillStyle = "#e8e0c0";
-        g.font = '11px "Russo One"';
-        g.fillText(isTouchUI() ? "\u041A\u041E\u0421\u041D\u0418\u0421\u042C \u042D\u041A\u0420\u0410\u041D\u0410" : "\u041D\u0410\u0416\u041C\u0418 \u041B\u042E\u0411\u0423\u042E \u041A\u041B\u0410\u0412\u0418\u0428\u0423", RW / 2, 216);
-      }
+      uiHint(isTouchUI() ? "\u041A\u041E\u0421\u041D\u0418\u0421\u042C \u042D\u041A\u0420\u0410\u041D\u0410" : "\u041D\u0410\u0416\u041C\u0418 \u041B\u042E\u0411\u0423\u042E \u041A\u041B\u0410\u0412\u0418\u0428\u0423", 228, 11, UI_TEXT);
     }
     function drawMenu() {
       bgFill();
@@ -7166,12 +7144,7 @@
       g.fillStyle = "#e8e0c0";
       g.textAlign = "center";
       g.fillText(CH[si].name, 320, 172);
-      if (blink()) {
-        g.font = '8px "Russo One"';
-        g.fillStyle = "#807850";
-        g.textAlign = "center";
-        g.fillText(isTouchUI() ? "D-PAD \u2014 \u0412\u042B\u0411\u041E\u0420 \xB7 P \u2014 \u041F\u041E\u0414\u0422\u0412\u0415\u0420\u0414\u0418\u0422\u042C" : "W/S \u2014 \u0432\u044B\u0431\u043E\u0440 \xB7 J \u2014 \u043F\u043E\u0434\u0442\u0432\u0435\u0440\u0434\u0438\u0442\u044C \xB7 M \u2014 \u0437\u0432\u0443\u043A", RW / 2, 212);
-      }
+      uiHint(isTouchUI() ? "D-PAD \u2014 \u0412\u042B\u0411\u041E\u0420 \xB7 P \u2014 \u041F\u041E\u0414\u0422\u0412\u0415\u0420\u0414\u0418\u0422\u042C" : "W/S \u2014 \u0412\u042B\u0411\u041E\u0420 \xB7 J \u2014 \u041F\u041E\u0414\u0422\u0412\u0415\u0420\u0414\u0418\u0422\u042C \xB7 M \u2014 \u0417\u0412\u0423\u041A", 228, 8);
     }
     function settingsIcon(kind, x, y, on) {
       g.save();
@@ -7258,17 +7231,14 @@
         g.textAlign = "center";
         g.fillText((on ? "> " : "") + it, RW / 2, y);
       });
-      g.font = '7px "Russo One"';
-      g.fillStyle = "#807850";
-      g.textAlign = "center";
-      g.fillText(isTouchUI() ? "D-PAD \u2014 \u0412\u042B\u0411\u041E\u0420/\u0418\u0417\u041C\u0415\u041D\u0418\u0422\u042C \xB7 P \u2014 \u041F\u0415\u0420\u0415\u041A\u041B\u042E\u0427\u0418\u0422\u042C \xB7 B \u2014 \u041D\u0410\u0417\u0410\u0414" : "W/S \u2014 \u0432\u044B\u0431\u043E\u0440 \xB7 A/D \u2014 \u0438\u0437\u043C\u0435\u043D\u0438\u0442\u044C \xB7 J \u2014 \u043F\u0435\u0440\u0435\u043A\u043B\u044E\u0447\u0438\u0442\u044C \xB7 ESC \u2014 \u043D\u0430\u0437\u0430\u0434", RW / 2, 224);
+      uiHint(isTouchUI() ? "D-PAD \u2014 \u0412\u042B\u0411\u041E\u0420/\u0418\u0417\u041C\u0415\u041D\u0418\u0422\u042C \xB7 P \u2014 \u041F\u0415\u0420\u0415\u041A\u041B\u042E\u0427\u0418\u0422\u042C \xB7 B \u2014 \u041D\u0410\u0417\u0410\u0414" : "W/S \u2014 \u0412\u042B\u0411\u041E\u0420 \xB7 A/D \u2014 \u0418\u0417\u041C\u0415\u041D\u0418\u0422\u042C \xB7 J \u2014 \u041F\u0415\u0420\u0415\u041A\u041B\u042E\u0427\u0418\u0422\u042C \xB7 ESC \u2014 \u041D\u0410\u0417\u0410\u0414", 228);
     }
     function drawPause() {
       g.fillStyle = "rgba(0,0,0,.72)";
       g.fillRect(0, 0, RW, RH);
       panel(10, 44, RW - 20, 170);
       g.font = '13px "Russo One"';
-      g.fillStyle = "#e8c040";
+      g.fillStyle = UI_GOLD;
       g.textAlign = "center";
       g.fillText("\u041F\u0410\u0423\u0417\u0410", RW / 2, 60);
       g.fillStyle = "rgba(200,160,64,.38)";
@@ -7316,12 +7286,13 @@
         g.fillStyle = "#e8e0c0";
         g.fillText("\u0424\u0410\u0422\u0410\u041B\u0418\u0422\u0418: [" + seqTxt(d.fat, p2, f.face) + "]", x, 161);
         g.fillStyle = "#e8e0c0";
-        g.fillText("\u0411\u0420\u041E\u0421\u041E\u041A: " + (d.throwN || "\u0417\u0430\u0445\u0432\u0430\u0442"), x, 172, 128);
+        g.fillText("\u0411\u0420\u041E\u0421\u041E\u041A: " + (d.throwN || "\u0417\u0410\u0425\u0412\u0410\u0422"), x, 172, 128);
         g.fillStyle = "#c8a040";
-        g.fillText("[P+K]", x, 183);
+        g.fillText(p2 ? "[I + O]" : "[J + K]", x, 183);
       };
       ab(S.battle.p1, 199);
       ab(S.battle.p2, 336);
+      uiHint(isTouchUI() ? "P \u2014 \u0412\u042B\u0411\u041E\u0420/\u0413\u0420\u041E\u041C\u041A\u041E\u0421\u0422\u042C \xB7 B \u2014 \u0417\u0410\u041A\u0420\u042B\u0422\u042C" : "J \u2014 \u0412\u042B\u0411\u041E\u0420 \xB7 A/D \u2014 \u0413\u0420\u041E\u041C\u041A\u041E\u0421\u0422\u042C \xB7 ESC \u2014 \u0417\u0410\u041A\u0420\u042B\u0422\u042C", 228);
     }
     function loop(ts) {
       requestAnimationFrame(loop);
@@ -7551,7 +7522,7 @@
         g.font = '8px "Russo One"';
         g.fillStyle = "#e8e0c0";
         g.textAlign = "center";
-        g.fillText("J \u2014 \u041F\u0420\u041E\u041F\u0423\u0421\u0422\u0418\u0422\u042C", RW / 2, 232);
+        g.fillText(isTouchUI() ? "P \u2014 \u041F\u0420\u041E\u041F\u0423\u0421\u0422\u0418\u0422\u042C" : "J \u2014 \u041F\u0420\u041E\u041F\u0423\u0421\u0422\u0418\u0422\u042C", RW / 2, 232);
       }
       if (S.announce && S.announce.t < 110) {
         const t = S.announce.t;
