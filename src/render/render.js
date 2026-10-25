@@ -1,35 +1,30 @@
 // 25.10: рендер бойцов, портретов, HUD и эффектов вынесен из монолита.
 // Модуль ничего не обновляет: только читает состояние и рисует.
+import { createAbilityFx } from './ability-fx.js';
 export function createRender({
   g, S, UI, CH, WM, RW, FL, GR, OUT,
   lerp, rnd, mix, shade, blink, fatalMapped, fatalFrames,
 }) {
+const abilityFx=createAbilityFx({g,S,FL,GR,lerp,rnd,mix});
 /* ЭФФЕКТЫ */
-function drawProjs(cam){for(const p of S.projs){const x=p.x-cam,y=p.y;
-const gl={fire:'#f06020',ice:'#88c8f0',shadow:'#7a3aa8',bolt:'#f8f860',meteor:'#f06020',rocket:'#d84030',bomb:'#f06020'}[p.ty]||p.c;if(gl){g.shadowColor=gl;g.shadowBlur=8;}// 08.09: свечение снарядов + цвет shard
-if(p.ty==='fire'){g.fillStyle='#f06020';g.fillRect(x-5,y-5,10,10);g.fillStyle='#f8d060';g.fillRect(x-3,y-3,6,6);g.fillStyle='#a03010';g.fillRect(x-(p.vx>0?10:-10),y-2,6,4);}
-else if(p.ty==='ice'){g.fillStyle='#88c8f0';g.beginPath();g.moveTo(x-7,y);g.lineTo(x,y-6);g.lineTo(x+7,y);g.lineTo(x,y+6);g.fill();g.fillStyle='#e8f8ff';g.fillRect(x-2,y-2,4,4);}
-else if(p.ty==='shadow'){g.fillStyle='#3a1a5a';g.beginPath();g.arc(x,y,6,0,7);g.fill();g.fillStyle='#7a3aa8';g.beginPath();g.arc(x+Math.sin(p.l)*3,y-2,3,0,7);g.fill();}
-else if(p.ty==='net'){g.strokeStyle='#c8c8a0';g.lineWidth=1;const s=8+(120-p.l)*.06;g.strokeRect(x-s/2,y-s/2,s,s);}
-else if(p.ty==='wave'){g.fillStyle='#c8e0ff';for(let k=-1;k<=1;k++){const h=12-Math.abs(k)*4;g.beginPath();g.moveTo(x+k*9-5,FL+GR);g.lineTo(x+k*9,FL+GR-h);g.lineTo(x+k*9+5,FL+GR);g.fill();}g.fillStyle='#6aa0d8';g.fillRect(x-6,FL+GR-3,12,3);}
-else if(p.ty==='bolt')drawBolt(x,y-90,x,y);
-else if(p.ty==='meteor'){g.fillStyle='#f06020';g.fillRect(x-5,y-5,10,10);g.fillStyle='#f8d060';g.fillRect(x-2,y-2,5,5);}
-else if(p.ty==='rocket'){g.fillStyle='#889';g.fillRect(x-3,y-8,6,12);g.fillStyle='#d84030';g.fillRect(x-2,y-8,4,3);}
-else if(p.ty==='bomb'){const a=Math.sin(p.l*.4)*2;g.fillStyle='#2a2018';g.beginPath();g.arc(x,y,5,0,7);g.fill();g.fillStyle='#4a4038';g.fillRect(x-3,y-3,6,2);g.fillStyle='#f0a030';g.fillRect(x+3,y-6+a,2,2);g.fillStyle='#f8d060';g.fillRect(x+4,y-5+a,1,1);}else if(p.ty==='shard'){g.fillStyle=p.c;g.beginPath();g.arc(x,y,p.s||4,0,7);g.fill();g.fillStyle='#fff';g.fillRect(x-1,y-1,2,2);}g.shadowBlur=0;}}// 08.09: осколок — цветной шар с бликом
-function drawBolt(x1,y1,x2,y2){g.strokeStyle='#f8f860';g.lineWidth=2;g.beginPath();g.moveTo(x1,y1);for(let i=1;i<=6;i++)g.lineTo(lerp(x1,x2,i/6)+rnd(-5,5),lerp(y1,y2,i/6));g.stroke();g.strokeStyle='#fff';g.lineWidth=1;g.stroke();}
+function drawProjs(cam){abilityFx.drawProjs(cam);}
+const drawBolt=abilityFx.drawBolt;
 function drawFx(cam){for(const f of S.fx){const x=f.x-cam;
 if(f.ty==='sprite'){const frame=Math.min(f.frames-1,Math.floor(f.t/f.dur*f.frames));g.save();g.globalCompositeOperation=f.blend;g.globalAlpha=f.alpha;g.drawImage(f.img,frame*f.frameW,0,f.frameW,f.frameH,x-f.anchor[0]*f.scale,f.y-f.anchor[1]*f.scale,f.frameW*f.scale,f.frameH*f.scale);g.restore();}
 else if(f.ty==='whiff'){const p=f.t/f.life,a=1-p;g.save();g.translate(x,f.y);g.scale(f.face||1,1);g.globalCompositeOperation='screen';g.globalAlpha=a;g.strokeStyle='rgba(220,238,255,.9)';g.lineWidth=2-p;g.beginPath();g.arc(0,0,9+p*10,-1,.45);g.stroke();g.globalAlpha=a*.5;g.lineWidth=1;g.beginPath();g.arc(0,0,5+p*6,-1.25,.7);g.stroke();g.globalAlpha=a*.6;g.strokeStyle=f.col;g.beginPath();g.moveTo(-2,0);g.lineTo(-10-p*4,0);g.stroke();g.restore();}
 else if(f.ty==='super'){const p=f.t/f.life,a=1-p;g.save();g.globalCompositeOperation='lighter';g.translate(x,f.y);g.globalAlpha=a*.35;const rad=8+p*40,gr=g.createRadialGradient(0,0,2,0,0,rad);gr.addColorStop(0,'rgba(255,255,255,.9)');gr.addColorStop(.35,f.col);gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.beginPath();g.arc(0,0,rad,0,7);g.fill();g.globalAlpha=a;g.strokeStyle=f.col;g.lineWidth=3;g.beginPath();g.arc(0,0,6+p*44,0,7);g.stroke();g.globalAlpha=a*.7;g.strokeStyle='#fff';g.lineWidth=1.5;g.beginPath();g.arc(0,0,3+p*30,0,7);g.stroke();for(let i=0;i<10;i++){const an=i*Math.PI/5+p*.3,r0=5+p*8,r1=12+p*40;g.beginPath();g.moveTo(Math.cos(an)*r0,Math.sin(an)*r0);g.lineTo(Math.cos(an)*r1,Math.sin(an)*r1);g.stroke();}g.globalAlpha=a*.55;g.strokeStyle=f.col;g.lineWidth=2;g.beginPath();g.ellipse(0,f.gy-f.y,10+p*34,3+p*7,0,0,7);g.stroke();g.globalAlpha=a;g.fillStyle='#fff';g.beginPath();g.arc(0,0,Math.max(0,5*(1-p)),0,7);g.fill();g.restore();}
-else if(f.ty==='rock'){const h=Math.min(30,f.t*4);g.fillStyle='#6a5a44';g.fillRect(x-10,FL+GR-h,20,h);g.fillStyle='#8a7a5c';g.fillRect(x-6,FL+GR-h,5,h);if(f.t<8){g.fillStyle='#b01818';g.fillRect(x-10,FL+GR-h-4,20,3);}}
-else if(f.ty==='boom'){const r=f.t*1.6;g.strokeStyle=f.t<8?'#f8d060':'#f06020';g.lineWidth=3;g.beginPath();g.arc(x,f.y,r,0,7);g.stroke();}
-else if(f.ty==='nova'){g.strokeStyle='#c8ecff';g.lineWidth=2;g.beginPath();g.arc(x,f.y,f.t*3.4,0,7);g.stroke();}
-else if(f.ty==='drain'){g.strokeStyle='#7a3aa8';g.lineWidth=2;g.beginPath();g.arc(x,FL-40+Math.sin(f.t*.15)*6,20+f.t*.2,0,7);g.stroke();}
-else if(f.ty==='slash'){g.strokeStyle='#fff';g.lineWidth=2;g.beginPath();g.moveTo(x-10,f.y-14);g.lineTo(x+10,f.y+10);g.stroke();}
-else if(f.ty==='ring'){g.strokeStyle=f.col;g.lineWidth=2;g.beginPath();g.arc(x,f.y,f.t*3.2,0,7);g.stroke();}// 08.09: ударное кольцо
+else if(f.ty==='rock'){const h=Math.min(30,f.t*4);g.fillStyle='#5a4a38';for(let i=0;i<4;i++){const bx=x-11+((i*7+f.t)%23),by=FL+GR-h+((i*5+f.t*2)%Math.max(1,h));g.fillRect(bx,by,3,3);}g.fillStyle='#6a5a44';g.fillRect(x-10,FL+GR-h,20,h);g.fillStyle='#8a7a5c';g.fillRect(x-6,FL+GR-h,5,h);g.fillStyle='#3a3028';g.fillRect(x+2,FL+GR-h+2,5,h-2);if(f.t<8){g.fillStyle='#b01818';g.fillRect(x-10,FL+GR-h-4,20,3);}if(f.t===2||f.t===6){g.save();g.globalCompositeOperation='lighter';g.fillStyle='#d8c8a0';g.fillRect(x-7,FL+GR-h-1,14,1);g.restore();}}
+else if(f.ty==='boom'){const p=Math.min(1,f.t/22),a=1-p,r=7+p*18;g.save();g.globalCompositeOperation='lighter';const gr=g.createRadialGradient(x,f.y,1,x,f.y,r*1.7);gr.addColorStop(0,'rgba(255,250,210,.9)');gr.addColorStop(.25,'#f8d060');gr.addColorStop(.55,'#f06020');gr.addColorStop(1,'rgba(0,0,0,0)');g.globalAlpha=a*.9;g.fillStyle=gr;g.beginPath();g.arc(x,f.y,r*1.7,0,7);g.fill();g.globalAlpha=a;g.strokeStyle=p<.4?'#f8d060':'#f06020';g.lineWidth=2.5;g.beginPath();g.arc(x,f.y,r,0,7);g.stroke();g.globalAlpha=a*.5;g.strokeStyle='#fff';g.lineWidth=1;g.beginPath();g.arc(x,f.y,r*.55,0,7);g.stroke();g.restore();}
+else if(f.ty==='impact'){const p=Math.min(1,f.t/(f.life||14)),a=1-p,r=(f.r||16)*(.28+p*.9);g.save();g.globalCompositeOperation='lighter';g.globalAlpha=a;const gr=g.createRadialGradient(x,f.y,0,x,f.y,r*.7);gr.addColorStop(0,'rgba(255,255,255,.95)');gr.addColorStop(.35,f.col);gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.beginPath();g.arc(x,f.y,r*.7,0,7);g.fill();g.strokeStyle=f.col;g.lineWidth=2;g.beginPath();g.arc(x,f.y,r,0,7);g.stroke();g.globalAlpha=a*.65;g.lineWidth=1;for(let i=0;i<8;i++){const an=i*Math.PI/4+p*.2;g.beginPath();g.moveTo(x+Math.cos(an)*r*.7,f.y+Math.sin(an)*r*.7);g.lineTo(x+Math.cos(an)*r*1.5,f.y+Math.sin(an)*r*1.5);g.stroke();}g.restore();}
+else if(f.ty==='castburst'){const p=Math.min(1,f.t/(f.life||12)),a=1-p,r=(f.scale||1)*(3+p*16);g.save();g.globalCompositeOperation='lighter';g.globalAlpha=a*.9;const gr=g.createRadialGradient(x,f.y,0,x,f.y,r*.5);gr.addColorStop(0,'rgba(255,255,255,.95)');gr.addColorStop(.45,f.col);gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.beginPath();g.arc(x,f.y,r*.5,0,7);g.fill();g.strokeStyle=f.col;g.lineWidth=1.6;g.beginPath();g.arc(x,f.y,r,0,7);g.stroke();g.globalAlpha=a*.8;g.lineWidth=1;for(let i=0;i<10;i++){const an=i*Math.PI/5;g.beginPath();g.moveTo(x+Math.cos(an)*r*.5,f.y+Math.sin(an)*r*.5);g.lineTo(x+Math.cos(an)*r*1.7,f.y+Math.sin(an)*r*1.7);g.stroke();}g.restore();}
+else if(f.ty==='nova'){const p=Math.min(1,f.t/26),a=1-p,r=4+p*36;g.save();g.globalCompositeOperation='lighter';g.globalAlpha=a*.85;const gr=g.createRadialGradient(x,f.y,0,x,f.y,r);gr.addColorStop(0,'rgba(235,250,255,.7)');gr.addColorStop(.4,'#88c8f0');gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.beginPath();g.arc(x,f.y,r,0,7);g.fill();g.strokeStyle='#c8ecff';g.lineWidth=2;g.beginPath();g.arc(x,f.y,r*.75,0,7);g.stroke();g.globalAlpha=a*.7;g.lineWidth=1;for(let i=0;i<10;i++){const an=i*Math.PI/5+p*.3;g.beginPath();g.moveTo(x+Math.cos(an)*r*.6,f.y+Math.sin(an)*r*.6);g.lineTo(x+Math.cos(an)*r*1.2,f.y+Math.sin(an)*r*1.2);g.stroke();}g.restore();}
+else if(f.ty==='drain'){const p=Math.min(1,f.t/60),a=1-p;g.save();g.globalCompositeOperation='lighter';g.strokeStyle='#7a3aa8';g.lineWidth=2;g.globalAlpha=a*.8;for(let i=0;i<3;i++){g.beginPath();g.ellipse(x,FL-40+Math.sin(f.t*.12+i*2)*5,20+f.t*.2+i*5,7+i*2,f.t*.03+i,0,7);g.stroke();}for(let i=0;i<5;i++){const an=f.t*.08+i*1.3,rr=16+f.t*.2;g.fillStyle=i%2?'#b89aff':'#7a3aa8';g.fillRect(x+Math.cos(an)*rr-1,FL-40+Math.sin(an)*rr*.45-1,2,2);}g.restore();}
+else if(f.ty==='slash'){g.save();g.globalCompositeOperation='lighter';g.strokeStyle='#fff';g.lineWidth=2;g.beginPath();g.moveTo(x-10,f.y-14);g.lineTo(x+10,f.y+10);g.stroke();g.globalAlpha=.7;g.strokeStyle=f.col||'#9adcee';g.lineWidth=1;g.beginPath();g.moveTo(x-6,f.y-16);g.lineTo(x+14,f.y+8);g.stroke();g.restore();}
+else if(f.ty==='slashimpact'){const p=Math.min(1,f.t/(f.life||10)),a=1-p;g.save();g.translate(x,f.y);g.scale(f.face||1,1);g.globalCompositeOperation='lighter';g.globalAlpha=a;g.strokeStyle=f.col||'#fff';g.lineWidth=2.2;g.beginPath();g.arc(0,0,12+p*10,-2.3,-.2);g.stroke();g.beginPath();g.arc(0,0,9+p*8,.7,2.8);g.stroke();g.globalAlpha=a*.85;g.strokeStyle='#fff';g.lineWidth=.8;g.beginPath();g.arc(0,0,11+p*9,-2.15,-.35);g.stroke();g.restore();}
+else if(f.ty==='ring'){const p=Math.min(1,f.t/14),a=1-p,r=f.t*3.2;g.save();g.globalCompositeOperation='lighter';g.globalAlpha=a;g.strokeStyle=f.col;g.lineWidth=2;g.beginPath();g.arc(x,f.y,r,0,7);g.stroke();g.globalAlpha=a*.5;g.strokeStyle='#fff';g.lineWidth=1;g.beginPath();g.arc(x,f.y,r*.7,0,7);g.stroke();g.restore();}// 08.09: ударное кольцо
 else if(f.ty==='name'){const pr=f.t/(f.life||60),a=1-pr;g.save();g.globalAlpha=a;g.font='9px "Russo One"';g.textAlign='center';g.fillStyle=f.col;g.fillText(f.txt,x,f.y-pr*14);g.restore();}// 25.10: название броска над бойцом
-else if(f.ty==='boltfx')drawBolt(x,FL,x,FL-90);
-if(f.ty==='castbolt'){const by2=f.y-(f.h||60);drawBolt(x,by2-6,x+Math.sin(f.t)*3,by2-72);g.fillStyle='rgba(248,248,96,.5)';g.fillRect(x-2,by2-8,4,4);}// 30.09: канал молнии из руки Вольта
+else if(f.ty==='boltfx'){drawBolt(x,FL,x,FL-90,{amp:5,segs:7});g.save();g.globalCompositeOperation='lighter';g.fillStyle='rgba(248,248,96,.5)';g.fillRect(x-3,FL-2,6,3);g.restore();}
+if(f.ty==='castbolt'){const by2=f.y;drawBolt(x,by2-4,x+Math.sin(f.t)*3,by2-76,{amp:5,segs:6});g.save();g.globalCompositeOperation='lighter';g.fillStyle='rgba(248,248,96,.75)';g.fillRect(x-2,by2-6,4,6);g.restore();}// 30.09: канал молнии из руки Вольта
 }}
 /* БОЙЦЫ */
 function seg(x,y,a1,a2,l1,l2){const mx=x+Math.sin(a1)*l1,my=y+Math.cos(a1)*l1;const ex=mx+Math.sin(a1+a2)*l2,ey=my+Math.cos(a1+a2)*l2;g.beginPath();g.moveTo(x,y);g.lineTo(mx,my);g.lineTo(ex,ey);g.stroke();return[ex,ey];}
@@ -107,6 +102,7 @@ g.save();g.lineCap='round';g.translate(Math.round(f.x-cam),Math.round(f.y));
 const shadowY=FL+GR-f.y;const shg=g.createRadialGradient(0,shadowY,1,0,shadowY,15*sc);shg.addColorStop(0,'rgba(0,0,0,.45)');shg.addColorStop(1,'rgba(0,0,0,0)');
 g.fillStyle=shg;g.beginPath();g.ellipse(0,shadowY,15*sc,4.2,0,0,7);g.fill();
 if(d.boss){g.save();g.globalCompositeOperation='lighter';const ay=-d.h*.55,ar=d.h*.9,ag=g.createRadialGradient(0,ay,2,0,ay,ar);ag.addColorStop(0,'rgba(240,200,80,.24)');ag.addColorStop(.55,'rgba(180,60,20,.1)');ag.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=ag;g.beginPath();g.arc(0,ay,ar,0,7);g.fill();g.restore();}// 25.10: аура финального босса
+abilityFx.drawCastAura(f);// 25.10: элементарная аура каста/супера вокруг тела и по земле
 if(f.invis>0)g.globalAlpha=.25;
 g.scale(f.face*sc,sc*f.squash);g.rotate(f.tilt*f.face);
 if(f.state==='super'||f.frozen>0)g.translate(rnd(-1,1),rnd(-1,1));// 08.09: +дрожь замороженного
@@ -169,6 +165,7 @@ else{g.fillStyle='#141414';g.fillRect(hx+2,hy-5,1,2);g.fillRect(hx+4,hy-5,1,2);}
 g.fillStyle=shade(skin,.72);g.fillRect(hx+2,expr===2||d.female?hy-7:hy-6,d.female?3:4,1);// бровь
 if(d.female){g.fillStyle=shade(skin,.6);g.fillRect(hx-1,hy-5,1,2);g.fillStyle='#a85060';g.fillRect(hx,hy-1,2,1);}// 24.10: нос и губы
 drawGear(f,hx,hy);
+if(f.state==='cast'||f.state==='super')abilityFx.drawCastCharge(f,fa);// 25.10: заряд в ладони — снаряд вылетает ровно из руки
 if(f.flash>0){g.globalAlpha=.12;g.fillStyle='#fff';g.beginPath();g.ellipse(0,-d.h*.5,12,d.h*.42,0,0,7);g.fill();g.globalAlpha=1;}
 g.restore();
 if(f.frozen>0){const b=f.box;g.fillStyle='rgba(120,190,240,.45)';g.fillRect(b.x-cam,b.y-2,b.w,b.h+4);g.fillStyle='rgba(225,245,255,.85)';for(let i=0;i<3;i++){const sx=b.x-cam+3+i*(b.w-6)/2;g.beginPath();g.moveTo(sx-3,b.y-2);g.lineTo(sx,b.y-8-(i*7%5));g.lineTo(sx+3,b.y-2);g.fill();}}

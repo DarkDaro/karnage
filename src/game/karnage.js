@@ -118,8 +118,27 @@ if(A.sand&&S.FRAME%8===0)S.parts.push({x:S.cam+RW+10,y:rnd(60,FL),vx:rnd(-2.6,-1
 if(A.ember&&S.FRAME%3===0)S.parts.push({x:S.cam+rnd(0,RW),y:FL+rnd(-4,10),vx:rnd(-.3,.3),vy:-rnd(.4,1),c:pick(['#f06020','#c84018','#f0a030']),l:rnd(60,120),s:rnd(1,2),gv:-.01});
 if(A.rain&&Math.random()<.004){S.flashS=Math.max(S.flashS,3);SFX.thunder();}}// 08.09: молния и гром на грозовой арене
 /* ЧАСТИЦЫ */
-function spriteFx(name,x,y,opts){const a=FX[name];if(!a||!a.ready)return false;opts=opts||{};const frames=a.frames||1;const fps=a.fps||30;if(S.fx.length>40)S.fx.splice(0,S.fx.length-40);S.fx.push({ty:'sprite',img:a.image,x,y,t:0,dur:Math.max(1,Math.round(frames*60/fps)),frames,frameW:a.frameWidth,frameH:a.frameHeight,anchor:a.anchor||[a.frameWidth/2,a.frameHeight/2],blend:a.blend||'source-over',scale:opts.scale??a.scale??1,alpha:opts.alpha??a.alpha??1});return true;}
-function impactFx(ty,x,y,color){if(ty==='ice'||(ty==='shard'&&(color==='#c8ecff'||color==='#9adcee')))return spriteFx('iceImpact',x,y,{scale:.8,alpha:.9});if(ty==='shadow'||(ty==='shard'&&(color==='#7a3aa8'||color==='#b89aff')))return spriteFx('shadowImpact',x,y,{scale:.8,alpha:.8});if(ty==='fire'||(ty==='shard'&&(color==='#f06020'||color==='#f8d060')))return spriteFx('fireImpact',x,y,{scale:.8,alpha:.85});return false;}
+function spriteFx(name,x,y,opts){const a=FX[name];if(!a||!a.ready)return false;opts=opts||{};const frames=a.frames||1;const fps=a.fps||30;if(S.fx.length>40)S.fx.splice(0,S.fx.length-40);S.fx.push({ty:'sprite',img:a.image,x,y,t:0,dur:opts.duration??Math.max(1,Math.round(frames*60/fps)),frames,frameW:a.frameWidth,frameH:a.frameHeight,anchor:a.anchor||[a.frameWidth/2,a.frameHeight/2],blend:a.blend||'source-over',scale:opts.scale??a.scale??1,alpha:opts.alpha??a.alpha??1});return true;}
+function impactBurst(x,y,col,size){S.fx.push({ty:'impact',x,y,t:0,life:12,col:col||'#f8d060',r:size||18});}// 25.10: цветное кольцо поверх спрайтового импакта — попадание читается у любой стихии
+function slashImpact(x,y,col,face){S.fx.push({ty:'slashimpact',x,y,t:0,life:10,col:col||'#ffffff',face:face<0?-1:1});}// 25.10: след клинка для осколков Кармин и Аямэ
+function impactFx(ty,x,y,color,p){const shard=ty==='shard',c=color||'#f8d060';
+  if(ty==='ice'||(shard&&color==='#c8ecff')){const ok=spriteFx('iceImpact',x,y,{scale:shard?.52:.60,alpha:shard?.74:.76,duration:shard?9:13});impactBurst(x,y,'#9adcee',shard?15:20);return ok;}
+  if(ty==='shadow'||(shard&&color==='#7a3aa8')){const ok=spriteFx('shadowImpact',x,y,{scale:shard?.5:.62,alpha:shard?.7:.74,duration:shard?9:14});impactBurst(x,y,'#a050d0',shard?15:20);return ok;}
+  if(ty==='fire'||(shard&&(color==='#f06020'||color==='#f8d060'))){const ok=spriteFx('fireImpact',x,y,{scale:shard?.5:.68,alpha:shard?.76:.78,duration:shard?9:14});impactBurst(x,y,c,shard?15:20);return ok;}
+  if(ty==='bolt'){const ok=spriteFx('hitHeavy',x,y,{scale:.5,alpha:.62,duration:8});S.fx.push({ty:'boltfx',x,y:FL+GR,t:0});impactBurst(x,y,'#f8f860',22);for(let i=0;i<6;i++)P(x+rnd(-8,8),y-rnd(0,22),rnd(-2,2),rnd(-2,1),'#f8f860',18,2,0);return ok;}
+  if(ty==='net'){const ok=spriteFx('block',x,y,{scale:.5,alpha:.55,duration:10});impactBurst(x,y,'#c8c8a0',18);return ok;}
+  if(ty==='wave'){const ok=spriteFx('dust',x,y,{scale:1.05,alpha:.55,duration:14});impactBurst(x,y,c,24);for(let i=0;i<8;i++)P(x+rnd(-10,10),y-2,rnd(-1.6,1.6),rnd(-2.6,-.5),c,18,2,.08);return ok;}
+  if(ty==='meteor'||ty==='rocket'||ty==='bomb'){const ok=spriteFx('explosion',x,y,{scale:1,alpha:.9,duration:24});impactBurst(x,y,'#f8d060',28);return ok;}
+  if(shard){
+    if(color==='#d82040'){spriteFx('hitLight',x,y,{scale:.34,alpha:.62,duration:7});impactBurst(x,y,c,16);slashImpact(x,y,c,p&&p.vx);return true;}
+    if(color==='#9adcee'){spriteFx('iceImpact',x,y,{scale:.42,alpha:.68,duration:9});impactBurst(x,y,c,16);slashImpact(x,y,c,p&&p.vx);return true;}
+    if(color==='#7ac83a'){spriteFx('hitLight',x,y,{scale:.32,alpha:.6,duration:7});impactBurst(x,y,c,15);return true;}
+    if(color==='#c8a060'){spriteFx('dust',x,y,{scale:.55,alpha:.55,duration:10});impactBurst(x,y,c,16);return true;}
+    if(color==='#b89aff'){spriteFx('shadowImpact',x,y,{scale:.5,alpha:.7,duration:10});impactBurst(x,y,c,16);return true;}
+    if(color==='#f0c850'){spriteFx('fireImpact',x,y,{scale:.52,alpha:.76,duration:10});impactBurst(x,y,c,16);return true;}
+    const ok=spriteFx('hitLight',x,y,{scale:.34,alpha:.62,duration:7});impactBurst(x,y,c,14);return ok;
+  }
+  return false;}
 const {P,blood,updParts,drawParts,drawDecals}=createParticles({g,state:S,options:OPT,FL,GR,rnd});
 /* БОЕЦ */
 const {autoHit,resolveHit}=createCombat({S,SFX,P,blood,spriteFx,rnd,pick});
@@ -130,14 +149,23 @@ function smoke(x,y){spriteFx('smoke',x,y,{scale:.85,alpha:.4});for(let i=0;i<10;
 /* СНАРЯДЫ */
 function updProjs(){if(S.battle&&['finish','fatal','over','ko'].includes(S.battle.phase)){S.projs.length=0;return;}if(S.projs.length>60)S.projs.splice(0,S.projs.length-60);// 08.09: страховочный лимит
 for(let i=S.projs.length;i--;){const p=S.projs[i];p.l--;p.x+=p.vx;p.y+=p.vy;
-if(S.FRAME%2===0){if(p.ty==='fire')P(p.x,p.y,rnd(-.4,.4),rnd(-.8,-.2),pick(['#f06020','#f8d060']),16,2,-.01);else if(p.ty==='ice')P(p.x,p.y,rnd(-.3,.3),rnd(-.5,.2),'#c8ecff',16,1,-.005);else if(p.ty==='shadow')P(p.x,p.y,rnd(-.3,.3),rnd(-.6,-.1),'#7a3aa8',18,2,-.01);else if(p.ty==='wave')P(p.x,FL+GR-2,rnd(-.5,.5),rnd(-1.6,-.5),'#9a9080',14,2,.06);}// 08.09: шлейфы снарядов
+if(S.FRAME%2===0){
+  if(p.ty==='fire')P(p.x,p.y,rnd(-.4,.4),rnd(-.8,-.2),pick(['#f06020','#f8d060']),16,2,-.01);
+  else if(p.ty==='ice')P(p.x,p.y,rnd(-.3,.3),rnd(-.5,.2),'#c8ecff',16,1,-.005);
+  else if(p.ty==='shadow')P(p.x,p.y,rnd(-.3,.3),rnd(-.6,-.1),'#7a3aa8',18,2,-.01);
+  else if(p.ty==='wave')P(p.x,FL+GR-2,rnd(-.5,.5),rnd(-1.6,-.5),p.c||'#9a9080',14,2,.06);
+  else if(p.ty==='meteor'||p.ty==='rocket'){P(p.x+rnd(-3,3),p.y-5,rnd(-.5,.5),rnd(-2,-.6),pick(['#f06020','#f8d060']),16,2,-.01);if(S.FRAME%6===0)P(p.x+rnd(-4,4),p.y-10,rnd(-.4,.4),rnd(-1.2,-.2),'#6a5a44',24,3,-.02);}
+  else if(p.ty==='bomb'){P(p.x+rnd(-2,2),p.y+2,rnd(-.4,.4),rnd(-1.2,-.1),pick(['#6a5a44','#f0a030']),20,2,-.01);}
+  else if(p.ty==='net'&&S.FRAME%4===0)P(p.x,p.y,rnd(-.6,.6),rnd(-.6,.2),'#c8c8a0',14,1,0);
+  else if(p.ty==='bolt'&&S.FRAME%2===0)P(p.x+rnd(-9,9),FL+GR-2,rnd(-1,1),rnd(-1.8,-.3),'#f8f860',12,1,.08);
+}// 08.09: шлейфы снарядов
 if(p.ty==='bomb'||p.ty==='meteor'||p.ty==='rocket')p.vy+=.12;
 if(p.ty==='shard'&&S.FRAME%3===0)P(p.x,p.y,rnd(-.3,.3),rnd(-.4,.2),p.c,14,2,-.005);// 08.09: шлейф осколка
 if(p.hom&&p.o&&p.o.foe&&p.l%2===0){const f2=p.o.foe;if(f2.state!=='down'){const dx2=f2.x-p.x,dy2=f2.y-f2.def.h*.5-p.y,dd2=Math.sqrt(dx2*dx2+dy2*dy2)||1;p.vx+=dx2/dd2*.45;p.vy+=dy2/dd2*.45;const sp2=Math.sqrt(p.vx*p.vx+p.vy*p.vy);if(sp2>4.6){p.vx*=4.6/sp2;p.vy*=4.6/sp2;}}}// 30.09: наведение с капом скорости — звёзды не пролетают мимо// 30.09: самонаведение звёзд Веги
 const f=p.o.foe;
 if(f&&!f.hidden&&!f.dodging&&f.state!=='down'&&f.state!=='victim'){const b=f.box;
 if(p.ty!=='meteor'&&p.ty!=='rocket'&&p.ty!=='bomb'&&p.x>b.x-4&&p.x<b.x+b.w+4&&p.y>b.y-6&&p.y<b.y+b.h+4){
-const wf=f.frozen>0;impactFx(p.ty,p.x,p.y,p.c);resolveHit(p.o,f,p.d,p.k?{knock:1}:{});// 08.09: shard с k:1 валит с ног; 24.10: спрайтовый импакт
+const wf=f.frozen>0;impactFx(p.ty,p.x,p.y,p.c,p);resolveHit(p.o,f,p.d,p.k?{knock:1}:{});// 08.09: shard с k:1 валит с ног; 24.10: спрайтовый импакт
 const blk=f.state==='block';// 08.09: блок гасит контроль-эффекты снарядов
 if(p.ty==='ice'&&!wf&&!blk&&f.hp>0){f.frozen=85;f.state='frozen';f.atk=null;SFX.freeze();}
 // 08.09: баланс Крио — заморозка 100→85 кадров; звон льда; блок больше не замораживает
@@ -146,7 +174,7 @@ if(p.bl&&!blk&&f.hp>0){f.poison=150;f.poisonC='#d82040';}// 30.09: кровот�
 if(p.ty==='net'&&!blk&&f.hp>0){f.netT=95;f.state='net';f.atk=null;}// 08.09: блок больше не опутывает
 if(p.ty==='shadow'&&!blk){p.o.hp=Math.min(100,p.o.hp+p.d*.7);for(let j=0;j<6;j++)P(p.x,p.y,(p.o.x-p.x)*.04,rnd(-1,-.3),'#7a3aa8',26,2,0);}// 08.09: блок гасит вытягивание
 S.projs.splice(i,1);continue;}}
-if((p.ty==='meteor'||p.ty==='rocket'||p.ty==='bomb')&&p.y>=FL+GR-2){spriteFx('explosion',p.x,FL+GR-2,{scale:1.05,alpha:.9});S.fx.push({ty:'boom',x:p.x,y:FL+GR-4,t:0});SFX.boom();S.shake=6;const f=p.o.foe;if(f&&!f.dodging&&Math.abs(f.x-p.x)<30&&f.state!=='down'&&f.state!=='victim')resolveHit(p.o,f,p.d,{still:1});S.projs.splice(i,1);continue;}// 01.10: AoE 26→30, без отброса и без требования onGround (жертва подпрыгивает от попаданий)// 08.09: AoE бомб не должен трогать жертву фаталити
+if((p.ty==='meteor'||p.ty==='rocket'||p.ty==='bomb')&&p.y>=FL+GR-2){const col=p.ty==='rocket'?'#f0a030':p.ty==='meteor'?'#f06020':'#f8d060';spriteFx('explosion',p.x,FL+GR-2,{scale:1.05,alpha:.9});spriteFx('dust',p.x,FL+GR,{scale:1.25,alpha:.5});S.fx.push({ty:'boom',x:p.x,y:FL+GR-4,t:0});S.fx.push({ty:'impact',x:p.x,y:FL+GR-4,t:0,life:16,col,r:30});SFX.boom();S.shake=6;for(let j=0;j<10;j++)P(p.x+rnd(-14,14),FL+GR-2,rnd(-2.4,2.4),rnd(-3.4,-.6),pick(['#6a5a44','#3a3028','#8a7a5c']),24,2,.12);for(let j=0;j<8;j++)P(p.x+rnd(-10,10),FL+GR-4,rnd(-1.5,1.5),rnd(-2.5,-.4),pick(['#f06020','#f8d060','#f0a030']),18,2,-.01);const f=p.o.foe;if(f&&!f.dodging&&Math.abs(f.x-p.x)<30&&f.state!=='down'&&f.state!=='victim')resolveHit(p.o,f,p.d,{still:1});S.projs.splice(i,1);continue;}// 01.10: AoE 26→30, без отброса и без требования onGround (жертва подпрыгивает от попаданий)// 08.09: AoE бомб не должен трогать жертву фаталити
 if(p.l<=0||p.x<-30||p.x>AW+30)S.projs.splice(i,1);}}
 function updFx(){for(let i=S.fx.length;i--;){const f=S.fx[i];f.t++;if(f.ty==='boom'&&f.t%3===0){const r=f.t*1.6;P(f.x+rnd(-r,r),f.y+rnd(-r,r)*.4,rnd(-1,1),rnd(-2,0),'#f06020',16,2);}if(f.t>80||(f.life&&f.t>f.life)||(f.ty==='rock'&&f.t>26)||(f.ty==='boom'&&f.t>22)||(f.ty==='nova'&&f.t>26)||(f.ty==='slash'&&f.t>10)||(f.ty==='boltfx'&&f.t>8)||(f.ty==='ring'&&f.t>14)||(f.ty==='castbolt'&&f.t>9)||(f.ty==='sprite'&&f.t>f.dur))S.fx.splice(i,1);
 if(S.fx.length>200)S.fx.splice(0,S.fx.length-200);}}// 30.09: страховочный лимит эффектов; 08.09: +ring

@@ -143,6 +143,72 @@ test('block, smoke and run dust use their own atlases', async () => {
   assert.deepEqual(result.impacts, [384, 384, 384, 576]);
 });
 
+test('every projectile type leaves a readable impact', async () => {
+  const result = await page.evaluate(() => {
+    const K = window.KARNAGE;
+    const calls = [
+      { ty: 'fire' }, { ty: 'ice' }, { ty: 'shadow' }, { ty: 'bolt' }, { ty: 'wave' }, { ty: 'net' },
+      { ty: 'shard', color: '#c8ecff' }, { ty: 'shard', color: '#9adcee' },
+      { ty: 'shard', color: '#d82040' }, { ty: 'shard', color: '#7ac83a' },
+      { ty: 'shard', color: '#c8a060' }, { ty: 'shard', color: '#b89aff' },
+      { ty: 'shard', color: '#f0c850' }, { ty: 'shard', color: '#7a3aa8' },
+      { ty: 'shard', color: '#f06020' }, { ty: 'shard', color: '#f8d060' }
+    ];
+    return calls.map(({ ty, color }) => {
+      K.fx.length = 0;
+      const ok = K.impactFx(ty, 300, 160, color);
+      const sprites = K.fx.filter((effect) => effect.ty === 'sprite');
+      return {
+        ty,
+        color,
+        ok,
+        sprites: sprites.map((effect) => effect.img.width),
+        burst: K.fx.some((effect) => effect.ty === 'impact' || effect.ty === 'slashimpact' || effect.ty === 'boltfx')
+      };
+    });
+  });
+  for (const item of result) {
+    assert.equal(item.ok, true, JSON.stringify(item));
+    assert.ok(item.sprites.length > 0, JSON.stringify(item));
+    assert.equal(item.burst, true, JSON.stringify(item));
+  }
+});
+
+test('cast projectile starts at the casting hand and burst marks the same point', async () => {
+  const result = await page.evaluate(() => {
+    const K = window.KARNAGE;
+    K.setDebug({ GAME: 'fight', paused: false });
+    K.newBattle(6, new K.Ctrl(K.KM1), 0, new K.Ctrl(K.KM2), 7);
+    const battle = K.battle;
+    battle.mode = '2p';
+    battle.phase = 'fight';
+    battle.phaseT = 200;
+    battle.p1.x = 180;
+    battle.p2.x = 330;
+    battle.p1.face = 1;
+    battle.p2.face = -1;
+    battle.p1.ctrl.ai = false;
+    battle.p2.ctrl.ai = false;
+    K.fx.length = 0;
+    K.projs.length = 0;
+    battle.p1.startSpec(battle.p2);
+    for (let i = 0; i < 14; i += 1) K.step();
+    const projectile = K.projs.find((item) => item.ty === 'ice');
+    const burst = K.fx.find((effect) => effect.ty === 'castburst');
+    return {
+      projectile: projectile && { x: projectile.x, y: projectile.y, ty: projectile.ty },
+      burst: burst && { x: burst.x, y: burst.y },
+      dy: projectile ? battle.p1.y - projectile.y : 0,
+      dx: projectile ? projectile.x - burst.x : 0
+    };
+  });
+  assert.equal(result.projectile?.ty, 'ice');
+  assert.ok(result.dy > 50, JSON.stringify(result));
+  assert.ok(result.burst, JSON.stringify(result));
+  assert.ok(Math.abs(result.projectile.y - result.burst.y) < 1.5, JSON.stringify(result));
+  assert.ok(Math.abs(result.dx) < 8, JSON.stringify(result));
+});
+
 test('whiff and super spawn their own effects', async () => {
   const result = await page.evaluate(() => {
     const K = window.KARNAGE;

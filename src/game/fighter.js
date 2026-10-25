@@ -7,6 +7,20 @@ function hitR(a,b){return a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;}
 export function createFighter({
   S, FL, GR, AW, clamp, lerp, rnd, pick, P, blood, spriteFx, SFX, smoke, resolveHit, autoHit,
 }) {
+  // 25.10: каст-позы из render.js. Снаряд должен вылетать из кисти, а не из груди.
+  const CAST_ARMS={1:[[.2,1.2],[.1,1.1]],2:[[2.6,0],[-2.6,.1]],3:[[1.8,.6],[-.5,1.8]],4:[[1.2,.5],[-.6,1.8]],5:[[.6,1.2],[-.6,1.3]],6:[[2.4,.3],[-.4,1.8]],7:[[1.5,.05],[1.2,.2]],8:[[1.6,.2],[-.9,1.6]],9:[[1.5,.1],[1.3,.2]],10:[[1.7,.35],[1.35,.45]],11:[[1.9,-.1],[-.4,2.1]],12:[[1.55,-.05],[-.5,1.7]]};
+  function castHand(f){const d=f.def,ph=Math.min(1,f.st/12),ci=CAST_ARMS[d.id];
+    const a1=ci?lerp(-.5,ci[0][0],ph):lerp(-.5,1.5,ph),a2=ci?lerp(2,ci[0][1],ph):lerp(2,.1,ph);
+    const hip=-d.h*.47,shY=hip-d.h*.3,shX=ph*.2*10,l1=d.h*.2,l2=d.h*.18;
+    const lx=2+shX+Math.sin(a1)*l1+Math.sin(a1+a2)*l2,ly=shY+2+Math.cos(a1)*l1+Math.cos(a1+a2)*l2;
+    const sc=d.bulk*(f.scale||1),sq=f.squash||1;
+    return{x:f.x+f.face*sc*lx,y:f.y+sc*sq*ly};}
+  function castOrigin(f){const h=castHand(f),d=f.def;let dx=0;
+    if(d.bow)dx=16;else if(d.blade)dx=13;else if(d.fan)dx=8;else if(d.claws)dx=4;
+    return{x:h.x+f.face*dx,y:h.y};}
+  function castBurst(x,y,col,scale){const c=col||'#f8d060',k=scale||1;
+    S.fx.push({ty:'castburst',x,y,t:0,life:10,col:c,scale:k});
+    for(let i=0;i<8;i++){const a=i/8*Math.PI*2;P(x+Math.cos(a)*3,y+Math.sin(a)*3,Math.cos(a)*rnd(.8,2.2),Math.sin(a)*rnd(.8,2.2),c,16,2,0);}}
   class F{
   constructor(def,ctrl){this.def=def;this.ctrl=ctrl;this.wins=0;this.rage=0;this.aiDir=null;this.reset(200,1);}
   reset(x,face){this.x=x;this.y=FL+GR;this.vx=0;this.vy=0;this.face=face;this.state='idle';this.st=0;this.hp=100;this.atk=null;this.frozen=0;this.netT=0;this.invis=0;this.invuln=0;this.poison=0;this.charred=0;this.hidden=0;this.tilt=0;this.run=100;this.running=0;this.hpLag=100;this.lastTap=-99;this.tapDir=0;this.animT=0;this.squash=1;this.scale=1;this.flash=0;this.jbuf=0;this.abuf=0;this.abufB='punch';this.dodging=0;this.dvx=0;this.marks=[];this.poisonC=null;this.spec2go=0;this.combo=0;this.comboT=99;this.pale=0;this.defeated=0;this.damageTaken=0;this.armor=0;this.blockStun=0;this.blockLow=0;this.grabbedBy=0;this.throwTarget=0;this.ctrl.clear();}
@@ -107,23 +121,23 @@ export function createFighter({
   // 08.09: баланс Фэнга — самый жирный супер 39→~35
   else if(id===5){SFX.tele();SFX.mirror();E(10,()=>{me.x=clamp(me.foe.x-me.foe.face*30,20,AW-20);smoke(me.x,me.y-30);SFX.tele();});// 30.09: Сахра переносится к врагу — зеркала окружают жертву
   for(let i=0;i<9;i++)E(16+i*7,()=>{autoHit(me,2.6);SFX.hit();});E(85,()=>resolveHit(me,me.foe,8,{launch:1}));}
-  else if(id===6){E(14,()=>{SFX.ice();S.fx.push({ty:'nova',x:me.x,y:me.y-30,t:0});if(Math.abs(me.foe.x-me.x)<95){resolveHit(me,me.foe,6,{});me.foe.frozen=90;me.foe.state='frozen';me.foe.atk=null;SFX.freeze();}else{S.projs.push({ty:'ice',x:me.x+me.face*16,y:me.y-me.def.h*.62,vx:me.face*6.5,vy:0,o:me,d:6,l:120,frz:1});SFX.ice();}// 30.09: издали — ледяная стрела догоняет и замораживает
+  else if(id===6){E(14,()=>{SFX.ice();S.fx.push({ty:'nova',x:me.x,y:me.y-30,t:0});if(Math.abs(me.foe.x-me.x)<95){resolveHit(me,me.foe,6,{});me.foe.frozen=90;me.foe.state='frozen';me.foe.atk=null;SFX.freeze();}else{const oh=castOrigin(me);S.projs.push({ty:'ice',x:oh.x,y:oh.y,vx:me.face*6.5,vy:0,o:me,d:6,l:120,frz:1});SFX.ice();}// 30.09: издали — ледяная стрела догоняет и замораживает
   for(let i=0;i<14;i++)P(me.x,me.y-30,Math.cos(i/14*6.28)*3.4,Math.sin(i/14*6.28)*3.4,'#c8ecff',30,2,0);});}
-  else if(id===7){for(let i=0;i<8;i++)E(14+i*8,()=>{SFX.shoot();S.projs.push({ty:'bomb',x:me.x+me.face*14,y:me.y-56,vx:me.face*rnd(2,4.4),vy:-4.5,o:me,d:3,l:130});});}
+  else if(id===7){for(let i=0;i<8;i++)E(14+i*8,()=>{SFX.shoot();const oh=castOrigin(me);S.projs.push({ty:'bomb',x:oh.x,y:oh.y-4,vx:me.face*rnd(2,4.4),vy:-4.5,o:me,d:3,l:130});});}
   else if(id===8){SFX.sting();S.fx.push({ty:'drain',x:me.foe.x,t:0});for(let i=0;i<8;i++)E(16+i*8,()=>{const f=me.foe;if(S.battle.phase==='fight'&&!f.defeated&&f.hp>0&&f.armor<=0){f.hp=Math.max(0,f.hp-3);f.damageTaken=(f.damageTaken||0)+3;f.flash=4;f.state='hit';f.st=0;f.atk=null;f.spec2go=0;f.netT=0;me.hp=Math.min(100,me.hp+1.6);f.rage=Math.min(100,f.rage+2.7);for(let j=0;j<3;j++)P(f.x+rnd(-8,8),f.y-rnd(10,50),(me.x-f.x)*.05,rnd(-1,-.2),'#7a3aa8',34,2,0);SFX.hit();}});}
-  else if(id===10){SFX.sting();for(let i=0;i<7;i++)E(14+i*6,()=>{const fy=me.foe.y-me.foe.def.h*rnd(.2,.7);S.projs.push({ty:'shard',c:'#d82040',x:me.x+me.face*14,y:me.y-me.def.h*.6+Math.sin(i*2.1)*10,vx:me.face*8,vy:(me.foe.y-me.def.h*.5-(me.y-me.def.h*.6))/9,o:me,d:2.3,l:60,s:4});SFX.slash();for(let j=0;j<3;j++)P(me.foe.x+rnd(-12,12),me.foe.y-rnd(10,55),rnd(-1.5,1.5),rnd(-2,0),'#d82040',26,2,0);});E(80,()=>resolveHit(me,me.foe,10,{launch:1}));}// 30.09: Алый пион — семь кровавых лезвий летят к врагу, финальный подброс
+  else if(id===10){SFX.sting();for(let i=0;i<7;i++)E(14+i*6,()=>{const oh=castOrigin(me);S.projs.push({ty:'shard',c:'#d82040',x:oh.x,y:oh.y+Math.sin(i*2.1)*10,vx:me.face*8,vy:(me.foe.y-me.def.h*.5-oh.y)/9,o:me,d:2.3,l:60,s:4});SFX.slash();for(let j=0;j<3;j++)P(me.foe.x+rnd(-12,12),me.foe.y-rnd(10,55),rnd(-1.5,1.5),rnd(-2,0),'#d82040',26,2,0);});E(80,()=>resolveHit(me,me.foe,10,{launch:1}));}// 30.09: Алый пион — семь кровавых лезвий летят к врагу, финальный подброс
   else if(id===11){SFX.tele();E(10,()=>{me.x=clamp(me.foe.x-me.foe.face*26,20,AW-20);smoke(me.x,me.y-30);SFX.tele();});for(let i=0;i<10;i++)E(16+i*5,()=>{autoHit(me,2.2);SFX.slash();for(let j=0;j<2;j++)P(me.foe.x+rnd(-10,10),me.foe.y-rnd(10,55),rnd(-1.2,1.2),rnd(-2,0),'#9adcee',24,2,0);});E(78,()=>resolveHit(me,me.foe,9,{launch:1}));}// 30.09: Сто теней — перенос за спину и шквал рассечений
-  else if(id===12){SFX.cast2();for(let i=0;i<3;i++)E(14+i*10,()=>{SFX.shoot();S.projs.push({ty:'shard',c:'#b89aff',x:me.x+me.face*10,y:me.y-me.def.h-4,vx:me.face*3.2,vy:-2.6,o:me,d:8,l:130,s:5,hom:1});});}// 30.09: Небесный ловец — урон только от звёзд (бесплатный resolveHit убран)
+  else if(id===12){SFX.cast2();for(let i=0;i<3;i++)E(14+i*10,()=>{SFX.shoot();const oh=castOrigin(me);S.projs.push({ty:'shard',c:'#b89aff',x:oh.x,y:oh.y-4,vx:me.face*3.2,vy:-2.6,o:me,d:8,l:130,s:5,hom:1});});}// 30.09: Небесный ловец — урон только от звёзд (бесплатный resolveHit убран)
   else{for(let i=0;i<6;i++)E(14+i*8,()=>{S.projs.push({ty:'rocket',x:me.foe.x+rnd(-30,30),y:-8,vx:0,vy:4.6,o:me,d:4,l:120});SFX.shoot();});}
   this.superDur=110;}
-  fireSpec(foe){const d=this.def;this.face=foe.x<this.x?-1:1;const x=this.x+this.face*14,y=this.y-d.h*.62;
+  fireSpec(foe){const d=this.def;this.face=foe.x<this.x?-1:1;const h=castOrigin(this),x=h.x,y=h.y;castBurst(x,y,d.acc,d.boss?1.25:1);
   if(d.boss){SFX.boom();S.shake=6;for(let i=-1;i<=1;i++)S.projs.push({ty:'shard',c:'#f0c850',x,y:y+i*8,vx:this.face*(5.2+Math.abs(i)*.6),vy:i*.8,o:this,d:5,l:100,s:6,k:1});return;}// 25.10: «Корона-залп» — три золотых лезвия
   switch(d.id){
   case 0:S.projs.push({ty:'fire',x,y,vx:this.face*4,vy:0,o:this,d:7,l:110});SFX.fire();break;// 08.09: баланс — снаряды слабее ударов в упор
   case 1:this.x=clamp(foe.x-foe.face*30,20,AW-20);smoke(this.x,this.y-30);SFX.tele();break;
-  case 2:S.fx.push({ty:'castbolt',x:this.x,y:this.y,t:0,h:this.def.h});S.projs.push({ty:'bolt',x:foe.x,y:FL,vx:0,vy:0,o:this,d:8,l:16});SFX.zap();break;// 30.09: болт + канал из руки
+  case 2:S.fx.push({ty:'castbolt',x,y,t:0});S.projs.push({ty:'bolt',x:foe.x,y:FL,vx:0,vy:0,o:this,d:8,l:16});SFX.zap();break;// 30.09: болт + канал из руки
   // 08.09: баланс Вольта — болт бьёт по позиции врага без промаха, 9→8
-  case 3:S.projs.push({ty:'wave',x:this.x+this.face*18,y:FL+GR-12,vx:this.face*3.4,vy:0,o:this,d:8,l:90});SFX.boom();S.shake=4;break;// 08.09: волна создавалась с y:0 — хитбокс у земли, приём никогда не попадал; баланс 9→8
+  case 3:S.projs.push({ty:'wave',x:this.x+this.face*18,y:FL+GR-12,vx:this.face*3.4,vy:0,o:this,d:8,l:90,c:'#a07840'});SFX.boom();S.shake=4;break;// 08.09: волна создавалась с y:0 — хитбокс у земли, приём никогда не попадал; баланс 9→8
   case 4:if(Math.abs(foe.x-this.x)<44*d.bulk){resolveHit(this,foe,5,{});foe.poison=200;SFX.slash();}for(let i=0;i<5;i++)P(this.x+this.face*30,y,rnd(-1,1)+this.face,rnd(-2,0),'#7ac83a',24,2);break;
   case 5:this.invis=130;smoke(this.x,this.y-30);SFX.tele();break;
   case 6:S.projs.push({ty:'ice',x,y,vx:this.face*3.6,vy:0,o:this,d:6,l:110});SFX.ice();break;// 08.09: баланс 7→6
@@ -133,13 +147,13 @@ export function createFighter({
   case 10:for(let i=-1;i<=1;i++)S.projs.push({ty:'shard',c:'#d82040',x,y:y+i*6,vx:this.face*6.2,vy:i*.9,o:this,d:4,l:90,s:3,bl:1});SFX.slash();break;// 30.09: Кровавые иглы — быстрый веер с кровотечением
   case 11:S.projs.push({ty:'shard',c:'#9adcee',x,y,vx:this.face*5.5,vy:0,o:this,d:7,l:75,s:7});SFX.slash();break;// 30.09: Полумесяц — серп клинка, дальность до ~410px
   case 12:this.marks=this.marks||[];if(this.marks.length>=2)this.marks.shift();this.marks.push({x:clamp(this.x+this.face*46,20,AW-20),y:this.y});SFX.cast2();for(let i=0;i<6;i++)P(this.x+this.face*46+rnd(-8,8),this.y-rnd(0,40),0,rnd(-.5,-.1),'#b89aff',26,2,0);break;// 30.09: Звёздная метка — до двух на арене
-  default:S.projs.push({ty:'wave',x:this.x+this.face*18,y:FL+GR-12,vx:this.face*4,vy:0,o:this,d:9,l:90});SFX.boom();S.shake=5;break;}}// 08.09: то же для Кайзера; баланс 10→9
-  fireSpec2(foe){const d=this.def;this.face=foe.x<this.x?-1:1;const x=this.x+this.face*14,y=this.y-d.h*.62;// 08.09: вторые спецприёмы — по одному на бойца
+  default:S.projs.push({ty:'wave',x:this.x+this.face*18,y:FL+GR-12,vx:this.face*4,vy:0,o:this,d:9,l:90,c:d.boss?'#f0c850':'#c8d060'});SFX.boom();S.shake=5;break;}}// 08.09: то же для Кайзера; баланс 10→9
+  fireSpec2(foe){const d=this.def;this.face=foe.x<this.x?-1:1;const h=castOrigin(this),x=h.x,y=h.y;castBurst(x,y,d.acc,d.boss?1.25:1);// 08.09: вторые спецприёмы — по одному на бойца
   if(d.boss){SFX.bone();S.shake=5;for(let i=0;i<5;i++)S.projs.push({ty:'meteor',x:clamp(foe.x+rnd(-52,52),20,AW-20),y:-10-i*22,vx:0,vy:5.6,o:this,d:4,l:120});return;}// 25.10: «Метеоритный приговор» — пять метеоров
   switch(d.id){
   case 0:SFX.fire();for(let i=-1;i<=1;i++)S.projs.push({ty:'shard',c:'#f06020',x,y,vx:this.face*4.5,vy:i*1.1,o:this,d:4,l:90,s:4});break;// Огненный веер
   case 1:this.x=clamp(foe.x-foe.face*28,20,AW-20);this.face=foe.face;this.invis=40;smoke(this.x,this.y-30);SFX.tele();this.startAtk('kick');break;// Хватка тени — телепорт за спину, лицом к затылку врага
-  case 2:S.fx.push({ty:'castbolt',x:this.x,y:this.y,t:0,h:this.def.h});for(const off of[-30,0,30])S.projs.push({ty:'bolt',x:clamp(foe.x+off,20,AW-20),y:FL,vx:0,vy:0,o:this,d:5,l:16});SFX.zap();break;// Грозовой столб + канал из руки
+  case 2:S.fx.push({ty:'castbolt',x,y,t:0});for(const off of[-30,0,30])S.projs.push({ty:'bolt',x:clamp(foe.x+off,20,AW-20),y:FL,vx:0,vy:0,o:this,d:5,l:16});SFX.zap();break;// Грозовой столб + канал из руки
   case 3:for(let i=0;i<3;i++)S.projs.push({ty:'meteor',x:clamp(foe.x+rnd(-44,44),20,AW-20),y:-10-i*30,vx:0,vy:5.5,o:this,d:6,l:120});SFX.bone();break;// Камнепад
   case 4:for(let i=0;i<3;i++)S.projs.push({ty:'shard',c:'#7ac83a',x,y:y+i*8-8,vx:this.face*6,vy:0,o:this,d:4,l:80,s:3});SFX.slash();break;// Рой клинков
   case 5:S.projs.push({ty:'shard',c:'#c8a060',x,y,vx:this.face*2.6,vy:0,o:this,d:7,l:110,s:6,k:1});SFX.tele();break;// Песчаный жернов — валит с ног
