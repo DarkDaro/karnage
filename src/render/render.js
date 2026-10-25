@@ -301,11 +301,12 @@ function panel(x,y,w,h){g.fillStyle='rgba(10,8,6,.93)';g.fillRect(x,y,w,h);frame
 const seqTxt=(s,p2,face=1,generic=false)=>s.split('').map(x=>{if(face<0&&x==='L')x='R';else if(face<0&&x==='R')x='L';return ({D:'\u2193',U:'\u2191',L:'\u2190',R:'\u2192',P:generic?'P':p2?'I':'J',K:generic?'K':p2?'O':'K'})[x];}).join(' ');
 function drawFatalPanel(b){
 const left=Math.max(0,1-b.phaseT/fatalFrames);g.fillStyle='rgba(0,0,0,.6)';g.fillRect(RW/2-80,220,160,5);g.fillStyle=left>.35?'#c8a040':'#e04020';g.fillRect(RW/2-80,220,160*left,5);g.strokeStyle='#c8a040';g.lineWidth=1;g.strokeRect(RW/2-80.5,219.5,161,6);
-if(!b.winner.ctrl.ai){const w=b.winner,p2=w===b.p2,prog=b.fatalProg||0,seq=fatalMapped(w.def.fat,w.face),n=seq.length,secs=Math.max(0,Math.ceil((fatalFrames-b.phaseT)/60));
+if(!b.winner.ctrl.ai){const w=b.winner,p2=w===b.p2,fdir=b.fatalFace||w.face,prog=b.fatalProg||0,seq=fatalMapped(w.def.fat,fdir),n=seq.length,secs=Math.max(0,Math.ceil((fatalFrames-b.phaseT)/60));
 g.fillStyle='rgba(8,5,4,.86)';g.fillRect(116,52,192,36);frame(116,52,192,36);
 g.font='7px "Russo One"';g.fillStyle='#c8a040';g.textAlign='left';g.fillText('ФАТАЛИТИ',124,63);
 g.textAlign='right';g.fillStyle=secs>3?'#c8a040':'#e04020';g.fillText(secs+' С',300,63);
-g.font='12px "Russo One"';g.fillStyle=blink()?'#e02020':'#f0e8d0';g.textAlign='center';g.fillText(seqTxt(w.def.fat,p2,w.face),212,76);
+g.font='12px "Russo One"';g.fillStyle=blink()?'#e02020':'#f0e8d0';g.textAlign='center';g.fillText(seqTxt(w.def.fat,p2,fdir),212,76);
+g.font='6px "Russo One"';g.fillStyle='#807850';g.fillText((p2?'I+O':'J+K')+' \u2014 \u0437\u0430\u0445\u0432\u0430\u0442',212,96);
 const bw=12,gap=5,tw=n*bw+(n-1)*gap,sx=212-tw/2;
 for(let i=0;i<n;i++){const x=sx+i*(bw+gap),on=i<prog;g.fillStyle=on?'#e04020':'#2a2522';g.fillRect(x,81,bw,3);if(on){g.fillStyle='rgba(255,140,110,.55)';g.fillRect(x,81,bw,1);}}}}
 

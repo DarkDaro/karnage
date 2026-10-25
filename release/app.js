@@ -1291,6 +1291,7 @@
         this.defeated = 0;
         this.damageTaken = 0;
         this.armor = 0;
+        this.armorHit = 0;
         this.blockStun = 0;
         this.blockLow = 0;
         this.grabbedBy = 0;
@@ -1338,6 +1339,10 @@
         this.invis = 0;
         this.spec2go = 0;
         this.jumpGrace = 0;
+        if (type === "throw" && (!S.battle || S.battle.phase === "fight")) {
+          this.armor = Math.max(this.armor, A.wd + A.ac);
+          this.armorHit = 0;
+        }
         if (!S.battle || S.battle.phase === "fight") this.ctrl.buf.length = 0;
         SFX.swing();
       }
@@ -1556,12 +1561,13 @@
           foe.x = clamp2(foe.x, 16, AW - 16);
         }
         if (["idle", "walk", "crouch", "block"].includes(this.state)) this.face = foe.x < this.x ? -1 : 1;
-        if (this.state === "atk" && this.atk && (!this.atk.hit || this.atk.blocked) && this.atk.btn && !this.atk.target && this.st <= this.atk.A.wd + this.atk.A.ac + 4 && c.pkChord && c.pkChord()) {
+        if (this.state === "atk" && this.atk && (!this.atk.hit || this.atk.blocked || this.atk.connected || S.battle && S.battle.phase === "finish") && this.atk.btn && !this.atk.target && this.st <= this.atk.A.wd + this.atk.A.ac + 4 && c.pkChord && c.pkChord()) {
           const pressed = this.atk.btn === "P" ? c.pK : c.pP;
           if (pressed) {
-            const fwd2 = this.face > 0 ? c.r : c.l;
+            const fwd2 = this.face > 0 ? c.r : c.l, fromHit = !!(this.atk.hit && this.atk.connected);
             if (c.d || this.def.grappler && fwd2) this.startCmdThrow();
             else this.startAtk("throw");
+            this.atk.fromHit = fromHit ? 1 : 0;
           }
         }
         if (this.state === "atk" && this.atk) {
@@ -1574,8 +1580,8 @@
             this.abufB = c.d ? "sweep" : "kick";
           } else if (this.abuf > 0) this.abuf--;
           if (this.st > A.wd && this.st <= A.wd + A.ac && !this.atk.hit && foe.state !== "down") {
-            const hb = this.atkBox();
-            if (hb && hitR(hb, foe.box) && (!A.throw || foe.onGround && (["idle", "walk", "block"].includes(foe.state) || this.atk.cmdThrow && foe.state === "crouch"))) {
+            const hb = this.atkBox(), fin = S.battle && S.battle.phase === "finish";
+            if (hb && hitR(hb, foe.box) && (!A.throw || fin || foe.onGround && (["idle", "walk", "block", "crouch"].includes(foe.state) || this.atk.fromHit && foe.state === "hit" || this.armorHit && foe.state === "atk"))) {
               const res = resolveHit(this, foe, A.d, { launch: A.launch, low: A.low, overhead: A.overhead, throw: A.throw, knock: A.knock, grab: A.grab, kb: A.kb, status: A.status, chain: this.atk.chainPart, target: this.atk.target });
               this.atk.hit = 1;
               this.atk.blocked = res === "block" ? 1 : 0;
@@ -1632,9 +1638,31 @@
         return { x: this.x + (this.face > 0 ? 4 : -4 - w), y: this.y - d.h * A.hh - (this.atk.t === "sweep" ? 0 : 6), w: w + 6, h: this.atk.t === "sweep" ? 12 : this.atk.t === "upper" ? 34 : 14 };
       }
       finishThrow(foe) {
-        const d = this.def, cmd = !!(this.atk && this.atk.cmdThrow), type = cmd ? d.throwCmdT || d.throwT || "slam" : d.throwT || "slam", col = d.throwC || d.acc || "#f8d060", dmg = cmd ? d.throwCmdD || (d.throwD || 10) + 1 : d.throwD || 10, name = cmd ? d.throwCmdN || d.throwN : d.throwN, launch = type === "star";
+        const d = this.def, cmd = !!(this.atk && this.atk.cmdThrow), type = cmd ? d.throwCmdT || d.throwT || "slam" : d.throwT || "slam", col = d.throwC || d.acc || "#f8d060", dmg = cmd ? d.throwCmdD || (d.throwD || 10) + 1 : d.throwD || 10, name = cmd ? d.throwCmdN || d.throwN : d.throwN, launch = type === "star", fin = S.battle && S.battle.phase === "finish";
         foe.grabbedBy = 0;
         this.throwTarget = 0;
+        if (fin) {
+          this.atk.thrown = 1;
+          this.atk.grabbed = 0;
+          foe.defeated = 1;
+          foe.state = "dizzy";
+          foe.st = 0;
+          foe.hp = 0;
+          foe.vx = 0;
+          foe.vy = 0;
+          foe.y = FL + GR;
+          foe.tilt = 0;
+          foe.face = -this.face;
+          foe.x = clamp2(this.x + this.face * 30, 16, AW - 16);
+          this.squash = 0.86;
+          S.battle.fatalProg = 0;
+          S.shake = Math.max(S.shake, 4);
+          for (let i = S.fx.length; i--; ) if (S.fx[i].ty === "name" && S.fx[i].txt === "\u0417\u0410\u0425\u0412\u0410\u0422!") S.fx.splice(i, 1);
+          S.fx.push({ ty: "ring", x: foe.x, y: foe.y - foe.def.h * 0.55, t: 0, col });
+          S.fx.push({ ty: "name", x: this.x + this.face * 10, y: this.y - this.def.h - 10, txt: name, col, life: 70, t: 0, big: 1 });
+          SFX.hitV();
+          return;
+        }
         const res = resolveHit(this, foe, dmg, { throw: 1, knock: !launch, launch: launch ? 1 : 0 });
         this.atk.thrown = 1;
         this.atk.grabbed = 0;
@@ -2125,6 +2153,7 @@
       if (Math.abs(f.x - a.x) >= 48) return;
       if (f.armor > 0) {
         f.armor--;
+        f.armorHit = 1;
         f.flash = 4;
         SFX.block();
         return;
@@ -2176,10 +2205,37 @@
     }
     function resolveHit(att, def, dmg, opts) {
       opts = opts || {};
-      if (S.battle && ["finish", "fatal", "over", "ko"].includes(S.battle.phase)) return "miss";
+      const phase = S.battle ? S.battle.phase : null;
+      if (phase && ["fatal", "over", "ko"].includes(phase)) return "miss";
+      if (phase === "finish") {
+        if (!opts.grab) return "miss";
+        def.defeated = 0;
+        def.hp = 0;
+        def.state = "grabbed";
+        def.st = 0;
+        def.vx = 0;
+        def.vy = 0;
+        def.grabbedBy = att;
+        def.atk = null;
+        def.spec2go = 0;
+        def.invis = 0;
+        def.netT = 0;
+        def.chain = "";
+        def.chainT = 0;
+        def.blockStun = 0;
+        def.frozen = 0;
+        def.face = -att.face;
+        att.throwTarget = def;
+        SFX.hitV();
+        S.freeze = Math.max(S.freeze, 2);
+        S.fx.push({ ty: "ring", x: def.x, y: def.y - def.def.h * 0.5, t: 0, col: att.def.acc || "#f8d060" });
+        S.fx.push({ ty: "name", x: att.x + att.face * 12, y: att.y - att.def.h - 12, txt: "\u0417\u0410\u0425\u0412\u0410\u0422!", col: "#f8d060", life: 30, t: 0, big: 1 });
+        return "grab";
+      }
       if (def.defeated) return "miss";
-      if (def.armor > 0) {
+      if (def.armor > 0 && !opts.grab) {
         def.armor--;
+        def.armorHit = 1;
         def.flash = 4;
         SFX.block();
         return "miss";
@@ -2373,6 +2429,10 @@
         this._ = o;
         Object.assign(this, o);
         const push = (k) => this.buf.push({ k, t: FR });
+        if (this.pl) push("L");
+        if (this.pr) push("R");
+        if (this.pd) push("D");
+        if (this.pu) push("U");
         if (this.pP) {
           push("P");
           this.tP = FR;
@@ -2381,10 +2441,6 @@
           push("K");
           this.tK = FR;
         }
-        if (this.pl) push("L");
-        if (this.pr) push("R");
-        if (this.pd) push("D");
-        if (this.pu) push("U");
         if (this.buf.length > 14) this.buf.splice(0, this.buf.length - 14);
       }
       // 25.10: P+K — дружелюбный к человеческому вводу аккорд: обе кнопки одновременно, одна удерживается, либо нажаты с малым зазором
@@ -6459,7 +6515,7 @@
       g.lineWidth = 1;
       g.strokeRect(RW / 2 - 80.5, 219.5, 161, 6);
       if (!b.winner.ctrl.ai) {
-        const w = b.winner, p2 = w === b.p2, prog = b.fatalProg || 0, seq = fatalMapped(w.def.fat, w.face), n = seq.length, secs = Math.max(0, Math.ceil((fatalFrames - b.phaseT) / 60));
+        const w = b.winner, p2 = w === b.p2, fdir = b.fatalFace || w.face, prog = b.fatalProg || 0, seq = fatalMapped(w.def.fat, fdir), n = seq.length, secs = Math.max(0, Math.ceil((fatalFrames - b.phaseT) / 60));
         g.fillStyle = "rgba(8,5,4,.86)";
         g.fillRect(116, 52, 192, 36);
         frame(116, 52, 192, 36);
@@ -6473,7 +6529,10 @@
         g.font = '12px "Russo One"';
         g.fillStyle = blink() ? "#e02020" : "#f0e8d0";
         g.textAlign = "center";
-        g.fillText(seqTxt(w.def.fat, p2, w.face), 212, 76);
+        g.fillText(seqTxt(w.def.fat, p2, fdir), 212, 76);
+        g.font = '6px "Russo One"';
+        g.fillStyle = "#807850";
+        g.fillText((p2 ? "I+O" : "J+K") + " \u2014 \u0437\u0430\u0445\u0432\u0430\u0442", 212, 96);
         const bw = 12, gap = 5, tw = n * bw + (n - 1) * gap, sx = 212 - tw / 2;
         for (let i = 0; i < n; i++) {
           const x = sx + i * (bw + gap), on = i < prog;
@@ -8781,6 +8840,7 @@
         w.foe.netT = 0;
         w.foe.frozen = 0;
         b.fatalProg = 0;
+        b.fatalFace = w.foe.x < w.x ? -1 : 1;
         S.announce = { txt: "FINISH HIM!", t: 0, col: "#e02020", pulse: 1 };
         say("Finish him");
         const wx = w.x, wf = w.face;
@@ -8813,21 +8873,29 @@
       return seq.split("").map((k) => k === "R" ? face > 0 ? "R" : "L" : k === "L" ? face > 0 ? "L" : "R" : k);
     }
     function fatalProgress(ctrl, seq, face) {
-      const mapped = fatalMapped(seq, face), b = ctrl.buf, now = b.length ? b[b.length - 1].t : 0;
-      let best = 0;
-      for (let start = 0; start < b.length; start++) {
-        if (now - b[start].t > FATAL_INPUT) continue;
-        let n = 0;
-        while (n < mapped.length && start + n < b.length && b[start + n].k === mapped[n]) n++;
-        if (n > best) best = n;
-      }
-      return best;
+      const b = ctrl.buf, now = b.length ? b[b.length - 1].t : 0, n = seq.length;
+      const scan = (mapped) => {
+        let best = 0;
+        for (let start = 0; start < b.length; start++) {
+          if (now - b[start].t > FATAL_INPUT) continue;
+          let k = 0;
+          while (k < n && start + k < b.length) {
+            const got = b[start + k].k, want = mapped[k];
+            if (got !== want && !(k === n - 1 && (want === "P" && got === "K" || want === "K" && got === "P"))) break;
+            k++;
+          }
+          if (k > best) best = k;
+        }
+        return best;
+      };
+      return Math.max(scan(fatalMapped(seq, face)), scan(fatalMapped(seq, -face)));
     }
     function finishUpd() {
       const b = S.battle;
       b.phaseT++;
       updFs(1);
       const w = b.winner, l = b.loser;
+      if (!b.fatalFace) b.fatalFace = w.face;
       if (l.state === "down") {
         b.phase = "over";
         b.phaseT = 0;
@@ -8839,17 +8907,17 @@
         c.ax = {};
         const dx = l.x - w.x;
         if (b.phaseT > 40 && Math.abs(dx) > 44) c.ax[dx > 0 ? "r" : "l"] = true;
-        if (Math.abs(dx) <= 44 && b.phaseT > 140 && Math.random() < 0.03) {
+        if (l.state !== "grabbed" && Math.abs(dx) <= 44 && b.phaseT > 140 && Math.random() < 0.03) {
           startFatal(w, l);
           return;
         }
-      } else {
-        const prog = fatalProgress(w.ctrl, w.def.fat, w.face);
+      } else if (l.state !== "grabbed") {
+        const prog = fatalProgress(w.ctrl, w.def.fat, b.fatalFace);
         if (prog > b.fatalProg) {
           b.fatalProg = prog;
           if (prog > 0) SFX.tick();
         } else if (prog < b.fatalProg) b.fatalProg = prog;
-        if ((w.ctrl.pP || w.ctrl.pK) && (w.ctrl.matchRel(w.def.fat, w.face, FATAL_INPUT) || w.ctrl.matchRelLoose(w.def.fat, w.face, FATAL_INPUT))) {
+        if ((w.ctrl.pP || w.ctrl.pK) && prog >= w.def.fat.length) {
           startFatal(w, l);
           return;
         }

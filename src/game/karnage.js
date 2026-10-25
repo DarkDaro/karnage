@@ -324,17 +324,17 @@ function roundWon(w){const b=S.battle;w.wins++;S.projs.length=0;
 if(w.wins>=2){b.loser=w.foe;b.winner=w;b.phase='finish';b.phaseT=0;
 w.ctrl.clear();w.foe.ctrl.clear();
 w.foe.hp=0;w.foe.state='dizzy';w.foe.st=0;w.foe.vx=0;w.foe.vy=0;w.foe.y=FL+GR;w.foe.atk=null;w.foe.defeated=1;w.foe.netT=0;w.foe.frozen=0;
-b.fatalProg=0;S.announce={txt:'FINISH HIM!',t:0,col:'#e02020',pulse:1};say('Finish him');
+b.fatalProg=0;b.fatalFace=w.foe.x<w.x?-1:1;S.announce={txt:'FINISH HIM!',t:0,col:'#e02020',pulse:1};say('Finish him');
 const wx=w.x,wf=w.face;w.reset(wx,wf);w.hp=100;w.defeated=0;}
 else{b.phase='ko';b.phaseT=0;const fl=(w.damageTaken||0)===0;if(fl)SFX.coin();S.announce={txt:fl?'FLAWLESS VICTORY':'K.O.',t:0,col:fl?'#e8e0c0':'#e02020'};w.state='win';w.st=0;w.atk=null;w.foe.state='down';w.foe.st=0;w.foe.hp=0;w.foe.vx=0;w.foe.vy=0;w.foe.y=FL+GR;w.foe.defeated=1;w.foe.netT=0;w.foe.frozen=0;SFX.ko();say(fl?'Excellent. Flawless victory':'K O');}}
 function fatalMapped(seq,face){return seq.split('').map(k=>k==='R'?(face>0?'R':'L'):k==='L'?(face>0?'L':'R'):k);}
-function fatalProgress(ctrl,seq,face){const mapped=fatalMapped(seq,face),b=ctrl.buf,now=b.length?b[b.length-1].t:0;let best=0;for(let start=0;start<b.length;start++){if(now-b[start].t>FATAL_INPUT)continue;let n=0;while(n<mapped.length&&start+n<b.length&&b[start+n].k===mapped[n])n++;if(n>best)best=n;}return best;}
+function fatalProgress(ctrl,seq,face){const b=ctrl.buf,now=b.length?b[b.length-1].t:0,n=seq.length;const scan=mapped=>{let best=0;for(let start=0;start<b.length;start++){if(now-b[start].t>FATAL_INPUT)continue;let k=0;while(k<n&&start+k<b.length){const got=b[start+k].k,want=mapped[k];if(got!==want&&!(k===n-1&&((want==='P'&&got==='K')||(want==='K'&&got==='P'))))break;k++;}if(k>best)best=k;}return best;};return Math.max(scan(fatalMapped(seq,face)),scan(fatalMapped(seq,-face)));}
 function finishUpd(){const b=S.battle;b.phaseT++;updFs(1);
-const w=b.winner,l=b.loser;
+const w=b.winner,l=b.loser;if(!b.fatalFace)b.fatalFace=w.face;
 if(l.state==='down'){b.phase='over';b.phaseT=0;endBattle(w);return;}
-if(w.ctrl.ai){const c=w.ctrl;c.ax={};const dx=l.x-w.x;if(b.phaseT>40&&Math.abs(dx)>44)c.ax[dx>0?'r':'l']=true;if(Math.abs(dx)<=44&&b.phaseT>140&&Math.random()<.03){startFatal(w,l);return;}}
-else{const prog=fatalProgress(w.ctrl,w.def.fat,w.face);if(prog>b.fatalProg){b.fatalProg=prog;if(prog>0)SFX.tick();}else if(prog<b.fatalProg)b.fatalProg=prog;
-if((w.ctrl.pP||w.ctrl.pK)&&(w.ctrl.matchRel(w.def.fat,w.face,FATAL_INPUT)||w.ctrl.matchRelLoose(w.def.fat,w.face,FATAL_INPUT))){startFatal(w,l);return;}}
+if(w.ctrl.ai){const c=w.ctrl;c.ax={};const dx=l.x-w.x;if(b.phaseT>40&&Math.abs(dx)>44)c.ax[dx>0?'r':'l']=true;if(l.state!=='grabbed'&&Math.abs(dx)<=44&&b.phaseT>140&&Math.random()<.03){startFatal(w,l);return;}}
+else if(l.state!=='grabbed'){const prog=fatalProgress(w.ctrl,w.def.fat,b.fatalFace);if(prog>b.fatalProg){b.fatalProg=prog;if(prog>0)SFX.tick();}else if(prog<b.fatalProg)b.fatalProg=prog;
+if((w.ctrl.pP||w.ctrl.pK)&&prog>=w.def.fat.length){startFatal(w,l);return;}}
 if(b.phaseT>=FATAL_FRAMES){l.state='down';l.st=0;}}
 function afterBattle(){const b=S.battle;// 08.09: удалена недостижимая ветка !b.winner — endBattle всегда ставит winner
 if(b.mode==='arcade'&&b.winner===b.p1){S.lStep++;

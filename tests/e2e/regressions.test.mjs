@@ -139,6 +139,105 @@ test('finish lock blocks damage and accepts fatality input', async () => {
   assert.equal(result.finalPhase, 'fatal');
 });
 
+test('finish window accepts a throw without ending the fatality window', async () => {
+  const result = await page.evaluate(() => {
+    const K = window.KARNAGE;
+    for (const key in K.keys) K.keys[key] = false;
+    K.setDebug({ GAME: 'fight', paused: false });
+    K.newBattle(0, new K.Ctrl(K.KM1), 1, new K.Ctrl(K.KM2), 9);
+    const b = K.battle;
+    b.mode = '2p';
+    b.phase = 'finish';
+    b.phaseT = 0;
+    b.winner = b.p1;
+    b.loser = b.p2;
+    b.fatalFace = 1;
+    b.p1.wins = 2;
+    b.p1.x = 300;
+    b.p2.x = 330;
+    b.p1.face = 1;
+    b.p2.face = -1;
+    b.p1.state = 'idle';
+    b.p1.st = 0;
+    b.p1.atk = null;
+    b.p1.ctrl.clear();
+    b.p2.state = 'dizzy';
+    b.p2.st = 0;
+    b.p2.atk = null;
+    b.p2.hp = 0;
+    b.p2.defeated = 1;
+    b.p2.ctrl.clear();
+    K.keys.KeyJ = true;
+    K.step();
+    K.keys.KeyJ = false;
+    for (let i = 0; i < 6; i += 1) K.step();
+    K.keys.KeyK = true;
+    K.step();
+    K.keys.KeyK = false;
+    const started = b.p1.atk?.t || '';
+    let grabbed = false;
+    for (let i = 0; i < 40; i += 1) {
+      K.step();
+      if (b.p2.state === 'grabbed') grabbed = true;
+    }
+    return { started, grabbed, phase: b.phase, state: b.p2.state, hp: b.p2.hp, defeated: b.p2.defeated };
+  });
+  assert.equal(result.started, 'throw');
+  assert.equal(result.grabbed, true);
+  assert.equal(result.phase, 'finish');
+  assert.equal(result.state, 'dizzy');
+  assert.equal(result.hp, 0);
+  assert.equal(result.defeated, 1);
+});
+
+test('fatality direction is fixed for the finish window and the final button may be K', async () => {
+  const result = await page.evaluate(() => {
+    const K = window.KARNAGE;
+    const key = { D: 'KeyS', U: 'KeyW', L: 'KeyA', R: 'KeyD', P: 'KeyJ', K: 'KeyK' };
+    const press = (code) => {
+      K.keys[code] = true;
+      K.step();
+      K.keys[code] = false;
+      K.step();
+    };
+    const setup = () => {
+      for (const code in K.keys) K.keys[code] = false;
+      K.setDebug({ GAME: 'fight', paused: false });
+      K.newBattle(0, new K.Ctrl(K.KM1), 1, new K.Ctrl(K.KM2), 9);
+      const b = K.battle;
+      b.mode = '2p';
+      b.phase = 'finish';
+      b.phaseT = 0;
+      b.winner = b.p1;
+      b.loser = b.p2;
+      b.fatalFace = 1;
+      b.p1.wins = 2;
+      b.p1.x = 330;
+      b.p2.x = 300;
+      b.p1.face = -1;
+      b.p2.face = 1;
+      b.p1.state = 'idle';
+      b.p1.st = 0;
+      b.p1.atk = null;
+      b.p1.ctrl.clear();
+      b.p2.state = 'dizzy';
+      b.p2.st = 0;
+      b.p2.atk = null;
+      b.p2.hp = 0;
+      b.p2.defeated = 1;
+      b.p2.ctrl.clear();
+      return b;
+    };
+    const b1 = setup();
+    for (const ch of 'RRLP') press(key[ch]);
+    const b2 = setup();
+    for (const ch of 'RRLK') press(key[ch]);
+    return { fixed: b1.phase, kFinal: b2.phase };
+  });
+  assert.equal(result.fixed, 'fatal');
+  assert.equal(result.kFinal, 'fatal');
+});
+
 test('defeated fighter stays down', async () => {
   const result = await page.evaluate(() => {
     const K = window.KARNAGE;
@@ -789,7 +888,7 @@ test('combo damage scales and resets with the combo window', async () => {
   assert.equal(result.reset, 10);
 });
 
-test('throws beat block but miss crouching targets', async () => {
+test('throws beat block and catch crouching targets', async () => {
   const result = await page.evaluate(() => {
     const K = window.KARNAGE;
     K.setDebug({ GAME: 'fight', paused: false });
@@ -835,13 +934,54 @@ test('throws beat block but miss crouching targets', async () => {
   });
   assert.deepEqual(result.blocked, { result: 'hit', hp: 88, state: 'down' });
   assert.deepEqual(result.normalBlock, { result: 'block', hp: 99, state: 'block' });
-  assert.equal(result.crouch.hp, 100);
-  assert.equal(result.crouch.hit, 0);
+  assert.equal(result.crouch.hit, 1);
+  assert.equal(result.crouch.state, 'grabbed');
+  assert.ok(result.crouch.hp < 100);
   assert.equal(result.crouchCmd.hit, 1);
   assert.equal(result.crouchCmd.state, 'grabbed');
   assert.ok(result.crouchCmd.hp < 100);
   assert.ok(result.standing.hp < 100);
   assert.equal(result.standing.hit, 1);
+});
+
+test('throw armor absorbs a poke and turns it into a grab', async () => {
+  const result = await page.evaluate(() => {
+    const K = window.KARNAGE;
+    for (const key in K.keys) K.keys[key] = false;
+    K.setDebug({ GAME: 'fight', paused: false });
+    K.newBattle(0, new K.Ctrl(K.KM1), 1, new K.Ctrl(K.KM2), 9);
+    const b = K.battle;
+    b.mode = '2p';
+    b.phase = 'fight';
+    b.phaseT = 200;
+    b.p1.ctrl.ai = false;
+    b.p2.ctrl.ai = false;
+    b.p1.x = 300;
+    b.p2.x = 330;
+    b.p1.y = b.p2.y = 214;
+    b.p1.face = 1;
+    b.p2.face = -1;
+    b.p1.state = 'idle';
+    b.p1.st = 0;
+    b.p1.atk = null;
+    b.p1.ctrl.clear();
+    b.p2.state = 'atk';
+    b.p2.st = 0;
+    b.p2.atk = { t: 'punch', A: K.ATK.punch, hit: 0, blocked: 0, connected: 0 };
+    b.p2.ctrl.clear();
+    b.p1.startAtk('throw');
+    for (let i = 0; i < 14; i += 1) K.step();
+    return {
+      grabbed: b.p2.state,
+      armorHit: b.p1.armorHit,
+      throwType: b.p1.atk?.t || '',
+      p1hp: b.p1.hp
+    };
+  });
+  assert.equal(result.grabbed, 'grabbed');
+  assert.equal(result.armorHit, 1);
+  assert.equal(result.throwType, 'throw');
+  assert.equal(result.p1hp, 100);
 });
 
 test('throw grabs, holds and finishes with character combo', async () => {

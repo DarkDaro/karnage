@@ -8,7 +8,7 @@ export function createCombat({ S, SFX, P, blood, spriteFx, rnd, pick }) {
   if(f.state==='down'||f.state==='victim')return;
   if(f.invuln>0)return;
   if(Math.abs(f.x-a.x)>=48)return;
-  if(f.armor>0){f.armor--;f.flash=4;SFX.block();return;}
+  if(f.armor>0){f.armor--;f.armorHit=1;f.flash=4;SFX.block();return;}
   if(f.state==='block'){
   f.hp=Math.max(1,f.hp-1);f.damageTaken=(f.damageTaken||0)+1;
   a.rage=Math.min(100,a.rage+1);f.rage=Math.min(100,f.rage+1);
@@ -27,9 +27,14 @@ export function createCombat({ S, SFX, P, blood, spriteFx, rnd, pick }) {
   S.freeze=Math.max(S.freeze,3);if(f.hp<=0)S.freeze=Math.max(S.freeze,12);
   SFX.hit();}
   function resolveHit(att,def,dmg,opts){opts=opts||{};
-  if(S.battle&&['finish','fatal','over','ko'].includes(S.battle.phase))return'miss';
+  const phase=S.battle?S.battle.phase:null;
+  if(phase&&['fatal','over','ko'].includes(phase))return'miss';
+  if(phase==='finish'){
+  if(!opts.grab)return'miss';
+  def.defeated=0;def.hp=0;def.state='grabbed';def.st=0;def.vx=0;def.vy=0;def.grabbedBy=att;def.atk=null;def.spec2go=0;def.invis=0;def.netT=0;def.chain='';def.chainT=0;def.blockStun=0;def.frozen=0;def.face=-att.face;att.throwTarget=def;
+  SFX.hitV();S.freeze=Math.max(S.freeze,2);S.fx.push({ty:'ring',x:def.x,y:def.y-def.def.h*.5,t:0,col:att.def.acc||'#f8d060'});S.fx.push({ty:'name',x:att.x+att.face*12,y:att.y-att.def.h-12,txt:'ЗАХВАТ!',col:'#f8d060',life:30,t:0,big:1});return'grab';}
   if(def.defeated)return'miss';
-  if(def.armor>0){def.armor--;def.flash=4;SFX.block();return'miss';}
+  if(def.armor>0&&!opts.grab){def.armor--;def.armorHit=1;def.flash=4;SFX.block();return'miss';}
   if(def.state==='super'&&def.st<20)def.rage=Math.min(100,def.rage+50);
   if(def.invuln>0)return'miss';if(def.dodging){for(let i=0;i<5;i++)P(def.x+rnd(-6,6),def.y-rnd(8,44),-att.face*rnd(.6,1.6),rnd(-1,-.2),'#9a9080',14,2,.03);SFX.whiff();return'miss';}// 30.09: рывок сквозь удар — пыль и свист
   if(opts.grab){// 25.10: захват — отдельное состояние, чтобы бросок читался как комбо из двух фаз

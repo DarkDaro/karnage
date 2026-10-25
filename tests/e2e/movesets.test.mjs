@@ -379,6 +379,49 @@ test('target combos land every hit and launch opens a juggle window', async () =
   assert.deepEqual(result, []);
 });
 
+test('every fatality accepts its mirrored command while facing left', async () => {
+  const result = await page.evaluate(() => {
+    const K = window.KARNAGE;
+    const key = { D: 'KeyS', U: 'KeyW', L: 'KeyA', R: 'KeyD', P: 'KeyJ', K: 'KeyK' };
+    const failures = [];
+    const press = (code) => {
+      K.keys[code] = true;
+      K.step();
+      K.keys[code] = false;
+      K.step();
+    };
+    for (const def of K.CH) {
+      for (const code in K.keys) K.keys[code] = false;
+      K.setDebug({ GAME: 'fight', paused: false });
+      K.newBattle(def.id, new K.Ctrl(K.KM1), (def.id + 1) % K.CH.length, new K.Ctrl(K.KM2), 9);
+      const battle = K.battle;
+      battle.mode = '2p';
+      battle.phase = 'finish';
+      battle.phaseT = 0;
+      battle.winner = battle.p1;
+      battle.loser = battle.p2;
+      battle.p1.wins = 2;
+      battle.p1.face = -1;
+      battle.p2.face = 1;
+      battle.p2.x = battle.p1.x - 30;
+      battle.fatalFace = -1;
+      battle.p2.hp = 0;
+      battle.p2.defeated = 1;
+      battle.p2.state = 'dizzy';
+      battle.p2.st = 0;
+      battle.p1.ctrl.clear();
+      battle.p2.ctrl.clear();
+      for (const symbol of def.fat) {
+        const s = symbol === 'L' ? 'R' : symbol === 'R' ? 'L' : symbol;
+        press(key[s]);
+      }
+      if (battle.phase !== 'fatal') failures.push(`${def.id}: ${def.fat} did not start fatality`);
+    }
+    return failures;
+  });
+  assert.deepEqual(result, []);
+});
+
 test('every fatality accepts its command in the finish window', async () => {
   const result = await page.evaluate(() => {
     const K = window.KARNAGE;
