@@ -68,6 +68,21 @@ function limb2(x,y,a1,a2,l1,l2,w1,w2,fill,opts={}){
  g.fillStyle=fill;g.beginPath();g.arc(mx,my,w2*.46,0,TAU);g.fill();
  return{x:ex,y:ey,sx:x,sy:y,mx,my};
 }
+function legIK(x,y,tx,ty,l1,l2,dir=1){
+ let dx=tx-x,dy=ty-y,d=Math.hypot(dx,dy);
+ if(d<.001){dx=0;dy=1;d=.001;}
+ const min=Math.abs(l1-l2)+.02,max=l1+l2-.02;
+ if(d<min||d>max){const k=Math.max(min,Math.min(max,d));dx=dx/d*k;dy=dy/d*k;d=k;tx=x+dx;ty=y+dy;}
+ const base=Math.atan2(dx,dy);
+ const cosA=Math.max(-1,Math.min(1,(l1*l1+d*d-l2*l2)/(2*l1*d)));
+ const a1=base+dir*Math.acos(cosA);
+ const kx=x+Math.sin(a1)*l1,ky=y+Math.cos(a1)*l1;
+ return[a1,Math.atan2(tx-kx,ty-ky)-a1];
+}
+function leg2(x,y,target,l1,l2,w1,w2,fill,opts={},dir=1){
+ const t=target||[x,0],a=legIK(x,y,t[0],t[1],l1,l2,dir);
+ return limb2(x,y,a[0],a[1],l1,l2,w1,w2,fill,opts);
+}
 function boot(x,y,w,h,fill){
  const bx=x-w*.48,by=y-h;
  shape([['M',bx,by],['L',x+w*.34,by],['L',x+w*.56,y-h*.55],['L',x+w*.95,y-h*.12],['L',x+w*.95,y],['L',x-w*.55,y],['L',x-w*.55,y-h*.32]],fill,OUT,1.15);
@@ -447,7 +462,8 @@ function drawBody(f,p){
  const glove=look.glove==='skin'?skin:look.glove==='wrap'?shade(ac,.35):look.glove==='accent'?ac:look.glove==='claw'?skin:shade(suit,.3);
  if(d.cape&&!f.charred)drawCape(f,H,shY,hipY,shX,suit,ac);
  if(d.blade&&!(f.state==='atk'||f.state==='cast'||f.state==='dash'))drawSheath(H,shY,hipY,suit,ac);
- const bl=limb2(-hipW*.5,hipY,p.legB[0],p.legB[1],H*.25,H*.23,legW,legW*.82,shade(suit,.48),{noLight:true});
+ const footF=p.footF||[H*.07,0],footB=p.footB||[-H*.08,0];
+ const bl=leg2(-hipW*.5,hipY,footB,H*.25,H*.23,legW,legW*.82,shade(suit,.48),{noLight:true},1);
  legGear(bl,legW,shade(suit,.48),shade(ac,.6),look,true);
  boot(bl.x,bl.y,H*.14,H*.105,shade(suit,.35));
  const ba=limb2(-shoulderW*.55+shX,shY+2,p.armB[0],p.armB[1],H*.19,H*.17,armW*.9,armW*.74,shade(sleeve,.58),{noLight:true});
@@ -455,7 +471,7 @@ function drawBody(f,p){
  hand(ba.x,ba.y,H*.075,H*.082,shade(glove,.6));
  drawPelvis(H,hipY,hipW,suit,ac,look);
  drawTorso(H,d,f,hipY,shY,shX,shoulderW,waistW,hipW,suit,ac,look);
- const fl=limb2(hipW*.5,hipY,p.legF[0],p.legF[1],H*.25,H*.23,legW,legW*.82,suit);
+ const fl=leg2(hipW*.5,hipY,footF,H*.25,H*.23,legW,legW*.82,suit,{},1);
  legGear(fl,legW,suit,ac,look,false);
  boot(fl.x,fl.y,H*.145,H*.11,shade(suit,.5));
  if(d.dress)drawDress(H,hipY,shX,hipW,suit,ac);

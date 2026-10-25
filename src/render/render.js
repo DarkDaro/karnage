@@ -64,7 +64,7 @@ const hi=lite(c,.3);if(hi){g.fillStyle=hi;g.fillRect(e[0]-3,e[1]-2,7,1);}g.fillS
 function fist(e,c){g.fillStyle=OUT;g.fillRect(e[0]-3,e[1]-3,7,7);g.fillStyle=c;g.fillRect(e[0]-2,e[1]-2,5,5);
 const hi=lite(c,.25);if(hi){g.fillStyle=hi;g.fillRect(e[0]-2,e[1]-2,5,1);}g.fillStyle=shade(c,.75);g.fillRect(e[0]+1,e[1],3,3);}// 30.09: костяшки
 function pose(f){const d=f.def,t=f.animT,s=f.state;
-let p={hip:d.h*.47,lean:0,armF:[.7,1.9],armB:[-.5,2.1],legF:[.45,-.15],legB:[-.45,-.2],head:0};
+let p={hip:d.h*.45,lean:0,armF:[.7,1.9],armB:[-.5,2.1],legF:[.45,-.15],legB:[-.45,-.2],footF:[d.h*.07,0],footB:[-d.h*.08,0],head:0};
 const bob=Math.sin(t*.09)*1.4;
 if(s==='idle'){p.hip+=bob*.4;p.armF[0]+=Math.sin(t*.09)*.08;
 if(S.battle&&S.battle.phase==='intro'){// 08.09: уникальные вступительные позы перед раундом
@@ -83,21 +83,21 @@ else if(q===11){p.armF=[1.2,.55];p.armB=[-.3,1.9];p.lean=.14;p.hip=d.h*.42;}// �
 else if(q===12){p.armF=[1.5,.1];p.armB=[-.2,1.8];p.lean=-.04;p.head=-.06;}// Вега: лук натянут, взгляд к небу
 else{p.armF=[1.4,.3];p.armB=[-.2,1.7];p.head=-.1;}}}// Эмбер мнёт кулаки, Гейст поник, Вольт искрит, Базальт скала, Фэнг пригнулся, Сахра посылает поцелуй зале, Крио дышит холодом, Ржавый хрустит костяшками, Ноктюрн распахнул мантию, Кайзер властный жест
 else if(s==='walk'){const W=WM[d.id]||[.22,1,1,1.4,0];const c=Math.sin(t*W[0]),la=W[1],aa=W[2];
-p.legF=[.45+c*.6*la,-.3];p.legB=[-.45-c*.6*la,-.3];p.armF=[.5-c*.4*aa,1.8];p.armB=[-.5+c*.4*aa,2];p.hip+=Math.abs(c)*W[3];p.lean=W[4];}// 30.09: индивидуальная походка
-else if(s==='jump'){p.legF=[.9,-1.9];p.legB=[-.6,-1.7];p.armF=[1.8,-.4];p.armB=[-1.2,-.3];}
-else if(s==='dash'){p.lean=.38;p.hip=d.h*.36;p.legF=[1.25,-.7];p.legB=[-1,-.35];p.armF=[-.9,1.4];p.armB=[1.3,1.1];p.head=.1;}// 30.09: поза рывка — низкий скользящий выпад
-else if(s==='crouch'){p.hip=d.h*.24;p.legF=[1.1,-2.2];p.legB=[-1.1,-2];p.armF=[.9,2];p.armB=[-.3,2.2];}
-else if(s==='block'){p.armF=[1.15,1.9];p.armB=[.95,2.1];p.legF=[.35,-.2];p.legB=[-.5,-.2];p.lean=.05;}
+p.legF=[.45+c*.6*la,-.3];p.legB=[-.45-c*.6*la,-.3];p.armF=[.5-c*.4*aa,1.8];p.armB=[-.5+c*.4*aa,2];p.hip+=Math.abs(c)*W[3];p.lean=W[4];p.footF=[d.h*(.07+c*.075),-Math.max(0,c)*d.h*.065];p.footB=[d.h*(-.08-c*.075),-Math.max(0,-c)*d.h*.065];}// 30.09: индивидуальная походка
+else if(s==='jump'){p.legF=[.9,-1.9];p.legB=[-.6,-1.7];p.footF=[d.h*.42,-d.h*.19];p.footB=[-d.h*.36,-d.h*.23];p.armF=[1.8,-.4];p.armB=[-1.2,-.3];}
+else if(s==='dash'){p.lean=.38;p.hip=d.h*.36;p.legF=[1.25,-.7];p.legB=[-1,-.35];p.footF=[d.h*.36,0];p.footB=[-d.h*.28,-d.h*.01];p.armF=[-.9,1.4];p.armB=[1.3,1.1];p.head=.1;}// 30.09: поза рывка — низкий скользящий выпад
+else if(s==='crouch'){p.hip=d.h*.28;p.lean=.10;p.legF=[1.1,-2.2];p.legB=[-1.1,-2];p.footF=[d.h*.16,0];p.footB=[-d.h*.13,0];p.armF=[.9,2];p.armB=[-.3,2.2];}
+else if(s==='block'){p.armF=[1.15,1.9];p.armB=[.95,2.1];p.legF=[.35,-.2];p.legB=[-.5,-.2];p.footF=[d.h*.07,0];p.footB=[-d.h*.09,0];p.lean=.05;}
 else if(s==='atk'){const ph=f.atk?Math.min(1,f.st/f.atk.A.wd):0;
 if(f.atk&&f.atk.t==='punch'){p.armF=[lerp(-.4,1.55,ph),lerp(2.2,.05,ph)];p.armB=[-.7,2.1];p.lean=ph*.25;}
 else if(f.atk&&(f.atk.t==='kick'||f.atk.t==='rh')){p.legF=[lerp(.3,1.5,ph),lerp(-.5,-.05,ph)];// 08.09: roundhouse — поза удара ногой
-p.legB=[-.35,-.15];p.armF=[-.3,1.6];p.armB=[-.8,1.9];p.lean=ph*.2;p.hip=d.h*.44;}
-else if(f.atk&&f.atk.t==='jkick'){p.legF=[lerp(.5,1.4,ph),-.1];p.legB=[-.8,-1.4];p.armF=[-.6,1.5];p.armB=[-1.3,-.4];}
+p.legB=[-.35,-.15];p.footF=[d.h*(.07+ph*.41),-d.h*ph*.36];p.footB=[-d.h*.08,0];p.armF=[-.3,1.6];p.armB=[-.8,1.9];p.lean=ph*.2;p.hip=d.h*.44;}
+else if(f.atk&&f.atk.t==='jkick'){p.legF=[lerp(.5,1.4,ph),-.1];p.legB=[-.8,-1.4];p.footF=[d.h*.44,-d.h*.18];p.footB=[-d.h*.32,-d.h*.18];p.armF=[-.6,1.5];p.armB=[-1.3,-.4];}
 else if(f.atk&&f.atk.t==='upper'){p.armF=[lerp(1.2,2.7,ph),.1];p.armB=[-.6,2];p.lean=-ph*.2;p.legF=[.4,-.2];p.legB=[-.5,-.2];}
-else if(f.atk&&f.atk.t==='sweep'){p.hip=d.h*.18;p.legF=[lerp(.5,1.55,ph),-.05];p.legB=[-1.2,-1.9];p.armF=[.9,2.2];p.armB=[-.9,1.8];}
+else if(f.atk&&f.atk.t==='sweep'){p.hip=d.h*.20;p.legF=[lerp(.5,1.55,ph),-.05];p.legB=[-1.2,-1.9];p.footF=[d.h*(.10+ph*.34),0];p.footB=[-d.h*.10,0];p.armF=[.9,2.2];p.armB=[-.9,1.8];}
 else if(f.atk&&f.atk.t==='throw'){const A=f.atk.A,th=(f.atk.grabbed||f.atk.thrown)?Math.min(1,(f.st-(A.wd+A.ac))/8):0;p.armF=[lerp(.7,1.95,ph)+th*.35,lerp(1.9,.15,ph)];p.armB=[lerp(-.5,1.25,ph)+th*.45,lerp(2.1,.25,ph)];p.lean=ph*.25-th*.42;p.hip=d.h*.44;p.legF=[.55,-.2];p.legB=[-.6,-.2];}}
-else if(s==='grabbed'){p.lean=.28;p.armF=[.9,1.1];p.armB=[-.9,1];p.legF=[.85,-1.1];p.legB=[-.9,-.9];p.head=.25;}
-else if(s==='hit'){p.lean=-.35;p.armF=[-.6,1.2];p.armB=[-1.1,1];p.head=-.3;p.legF=[.6,-.3];p.legB=[-.6,-.2];}
+else if(s==='grabbed'){p.lean=.28;p.armF=[.9,1.1];p.armB=[-.9,1];p.legF=[.85,-1.1];p.legB=[-.9,-.9];p.footF=[d.h*.35,-d.h*.19];p.footB=[-d.h*.35,-d.h*.17];p.head=.25;}
+else if(s==='hit'){p.lean=-.35;p.armF=[-.6,1.2];p.armB=[-1.1,1];p.head=-.3;p.legF=[.6,-.3];p.legB=[-.6,-.2];p.footF=[d.h*.08,0];p.footB=[-d.h*.10,0];}
 else if(s==='cast'||s==='super'){const ph=Math.min(1,f.st/12);p.armF=[lerp(-.5,1.5,ph),lerp(2,.1,ph)];p.armB=[lerp(-.8,1.3,ph),lerp(2,.2,ph)];p.lean=ph*.2;
 const ci={1:[[.2,1.2],[.1,1.1]],2:[[2.6,0],[-2.6,.1]],3:[[1.8,.6],[-.5,1.8]],4:[[1.2,.5],[-.6,1.8]],5:[[.6,1.2],[-.6,1.3]],6:[[2.4,.3],[-.4,1.8]],7:[[1.5,.05],[1.2,.2]],8:[[1.6,.2],[-.9,1.6]],9:[[1.5,.1],[1.3,.2]],10:[[1.7,.35],[1.35,.45]],11:[[1.9,-.1],[-.4,2.1]],12:[[1.55,-.05],[-.5,1.7]]}[d.id];// 30.09: Вега — поза лучницы
 if(ci){p.armF=[lerp(-.5,ci[0][0],ph),lerp(2,ci[0][1],ph)];p.armB=[lerp(-.8,ci[1][0],ph),lerp(2,ci[1][1],ph)];}}// 08.09: уникальные позы каста — Вольт руки вверх, Базальт бьёт в пол, Ржавый/Кайзер руки вперёд и т.д.

@@ -3393,6 +3393,32 @@
       g.fill();
       return { x: ex, y: ey, sx: x, sy: y, mx, my };
     }
+    function legIK(x, y, tx, ty, l1, l2, dir = 1) {
+      let dx = tx - x, dy = ty - y, d = Math.hypot(dx, dy);
+      if (d < 1e-3) {
+        dx = 0;
+        dy = 1;
+        d = 1e-3;
+      }
+      const min = Math.abs(l1 - l2) + 0.02, max = l1 + l2 - 0.02;
+      if (d < min || d > max) {
+        const k = Math.max(min, Math.min(max, d));
+        dx = dx / d * k;
+        dy = dy / d * k;
+        d = k;
+        tx = x + dx;
+        ty = y + dy;
+      }
+      const base4 = Math.atan2(dx, dy);
+      const cosA = Math.max(-1, Math.min(1, (l1 * l1 + d * d - l2 * l2) / (2 * l1 * d)));
+      const a1 = base4 + dir * Math.acos(cosA);
+      const kx = x + Math.sin(a1) * l1, ky = y + Math.cos(a1) * l1;
+      return [a1, Math.atan2(tx - kx, ty - ky) - a1];
+    }
+    function leg2(x, y, target, l1, l2, w1, w2, fill, opts = {}, dir = 1) {
+      const t = target || [x, 0], a = legIK(x, y, t[0], t[1], l1, l2, dir);
+      return limb2(x, y, a[0], a[1], l1, l2, w1, w2, fill, opts);
+    }
     function boot(x, y, w, h, fill) {
       const bx = x - w * 0.48, by = y - h;
       shape([["M", bx, by], ["L", x + w * 0.34, by], ["L", x + w * 0.56, y - h * 0.55], ["L", x + w * 0.95, y - h * 0.12], ["L", x + w * 0.95, y], ["L", x - w * 0.55, y], ["L", x - w * 0.55, y - h * 0.32]], fill, OUT, 1.15);
@@ -4342,7 +4368,8 @@
       const glove = look.glove === "skin" ? skin : look.glove === "wrap" ? shade(ac, 0.35) : look.glove === "accent" ? ac : look.glove === "claw" ? skin : shade(suit, 0.3);
       if (d.cape && !f.charred) drawCape(f, H, shY, hipY, shX, suit, ac);
       if (d.blade && !(f.state === "atk" || f.state === "cast" || f.state === "dash")) drawSheath(H, shY, hipY, suit, ac);
-      const bl = limb2(-hipW * 0.5, hipY, p.legB[0], p.legB[1], H * 0.25, H * 0.23, legW, legW * 0.82, shade(suit, 0.48), { noLight: true });
+      const footF = p.footF || [H * 0.07, 0], footB = p.footB || [-H * 0.08, 0];
+      const bl = leg2(-hipW * 0.5, hipY, footB, H * 0.25, H * 0.23, legW, legW * 0.82, shade(suit, 0.48), { noLight: true }, 1);
       legGear(bl, legW, shade(suit, 0.48), shade(ac, 0.6), look, true);
       boot(bl.x, bl.y, H * 0.14, H * 0.105, shade(suit, 0.35));
       const ba = limb2(-shoulderW * 0.55 + shX, shY + 2, p.armB[0], p.armB[1], H * 0.19, H * 0.17, armW * 0.9, armW * 0.74, shade(sleeve, 0.58), { noLight: true });
@@ -4350,7 +4377,7 @@
       hand(ba.x, ba.y, H * 0.075, H * 0.082, shade(glove, 0.6));
       drawPelvis(H, hipY, hipW, suit, ac, look);
       drawTorso(H, d, f, hipY, shY, shX, shoulderW, waistW, hipW, suit, ac, look);
-      const fl = limb2(hipW * 0.5, hipY, p.legF[0], p.legF[1], H * 0.25, H * 0.23, legW, legW * 0.82, suit);
+      const fl = leg2(hipW * 0.5, hipY, footF, H * 0.25, H * 0.23, legW, legW * 0.82, suit, {}, 1);
       legGear(fl, legW, suit, ac, look, false);
       boot(fl.x, fl.y, H * 0.145, H * 0.11, shade(suit, 0.5));
       if (d.dress) drawDress(H, hipY, shX, hipW, suit, ac);
@@ -5067,7 +5094,7 @@
     }
     function pose(f) {
       const d = f.def, t = f.animT, s = f.state;
-      let p = { hip: d.h * 0.47, lean: 0, armF: [0.7, 1.9], armB: [-0.5, 2.1], legF: [0.45, -0.15], legB: [-0.45, -0.2], head: 0 };
+      let p = { hip: d.h * 0.45, lean: 0, armF: [0.7, 1.9], armB: [-0.5, 2.1], legF: [0.45, -0.15], legB: [-0.45, -0.2], footF: [d.h * 0.07, 0], footB: [-d.h * 0.08, 0], head: 0 };
       const bob = Math.sin(t * 0.09) * 1.4;
       if (s === "idle") {
         p.hip += bob * 0.4;
@@ -5142,9 +5169,13 @@
         p.armB = [-0.5 + c * 0.4 * aa, 2];
         p.hip += Math.abs(c) * W[3];
         p.lean = W[4];
+        p.footF = [d.h * (0.07 + c * 0.075), -Math.max(0, c) * d.h * 0.065];
+        p.footB = [d.h * (-0.08 - c * 0.075), -Math.max(0, -c) * d.h * 0.065];
       } else if (s === "jump") {
         p.legF = [0.9, -1.9];
         p.legB = [-0.6, -1.7];
+        p.footF = [d.h * 0.42, -d.h * 0.19];
+        p.footB = [-d.h * 0.36, -d.h * 0.23];
         p.armF = [1.8, -0.4];
         p.armB = [-1.2, -0.3];
       } else if (s === "dash") {
@@ -5152,13 +5183,18 @@
         p.hip = d.h * 0.36;
         p.legF = [1.25, -0.7];
         p.legB = [-1, -0.35];
+        p.footF = [d.h * 0.36, 0];
+        p.footB = [-d.h * 0.28, -d.h * 0.01];
         p.armF = [-0.9, 1.4];
         p.armB = [1.3, 1.1];
         p.head = 0.1;
       } else if (s === "crouch") {
-        p.hip = d.h * 0.24;
+        p.hip = d.h * 0.28;
+        p.lean = 0.1;
         p.legF = [1.1, -2.2];
         p.legB = [-1.1, -2];
+        p.footF = [d.h * 0.16, 0];
+        p.footB = [-d.h * 0.13, 0];
         p.armF = [0.9, 2];
         p.armB = [-0.3, 2.2];
       } else if (s === "block") {
@@ -5166,6 +5202,8 @@
         p.armB = [0.95, 2.1];
         p.legF = [0.35, -0.2];
         p.legB = [-0.5, -0.2];
+        p.footF = [d.h * 0.07, 0];
+        p.footB = [-d.h * 0.09, 0];
         p.lean = 0.05;
       } else if (s === "atk") {
         const ph = f.atk ? Math.min(1, f.st / f.atk.A.wd) : 0;
@@ -5176,6 +5214,8 @@
         } else if (f.atk && (f.atk.t === "kick" || f.atk.t === "rh")) {
           p.legF = [lerp(0.3, 1.5, ph), lerp(-0.5, -0.05, ph)];
           p.legB = [-0.35, -0.15];
+          p.footF = [d.h * (0.07 + ph * 0.41), -d.h * ph * 0.36];
+          p.footB = [-d.h * 0.08, 0];
           p.armF = [-0.3, 1.6];
           p.armB = [-0.8, 1.9];
           p.lean = ph * 0.2;
@@ -5183,6 +5223,8 @@
         } else if (f.atk && f.atk.t === "jkick") {
           p.legF = [lerp(0.5, 1.4, ph), -0.1];
           p.legB = [-0.8, -1.4];
+          p.footF = [d.h * 0.44, -d.h * 0.18];
+          p.footB = [-d.h * 0.32, -d.h * 0.18];
           p.armF = [-0.6, 1.5];
           p.armB = [-1.3, -0.4];
         } else if (f.atk && f.atk.t === "upper") {
@@ -5192,9 +5234,11 @@
           p.legF = [0.4, -0.2];
           p.legB = [-0.5, -0.2];
         } else if (f.atk && f.atk.t === "sweep") {
-          p.hip = d.h * 0.18;
+          p.hip = d.h * 0.2;
           p.legF = [lerp(0.5, 1.55, ph), -0.05];
           p.legB = [-1.2, -1.9];
+          p.footF = [d.h * (0.1 + ph * 0.34), 0];
+          p.footB = [-d.h * 0.1, 0];
           p.armF = [0.9, 2.2];
           p.armB = [-0.9, 1.8];
         } else if (f.atk && f.atk.t === "throw") {
@@ -5212,6 +5256,8 @@
         p.armB = [-0.9, 1];
         p.legF = [0.85, -1.1];
         p.legB = [-0.9, -0.9];
+        p.footF = [d.h * 0.35, -d.h * 0.19];
+        p.footB = [-d.h * 0.35, -d.h * 0.17];
         p.head = 0.25;
       } else if (s === "hit") {
         p.lean = -0.35;
@@ -5220,6 +5266,8 @@
         p.head = -0.3;
         p.legF = [0.6, -0.3];
         p.legB = [-0.6, -0.2];
+        p.footF = [d.h * 0.08, 0];
+        p.footB = [-d.h * 0.1, 0];
       } else if (s === "cast" || s === "super") {
         const ph = Math.min(1, f.st / 12);
         p.armF = [lerp(-0.5, 1.5, ph), lerp(2, 0.1, ph)];
