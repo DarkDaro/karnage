@@ -9,7 +9,8 @@
 частицы, боец, боевые расчёты и ввод — в `src/game/core/state.js`,
 `src/game/fx/particles.js`, `src/game/fighter.js`, `src/game/combat.js` и
 `src/game/input.js`, бойцы, портреты, HUD и эффекты — в
-`src/render/render.js`, звук, WAV/MP3-банк, SFX и музыка — в
+`src/render/render.js`, титул, логотип и меню — в `src/render/ui-art.js`,
+звук, WAV/MP3-банк, SFX и музыка — в
 `src/audio/audio.js`, HTML/CSS/шрифты — в `assets`. Основная логика пока
 остаётся в обёртке монолита;
 `src/legacy/karnage.js` — замороженная копия для сравнения. `tools/build.mjs`

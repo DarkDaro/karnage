@@ -1,4 +1,4 @@
-/* global window, document */
+/* global window, document, CanvasRenderingContext2D */
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { after, before, test } from 'node:test';
@@ -62,7 +62,6 @@ test('touch controls navigate the menu and hold fight buttons', async () => {
   await page.locator('[data-key="d"]').tap();
   await page.locator('[data-key="d"]').tap();
   await page.locator('[data-key="d"]').tap();
-  await page.locator('[data-key="d"]').tap();
   await page.locator('[data-key="P"]').tap();
   const game = await page.evaluate(() => window.KARNAGE.snapshot().GAME);
   assert.equal(game, 'settings');
@@ -81,6 +80,38 @@ test('touch controls navigate the menu and hold fight buttons', async () => {
   const released = await page.evaluate(() => window.KARNAGE.TOUCH.P);
   assert.equal(held, 1);
   assert.equal(released, 0);
+});
+
+test('touch menu hides 2P and training hints use touch buttons', async () => {
+  const result = await page.evaluate(() => {
+    const K = window.KARNAGE;
+    const capture = (draw) => {
+      const proto = CanvasRenderingContext2D.prototype;
+      const original = proto.fillText;
+      const texts = [];
+      proto.fillText = function (text, ...args) { texts.push(String(text)); return original.call(this, text, ...args); };
+      try {
+        draw();
+      } finally {
+        proto.fillText = original;
+      }
+      return texts;
+    };
+    K.toLobby('menu');
+    const menu = capture(() => K.render());
+    K.onKey('ArrowDown');
+    K.onKey('ArrowDown');
+    K.onKey('Enter');
+    K.onKey('Enter');
+    const battle = K.battle;
+    const training = capture(() => K.render());
+    return { mode: battle && battle.mode, menu, training };
+  });
+  assert.equal(result.mode, 'training');
+  assert.equal(result.menu.some((text) => text.includes('БОЙ НА ДВОИХ')), false);
+  assert.ok(result.training.some((text) => text.includes('B — БЛОК')));
+  assert.ok(result.training.some((text) => text.includes('Ⅱ — ПРИЁМЫ')));
+  assert.equal(result.training.some((text) => text.includes('T — БЛОК') || text.includes('R — СБРОС') || text.includes('ESC')), false);
 });
 
 test('touch button releases when pointerup lands outside it', async () => {

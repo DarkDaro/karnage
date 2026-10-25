@@ -35,3 +35,11 @@ test('arena and ending text has no empty or broken lines', () => {
     for (const line of ending.lines) cleanText(line, ending.title);
   }
 });
+
+test('every ending is tied to a fighter id', () => {
+  assert.equal(ENDINGS.length, CH.length);
+  for (let i = 0; i < CH.length; i += 1) {
+    assert.equal(ENDINGS[i].id, CH[i].id, `ending ${i}`);
+  }
+  assert.equal(new Set(ENDINGS.map((ending) => ending.id)).size, ENDINGS.length);
+});

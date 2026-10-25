@@ -1,4 +1,4 @@
-/* global window, localStorage, document */
+/* global window, localStorage, document, CanvasRenderingContext2D */
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { after, before, test } from 'node:test';
@@ -424,10 +424,78 @@ test('round curtain waits for the fight screen', async () => {
   assert.ok(result.after.announce > 0);
 });
 
+test('boss portrait does not reuse the base Kaiser canvas', async () => {
+  const result = await page.evaluate(() => {
+    const K = window.KARNAGE;
+    const canvas = document.querySelector('canvas');
+    const ctx = canvas.getContext('2d');
+    const clear = () => {
+      ctx.save();
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.restore();
+    };
+    clear();
+    K.drawPort(K.BOSS, 24, 26.5, .8);
+    const boss = canvas.toDataURL();
+    clear();
+    K.drawPort(K.CH[9], 24, 26.5, .8);
+    const base = canvas.toDataURL();
+    clear();
+    return { different: boss !== base, boss: boss.length, base: base.length };
+  });
+  assert.equal(result.different, true);
+});
+
+test('reduce motion freezes the title animation', async () => {
+  const result = await page.evaluate(() => {
+    const K = window.KARNAGE;
+    const canvas = document.querySelector('canvas');
+    K.toLobby('title');
+    K.OPT.reduce = true;
+    K.render();
+    const first = canvas.toDataURL();
+    K.step();
+    K.render();
+    const second = canvas.toDataURL();
+    K.OPT.reduce = false;
+    K.step();
+    K.render();
+    const moving = canvas.toDataURL();
+    return { frozen: first === second, moving: second !== moving };
+  });
+  assert.equal(result.frozen, true);
+  assert.equal(result.moving, true);
+});
+
+test('title counts come from roster data', async () => {
+  const result = await page.evaluate(() => {
+    const K = window.KARNAGE;
+    localStorage.removeItem('karnageTop');
+    K.toLobby('title');
+    const proto = CanvasRenderingContext2D.prototype;
+    const original = proto.fillText;
+    const texts = [];
+    proto.fillText = function (text, ...args) { texts.push(String(text)); return original.call(this, text, ...args); };
+    try {
+      K.render();
+    } finally {
+      proto.fillText = original;
+    }
+    return { texts, fighters: K.CH.length, arenas: K.AR.length };
+  });
+  assert.ok(result.texts.includes(`${result.fighters} БОЙЦОВ · ${result.arenas} АРЕН · ОДИН ПОБЕДИТЕЛЬ`));
+});
+
 test('render does not spawn explosion particles', async () => {
   const result = await page.evaluate(() => {
     const K = window.KARNAGE;
+    K.newBattle(0, new K.Ctrl(K.KM1), 1, new K.Ctrl(K.KM2), 9);
+    const battle = K.battle;
+    battle.phase = 'fight';
+    battle.phaseT = 200;
     K.setDebug({ GAME: 'fight', paused: true });
+    K.parts.length = 0;
     K.fx.length = 0;
     K.fx.push({ ty: 'boom', x: 300, y: 100, t: 3 });
     const before = K.parts.length;
@@ -762,15 +830,23 @@ test('training mode uses a passive dummy with endless resources', async () => {
     K.onKey('KeyR');
     const reset = { x: b.p1.x, p2x: b.p2.x, hp: b.p2.hp, timer: b.timer, phase: b.phase, block: b.trainBlock };
     let render = 'ok';
+    let pauseTexts = [];
     try {
       K.render();
+      const proto = CanvasRenderingContext2D.prototype;
+      const original = proto.fillText;
       K.setDebug({ paused: true });
-      K.render();
+      proto.fillText = function (text, ...args) { pauseTexts.push(String(text)); return original.call(this, text, ...args); };
+      try {
+        K.render();
+      } finally {
+        proto.fillText = original;
+      }
       K.setDebug({ paused: false });
     } catch (error) {
       render = `${error.name}: ${error.message}`;
     }
-    return { selected, started, block, hit, input, safe, reset, render };
+    return { selected, started, block, hit, input, safe, reset, render, pauseTexts };
   });
   assert.equal(result.selected, 'select');
   assert.equal(result.started.game, 'fight');
@@ -792,6 +868,11 @@ test('training mode uses a passive dummy with endless resources', async () => {
   assert.equal(result.safe.rage, 100);
   assert.deepEqual(result.reset, { x: 300, p2x: 380, hp: 100, timer: 99, phase: 'fight', block: false });
   assert.equal(result.render, 'ok');
+  assert.ok(result.pauseTexts.includes('ПАССИВНЫЙ'));
+  assert.ok(result.pauseTexts.includes('НЕ АТАКУЕТ'));
+  assert.ok(result.pauseTexts.includes('T — БЛОК') || result.pauseTexts.includes('B — БЛОК'));
+  assert.equal(result.pauseTexts.includes('СПЕЦ: —'), false);
+  assert.equal(result.pauseTexts.filter((text) => text.startsWith('ФАТАЛИТИ:')).length, 1);
 });
 
 test('interrupted special does not leak spec2go', async () => {

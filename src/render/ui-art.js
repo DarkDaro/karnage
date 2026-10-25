@@ -466,7 +466,8 @@ export function createUiArt({ RW, RH }) {
     context.drawImage(base.canvas, 0, 0, RW, RH);
   }
 
-  function drawTitleBackground(context, time) {
+  function drawTitleBackground(context, time, reduce = false) {
+    if (reduce) time = 0;
     ensureTitle();
     context.drawImage(title.canvas, 0, 0, RW, RH);
 
@@ -495,7 +496,8 @@ export function createUiArt({ RW, RH }) {
     }
   }
 
-  function drawLogo(context, time) {
+  function drawLogo(context, time, reduce = false) {
+    if (reduce) time = 0;
     ensureLogo();
     const breathe = 1 + .004 * Math.sin(time * .025);
     context.save();
@@ -519,7 +521,8 @@ export function createUiArt({ RW, RH }) {
     context.restore();
   }
 
-  function drawMenuBackground(context, time) {
+  function drawMenuBackground(context, time, reduce = false) {
+    if (reduce) time = 0;
     ensureTitle();
     context.save();
     context.globalAlpha = .82;

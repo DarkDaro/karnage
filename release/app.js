@@ -735,19 +735,19 @@
 
   // src/data/endings.js
   var ENDINGS = [
-    { title: "\u041F\u0415\u041F\u0415\u041B \u041D\u0410 \u0412\u0415\u0422\u0420\u0423", lines: ["\u0410\u0440\u0435\u043D\u0430 \u043E\u0441\u0442\u044B\u043B\u0430, \u043D\u043E \u0443\u0433\u043B\u0438 \u0435\u0449\u0451 \u0434\u044B\u0448\u0430\u0442.", "\u042D\u043C\u0431\u0435\u0440 \u0443\u0445\u043E\u0434\u0438\u0442 \u043F\u0435\u0440\u0432\u043E\u0439."], col: "#f0a032" },
-    { title: "\u0422\u0415\u041D\u042C \u0411\u0415\u0417 \u0425\u041E\u0417\u042F\u0418\u041D\u0410", lines: ["\u041E\u043D \u0432\u0435\u0440\u043D\u0443\u043B \u0434\u043E\u043B\u0433 \u0438 \u0437\u0430\u0431\u0440\u0430\u043B \u0438\u043C\u044F.", "\u0422\u0435\u043F\u0435\u0440\u044C \u0442\u0438\u0448\u0438\u043D\u0430 \u0433\u043E\u0432\u043E\u0440\u0438\u0442 \u0435\u0433\u043E \u0433\u043E\u043B\u043E\u0441\u043E\u043C."], col: "#9fb4bd" },
-    { title: "\u041F\u041E\u0421\u041B\u0415\u0414\u041D\u0418\u0419 \u0420\u0410\u0417\u0420\u042F\u0414", lines: ["\u0413\u0440\u043E\u0437\u0430 \u0443\u0448\u043B\u0430 \u0432 \u043F\u0440\u043E\u0432\u043E\u0434\u0430.", "\u0412\u043E\u043B\u044C\u0442 \u043E\u0441\u0442\u0430\u0432\u0438\u043B \u0441\u0432\u0435\u0442 \u0442\u043E\u043B\u044C\u043A\u043E \u0432 \u0433\u043B\u0430\u0437\u0430\u0445."], col: "#f2d23a" },
-    { title: "\u041A\u0410\u041C\u0415\u041D\u042C \u041D\u0415 \u0413\u041D\u0401\u0422\u0421\u042F", lines: ["\u041A\u043E\u0440\u043E\u043D\u0430 \u0442\u0440\u0435\u0441\u043D\u0443\u043B\u0430 \u043E \u0435\u0433\u043E \u043F\u043B\u0435\u0447\u0438.", "\u0411\u0430\u0437\u0430\u043B\u044C\u0442 \u0432\u0435\u0440\u043D\u0443\u043B\u0441\u044F \u0432 \u043D\u0435\u0434\u0440\u0430."], col: "#c8a040" },
-    { title: "\u042F\u0414 \u041F\u0420\u041E\u0422\u0418\u0412 \u0417\u041E\u041B\u041E\u0422\u0410", lines: ["\u0417\u043E\u043B\u043E\u0442\u043E \u0430\u0440\u0435\u043D\u044B \u0441\u0442\u0430\u043B\u043E \u0437\u0435\u043B\u0451\u043D\u044B\u043C.", "\u0424\u044D\u043D\u0433 \u043D\u0435 \u043E\u0441\u0442\u0430\u0432\u0438\u043B \u0442\u0435\u043B, \u0442\u043E\u043B\u044C\u043A\u043E \u0441\u043B\u0443\u0445\u0438."], col: "#7ac83a" },
-    { title: "\u041F\u0423\u0421\u0422\u042B\u041D\u042F \u0417\u0410\u0411\u0420\u0410\u041B\u0410 \u0410\u0420\u0415\u041D\u0423", lines: ["\u041F\u0435\u0441\u043E\u043A \u0437\u0430\u0441\u044B\u043F\u0430\u043B \u0442\u0440\u0438\u0431\u0443\u043D\u044B.", "\u0421\u0430\u0445\u0440\u0430 \u0443\u0448\u043B\u0430 \u0442\u0443\u0434\u0430, \u0433\u0434\u0435 \u043D\u0435\u0442 \u043A\u0430\u0440\u0442."], col: "#c8a060" },
-    { title: "\u0422\u0418\u0428\u0418\u041D\u0410 \u041F\u041E\u0414\u041E \u041B\u042C\u0414\u041E\u041C", lines: ["\u041F\u043E\u0441\u043B\u0435\u0434\u043D\u0438\u0439 \u0432\u044B\u0441\u0442\u0440\u0435\u043B \u0437\u0430\u043C\u0451\u0440\u0437 \u043D\u0430 \u043B\u0435\u0442\u0443.", "\u041A\u0440\u0438\u043E \u0432\u043F\u0435\u0440\u0432\u044B\u0435 \u043D\u0435 \u0441\u043B\u044B\u0448\u0438\u0442 \u044D\u0445\u0430."], col: "#c8ecff" },
-    { title: "\u041C\u0415\u0422\u0410\u041B\u041B \u041F\u041E\u041C\u041D\u0418\u0422", lines: ["\u041A\u0430\u0436\u0434\u044B\u0439 \u0443\u0434\u0430\u0440 \u043E\u0441\u0442\u0430\u043B\u0441\u044F \u0432\u043C\u044F\u0442\u0438\u043D\u043E\u0439.", "\u0420\u0436\u0430\u0432\u044B\u0439 \u0443\u0445\u043E\u0434\u0438\u0442 \u0432 \u043B\u043E\u043C, \u043D\u043E \u043D\u0435 \u0441\u0434\u0430\u0451\u0442\u0441\u044F."], col: "#d84a2a" },
-    { title: "\u0427\u0423\u0416\u0418\u0415 \u0413\u041E\u041B\u041E\u0421\u0410", lines: ["\u0412\u043E\u0440\u043E\u043D\u043A\u0430 \u0437\u0430\u043A\u0440\u044B\u043B\u0430\u0441\u044C \u0438\u0437\u043D\u0443\u0442\u0440\u0438.", "\u041D\u043E\u043A\u0442\u044E\u0440\u043D \u0443\u043D\u0451\u0441 \u0432\u0441\u0435 \u0438\u043C\u0435\u043D\u0430, \u043A\u0440\u043E\u043C\u0435 \u0441\u0432\u043E\u0435\u0433\u043E."], col: "#7a3aa8" },
-    { title: "\u041A\u041E\u0420\u041E\u041D\u0410 \u0418\u0417 \u0422\u0415\u041D\u0418", lines: ["\u041F\u0440\u0430\u0439\u043C \u043F\u0430\u043B \u043E\u0442 \u0441\u043E\u0431\u0441\u0442\u0432\u0435\u043D\u043D\u043E\u0439 \u043A\u043E\u043F\u0438\u0438.", "\u041A\u0430\u0439\u0437\u0435\u0440 \u043D\u0435 \u0441\u0442\u0430\u043B \u043D\u0430\u0434\u0435\u0432\u0430\u0442\u044C \u043A\u043E\u0440\u043E\u043D\u0443."], col: "#f0c850" },
-    { title: "\u041A\u0420\u041E\u0412\u042C \u041D\u0410 \u0411\u0415\u041B\u041E\u041C", lines: ["\u0410\u0440\u0435\u043D\u0430 \u0441\u0442\u0430\u043B\u0430 \u0435\u0451 \u0445\u043E\u043B\u0441\u0442\u043E\u043C.", "\u041A\u0430\u0440\u043C\u0438\u043D \u043F\u043E\u0434\u043F\u0438\u0441\u0430\u043B\u0430 \u043F\u0440\u0438\u0433\u043E\u0432\u043E\u0440."], col: "#d82040" },
-    { title: "\u0414\u041E \u0420\u0410\u0421\u0421\u0412\u0415\u0422\u0410", lines: ["\u041B\u0443\u043D\u0430 \u043F\u0440\u043E\u0432\u043E\u0434\u0438\u043B\u0430 \u043A\u043B\u0438\u043D\u043E\u043A.", "\u0410\u044F\u043C\u044D \u0438\u0441\u0447\u0435\u0437\u043B\u0430 \u0440\u0430\u043D\u044C\u0448\u0435, \u0447\u0435\u043C \u0441\u0442\u0438\u0445\u043B\u043E \u044D\u0445\u043E."], col: "#7ac8d8" },
-    { title: "\u0417\u0412\u0401\u0417\u0414\u042B \u0421\u041E\u0428\u041B\u0418\u0421\u042C", lines: ["\u041C\u0435\u0442\u043A\u0430 \u043F\u043E\u0433\u0430\u0441\u043B\u0430 \u043D\u0430 \u043F\u043E\u0441\u043B\u0435\u0434\u043D\u0435\u043C \u0443\u0434\u0430\u0440\u0435.", "\u0412\u0435\u0433\u0430 \u0432\u044B\u0431\u0440\u0430\u043B\u0430 \u0434\u043E\u0440\u043E\u0433\u0443 \u0434\u043E\u043C\u043E\u0439."], col: "#b89aff" }
+    { id: 0, title: "\u041F\u0415\u041F\u0415\u041B \u041D\u0410 \u0412\u0415\u0422\u0420\u0423", lines: ["\u0410\u0440\u0435\u043D\u0430 \u043E\u0441\u0442\u044B\u043B\u0430, \u043D\u043E \u0443\u0433\u043B\u0438 \u0435\u0449\u0451 \u0434\u044B\u0448\u0430\u0442.", "\u042D\u043C\u0431\u0435\u0440 \u0443\u0445\u043E\u0434\u0438\u0442 \u043F\u0435\u0440\u0432\u043E\u0439."], col: "#f0a032" },
+    { id: 1, title: "\u0422\u0415\u041D\u042C \u0411\u0415\u0417 \u0425\u041E\u0417\u042F\u0418\u041D\u0410", lines: ["\u041E\u043D \u0432\u0435\u0440\u043D\u0443\u043B \u0434\u043E\u043B\u0433 \u0438 \u0437\u0430\u0431\u0440\u0430\u043B \u0438\u043C\u044F.", "\u0422\u0435\u043F\u0435\u0440\u044C \u0442\u0438\u0448\u0438\u043D\u0430 \u0433\u043E\u0432\u043E\u0440\u0438\u0442 \u0435\u0433\u043E \u0433\u043E\u043B\u043E\u0441\u043E\u043C."], col: "#9fb4bd" },
+    { id: 2, title: "\u041F\u041E\u0421\u041B\u0415\u0414\u041D\u0418\u0419 \u0420\u0410\u0417\u0420\u042F\u0414", lines: ["\u0413\u0440\u043E\u0437\u0430 \u0443\u0448\u043B\u0430 \u0432 \u043F\u0440\u043E\u0432\u043E\u0434\u0430.", "\u0412\u043E\u043B\u044C\u0442 \u043E\u0441\u0442\u0430\u0432\u0438\u043B \u0441\u0432\u0435\u0442 \u0442\u043E\u043B\u044C\u043A\u043E \u0432 \u0433\u043B\u0430\u0437\u0430\u0445."], col: "#f2d23a" },
+    { id: 3, title: "\u041A\u0410\u041C\u0415\u041D\u042C \u041D\u0415 \u0413\u041D\u0401\u0422\u0421\u042F", lines: ["\u041A\u043E\u0440\u043E\u043D\u0430 \u0442\u0440\u0435\u0441\u043D\u0443\u043B\u0430 \u043E \u0435\u0433\u043E \u043F\u043B\u0435\u0447\u0438.", "\u0411\u0430\u0437\u0430\u043B\u044C\u0442 \u0432\u0435\u0440\u043D\u0443\u043B\u0441\u044F \u0432 \u043D\u0435\u0434\u0440\u0430."], col: "#c8a040" },
+    { id: 4, title: "\u042F\u0414 \u041F\u0420\u041E\u0422\u0418\u0412 \u0417\u041E\u041B\u041E\u0422\u0410", lines: ["\u0417\u043E\u043B\u043E\u0442\u043E \u0430\u0440\u0435\u043D\u044B \u0441\u0442\u0430\u043B\u043E \u0437\u0435\u043B\u0451\u043D\u044B\u043C.", "\u0424\u044D\u043D\u0433 \u043D\u0435 \u043E\u0441\u0442\u0430\u0432\u0438\u043B \u0442\u0435\u043B, \u0442\u043E\u043B\u044C\u043A\u043E \u0441\u043B\u0443\u0445\u0438."], col: "#7ac83a" },
+    { id: 5, title: "\u041F\u0423\u0421\u0422\u042B\u041D\u042F \u0417\u0410\u0411\u0420\u0410\u041B\u0410 \u0410\u0420\u0415\u041D\u0423", lines: ["\u041F\u0435\u0441\u043E\u043A \u0437\u0430\u0441\u044B\u043F\u0430\u043B \u0442\u0440\u0438\u0431\u0443\u043D\u044B.", "\u0421\u0430\u0445\u0440\u0430 \u0443\u0448\u043B\u0430 \u0442\u0443\u0434\u0430, \u0433\u0434\u0435 \u043D\u0435\u0442 \u043A\u0430\u0440\u0442."], col: "#c8a060" },
+    { id: 6, title: "\u0422\u0418\u0428\u0418\u041D\u0410 \u041F\u041E\u0414\u041E \u041B\u042C\u0414\u041E\u041C", lines: ["\u041F\u043E\u0441\u043B\u0435\u0434\u043D\u0438\u0439 \u0432\u044B\u0441\u0442\u0440\u0435\u043B \u0437\u0430\u043C\u0451\u0440\u0437 \u043D\u0430 \u043B\u0435\u0442\u0443.", "\u041A\u0440\u0438\u043E \u0432\u043F\u0435\u0440\u0432\u044B\u0435 \u043D\u0435 \u0441\u043B\u044B\u0448\u0438\u0442 \u044D\u0445\u0430."], col: "#c8ecff" },
+    { id: 7, title: "\u041C\u0415\u0422\u0410\u041B\u041B \u041F\u041E\u041C\u041D\u0418\u0422", lines: ["\u041A\u0430\u0436\u0434\u044B\u0439 \u0443\u0434\u0430\u0440 \u043E\u0441\u0442\u0430\u043B\u0441\u044F \u0432\u043C\u044F\u0442\u0438\u043D\u043E\u0439.", "\u0420\u0436\u0430\u0432\u044B\u0439 \u0443\u0445\u043E\u0434\u0438\u0442 \u0432 \u043B\u043E\u043C, \u043D\u043E \u043D\u0435 \u0441\u0434\u0430\u0451\u0442\u0441\u044F."], col: "#d84a2a" },
+    { id: 8, title: "\u0427\u0423\u0416\u0418\u0415 \u0413\u041E\u041B\u041E\u0421\u0410", lines: ["\u0412\u043E\u0440\u043E\u043D\u043A\u0430 \u0437\u0430\u043A\u0440\u044B\u043B\u0430\u0441\u044C \u0438\u0437\u043D\u0443\u0442\u0440\u0438.", "\u041D\u043E\u043A\u0442\u044E\u0440\u043D \u0443\u043D\u0451\u0441 \u0432\u0441\u0435 \u0438\u043C\u0435\u043D\u0430, \u043A\u0440\u043E\u043C\u0435 \u0441\u0432\u043E\u0435\u0433\u043E."], col: "#7a3aa8" },
+    { id: 9, title: "\u041A\u041E\u0420\u041E\u041D\u0410 \u0418\u0417 \u0422\u0415\u041D\u0418", lines: ["\u041F\u0440\u0430\u0439\u043C \u043F\u0430\u043B \u043E\u0442 \u0441\u043E\u0431\u0441\u0442\u0432\u0435\u043D\u043D\u043E\u0439 \u043A\u043E\u043F\u0438\u0438.", "\u041A\u0430\u0439\u0437\u0435\u0440 \u043D\u0435 \u0441\u0442\u0430\u043B \u043D\u0430\u0434\u0435\u0432\u0430\u0442\u044C \u043A\u043E\u0440\u043E\u043D\u0443."], col: "#f0c850" },
+    { id: 10, title: "\u041A\u0420\u041E\u0412\u042C \u041D\u0410 \u0411\u0415\u041B\u041E\u041C", lines: ["\u0410\u0440\u0435\u043D\u0430 \u0441\u0442\u0430\u043B\u0430 \u0435\u0451 \u0445\u043E\u043B\u0441\u0442\u043E\u043C.", "\u041A\u0430\u0440\u043C\u0438\u043D \u043F\u043E\u0434\u043F\u0438\u0441\u0430\u043B\u0430 \u043F\u0440\u0438\u0433\u043E\u0432\u043E\u0440."], col: "#d82040" },
+    { id: 11, title: "\u0414\u041E \u0420\u0410\u0421\u0421\u0412\u0415\u0422\u0410", lines: ["\u041B\u0443\u043D\u0430 \u043F\u0440\u043E\u0432\u043E\u0434\u0438\u043B\u0430 \u043A\u043B\u0438\u043D\u043E\u043A.", "\u0410\u044F\u043C\u044D \u0438\u0441\u0447\u0435\u0437\u043B\u0430 \u0440\u0430\u043D\u044C\u0448\u0435, \u0447\u0435\u043C \u0441\u0442\u0438\u0445\u043B\u043E \u044D\u0445\u043E."], col: "#7ac8d8" },
+    { id: 12, title: "\u0417\u0412\u0401\u0417\u0414\u042B \u0421\u041E\u0428\u041B\u0418\u0421\u042C", lines: ["\u041C\u0435\u0442\u043A\u0430 \u043F\u043E\u0433\u0430\u0441\u043B\u0430 \u043D\u0430 \u043F\u043E\u0441\u043B\u0435\u0434\u043D\u0435\u043C \u0443\u0434\u0430\u0440\u0435.", "\u0412\u0435\u0433\u0430 \u0432\u044B\u0431\u0440\u0430\u043B\u0430 \u0434\u043E\u0440\u043E\u0433\u0443 \u0434\u043E\u043C\u043E\u0439."], col: "#b89aff" }
   ];
 
   // src/data/arenas.js
@@ -4760,17 +4760,17 @@
   }) {
     const abilityFx = createAbilityFx({ g, S, FL, GR, lerp, rnd, mix });
     const fighterArt = createFighterArt({ g, S, OUT, mix, shade, lerp });
-    const portraitCache = /* @__PURE__ */ new Map();
+    const portraitCache = /* @__PURE__ */ new WeakMap();
     let portraitWorkFrame = -1, portraitWorkCount = 0;
     function portraitImage(d) {
-      let item = portraitCache.get(d.id);
+      let item = portraitCache.get(d);
       if (!item) {
         const top = fighterArt.portraitTop(d), K = 8, c = document.createElement("canvas");
         c.width = 48 * K;
         c.height = (30 - top) * K;
         const cg = c.getContext("2d"), art = createFighterArt({ g: cg, S, OUT, mix, shade, lerp });
         item = { image: c, ctx: cg, art, top, K, frame: -1 };
-        portraitCache.set(d.id, item);
+        portraitCache.set(d, item);
       }
       if (portraitWorkFrame !== S.FRAME) {
         portraitWorkFrame = S.FRAME;
@@ -7022,7 +7022,8 @@
       ensureBase();
       context.drawImage(base4.canvas, 0, 0, RW, RH);
     }
-    function drawTitleBackground(context, time) {
+    function drawTitleBackground(context, time, reduce = false) {
+      if (reduce) time = 0;
       ensureTitle();
       context.drawImage(title.canvas, 0, 0, RW, RH);
       context.save();
@@ -7048,7 +7049,8 @@
         context.fillRect(x - 1, 88 + Math.sin(time * 0.12 + phase) * 1.5, 2, 7);
       }
     }
-    function drawLogo(context, time) {
+    function drawLogo(context, time, reduce = false) {
+      if (reduce) time = 0;
       ensureLogo();
       const breathe = 1 + 4e-3 * Math.sin(time * 0.025);
       context.save();
@@ -7070,7 +7072,8 @@
       }
       context.restore();
     }
-    function drawMenuBackground(context, time) {
+    function drawMenuBackground(context, time, reduce = false) {
+      if (reduce) time = 0;
       ensureTitle();
       context.save();
       context.globalAlpha = 0.82;
@@ -7762,7 +7765,19 @@
       }
       return [...best.values()].sort((a, b) => b.step - a.step || a.id - b.id);
     };
-    const TOP = () => topBest().slice(0, 5);
+    let topCacheRaw = null, topCache = null, menuCacheKey = "", menuCache = null;
+    const TOP = () => {
+      let raw = "[]";
+      try {
+        raw = localStorage.karnageTop || "[]";
+      } catch (e) {
+      }
+      if (raw !== topCacheRaw) {
+        topCacheRaw = raw;
+        topCache = topBest().slice(0, 5);
+      }
+      return topCache;
+    };
     const addTop = (id, step2, date) => {
       try {
         if (!Number.isInteger(id) || id < 0 || id >= CH.length || !Number.isFinite(step2) || step2 < 0) return;
@@ -7801,7 +7816,10 @@
       try {
         if (!Number.isInteger(S.arcP1) || !S.ladder.length || !Number.isInteger(S.lStep)) return;
         const run = { v: ARC_VERSION, c1: S.arcP1, ladder: S.ladder.slice(), step: S.lStep, diff: S.arcDiff };
-        if (validArcRun(run)) localStorage[ARC_KEY] = JSON.stringify(run);
+        if (validArcRun(run)) {
+          localStorage[ARC_KEY] = JSON.stringify(run);
+          menuCacheKey = "";
+        }
       } catch (e) {
       }
     }
@@ -7810,6 +7828,7 @@
         localStorage.removeItem(ARC_KEY);
       } catch (e) {
       }
+      menuCacheKey = "";
     }
     function arcTotal() {
       return S.ladder.length ? S.ladder.length + 1 : ARC_TOTAL;
@@ -8483,6 +8502,10 @@
       f.aiDir = Math.random() < 0.6 ? dx > 0 ? "r" : "l" : null;
     }
     function toLobby(gm) {
+      topCacheRaw = null;
+      topCache = null;
+      menuCacheKey = "";
+      menuCache = null;
       resetInput();
       setScreen(S, gm);
     }
@@ -9002,9 +9025,20 @@
       return true;
     }
     function menuItems() {
+      let raw = "";
+      try {
+        raw = localStorage[ARC_KEY] || "";
+      } catch (e) {
+      }
+      const key = raw + "|" + (isTouchUI() ? 1 : 0);
+      if (menuCacheKey === key) return menuCache;
       const saved = !!loadArcRun(), items = [];
       if (saved) items.push({ id: "resume", label: "\u041F\u0420\u041E\u0414\u041E\u041B\u0416\u0418\u0422\u042C \u0410\u0420\u041A\u0410\u0414\u0423" });
-      items.push({ id: "arcade", label: saved ? "\u041D\u041E\u0412\u0410\u042F \u0410\u0420\u041A\u0410\u0414\u0410" : "\u0410\u0420\u041A\u0410\u0414\u0410" }, { id: "cpu", label: "\u0411\u041E\u0419 \u041F\u0420\u041E\u0422\u0418\u0412 CPU" }, { id: "training", label: "\u0422\u0420\u0415\u041D\u0418\u0420\u041E\u0412\u041A\u0410" }, { id: "2p", label: "\u0411\u041E\u0419 \u041D\u0410 \u0414\u0412\u041E\u0418\u0425" }, { id: "settings", label: "\u041D\u0410\u0421\u0422\u0420\u041E\u0419\u041A\u0418" }, { id: "controls", label: "\u0423\u041F\u0420\u0410\u0412\u041B\u0415\u041D\u0418\u0415" }, { id: "top", label: "\u0417\u0410\u041B \u0421\u041B\u0410\u0412\u042B" });
+      items.push({ id: "arcade", label: saved ? "\u041D\u041E\u0412\u0410\u042F \u0410\u0420\u041A\u0410\u0414\u0410" : "\u0410\u0420\u041A\u0410\u0414\u0410" }, { id: "cpu", label: "\u0411\u041E\u0419 \u041F\u0420\u041E\u0422\u0418\u0412 CPU" }, { id: "training", label: "\u0422\u0420\u0415\u041D\u0418\u0420\u041E\u0412\u041A\u0410" });
+      if (!isTouchUI()) items.push({ id: "2p", label: "\u0411\u041E\u0419 \u041D\u0410 \u0414\u0412\u041E\u0418\u0425" });
+      items.push({ id: "settings", label: "\u041D\u0410\u0421\u0422\u0420\u041E\u0419\u041A\u0418" }, { id: "controls", label: "\u0423\u041F\u0420\u0410\u0412\u041B\u0415\u041D\u0418\u0415" }, { id: "top", label: "\u0417\u0410\u041B \u0421\u041B\u0410\u0412\u042B" });
+      menuCacheKey = key;
+      menuCache = items;
       return items;
     }
     function pauseItems() {
@@ -9509,7 +9543,7 @@
       g.font = size + 'px "Russo One"';
       g.textAlign = "center";
       g.fillStyle = col;
-      g.globalAlpha = 0.8 + 0.2 * (0.5 + 0.5 * Math.sin(S.FRAME * 0.08));
+      g.globalAlpha = OPT.reduce ? 1 : 0.8 + 0.2 * (0.5 + 0.5 * Math.sin(S.FRAME * 0.08));
       g.fillText(text, RW / 2, y);
       g.globalAlpha = 1;
     }
@@ -9743,7 +9777,8 @@
     }
     function arcEnding() {
       const d = CH[S.arcP1] || CH[0];
-      return { fighter: d, ending: ENDINGS[d.id] || { title: "\u0422\u0423\u0420\u041D\u0418\u0420 \u0417\u0410\u0412\u0415\u0420\u0428\u0401\u041D", lines: ["\u0410\u0440\u0435\u043D\u0430 \u043E\u043F\u0443\u0441\u0442\u0435\u043B\u0430.", "\u041F\u043E\u0431\u0435\u0434\u0438\u0442\u0435\u043B\u044C \u0443\u0445\u043E\u0434\u0438\u0442 \u0432 \u0442\u0438\u0448\u0438\u043D\u0443."], col: "#e8c040" } };
+      const e = ENDINGS.find((item) => item.id === d.id);
+      return { fighter: d, ending: e || { title: "\u0422\u0423\u0420\u041D\u0418\u0420 \u0417\u0410\u0412\u0415\u0420\u0428\u0401\u041D", lines: ["\u0410\u0440\u0435\u043D\u0430 \u043E\u043F\u0443\u0441\u0442\u0435\u043B\u0430.", "\u041F\u043E\u0431\u0435\u0434\u0438\u0442\u0435\u043B\u044C \u0443\u0445\u043E\u0434\u0438\u0442 \u0432 \u0442\u0438\u0448\u0438\u043D\u0443."], col: "#e8c040" } };
     }
     function drawEnd() {
       bgFill();
@@ -9854,8 +9889,8 @@
       g.fillRect(ox + 10 * px, oy + 7 * px, 2 * px, 2 * px);
     }
     function drawTitle() {
-      uiArt.drawTitleBackground(g, S.titleT);
-      uiArt.drawLogo(g, S.titleT);
+      uiArt.drawTitleBackground(g, S.titleT, OPT.reduce);
+      uiArt.drawLogo(g, S.titleT, OPT.reduce);
       try {
         const tp = TOP();
         if (tp.length) {
@@ -9867,7 +9902,7 @@
           g.font = '7px "Russo One"';
           g.fillStyle = UI_MUTED;
           g.textAlign = "center";
-          g.fillText("11 \u0411\u041E\u0419\u0426\u041E\u0412 \xB7 10 \u0410\u0420\u0415\u041D \xB7 \u041E\u0414\u0418\u041D \u041F\u041E\u0411\u0415\u0414\u0418\u0422\u0415\u041B\u042C", RW / 2, 198);
+          g.fillText(CH.length + " \u0411\u041E\u0419\u0426\u041E\u0412 \xB7 " + AR.length + " \u0410\u0420\u0415\u041D \xB7 \u041E\u0414\u0418\u041D \u041F\u041E\u0411\u0415\u0414\u0418\u0422\u0415\u041B\u042C", RW / 2, 198);
         }
       } catch (e) {
       }
@@ -9876,7 +9911,7 @@
       uiHint(isTouchUI() ? "\u041A\u041E\u0421\u041D\u0418\u0421\u042C \u042D\u041A\u0420\u0410\u041D\u0410" : "\u041D\u0410\u0416\u041C\u0418 \u041B\u042E\u0411\u0423\u042E \u041A\u041B\u0410\u0412\u0418\u0428\u0423", 228, 11, UI_TEXT);
     }
     function drawMenu() {
-      uiArt.drawMenuBackground(g, S.FRAME);
+      uiArt.drawMenuBackground(g, S.FRAME, OPT.reduce);
       uiArt.drawCompact(g);
       panel(20, 54, 208, 160);
       panel(244, 54, 160, 160);
@@ -10085,6 +10120,18 @@
         g.fillText(d.name, x, 88);
         g.fillStyle = "rgba(200,160,64,.22)";
         g.fillRect(x - 56, 92, 112, 1);
+        if (S.battle.mode === "training" && p2) {
+          g.font = '8px "Russo One"';
+          g.fillStyle = "#e8e0c0";
+          g.fillText("\u041F\u0410\u0421\u0421\u0418\u0412\u041D\u042B\u0419", x, 110);
+          g.font = '7px "Russo One"';
+          g.fillStyle = "#807850";
+          g.fillText("\u041D\u0415 \u0410\u0422\u0410\u041A\u0423\u0415\u0422", x, 124);
+          g.fillStyle = "#c8a040";
+          g.fillText(isTouchUI() ? "B \u2014 \u0411\u041B\u041E\u041A" : "T \u2014 \u0411\u041B\u041E\u041A", x, 140);
+          g.fillText(isTouchUI() ? "\u2161 \u2014 \u041F\u0420\u0418\u0401\u041C\u042B" : "R \u2014 \u0421\u0411\u0420\u041E\u0421", x, 154);
+          return;
+        }
         g.font = '7px "Russo One"';
         g.fillStyle = "#e8e0c0";
         g.fillText("\u0421\u041F\u0415\u0426: " + d.specN, x, 104);
@@ -10410,7 +10457,8 @@
         g.fillText("\u041C\u0410\u041D\u0415\u041A\u0415\u041D: " + (b.trainBlock ? "\u0411\u041B\u041E\u041A" : "\u0421\u0422\u041E\u0418\u0422"), RW - 8, 230);
         g.textAlign = "center";
         g.fillStyle = UI_MUTED;
-        g.fillText(Math.abs(b.p1.x - b.p2.x) < 70 ? "P+K \u2014 \u0411\u0420\u041E\u0421\u041E\u041A \xB7 D+P+K \u2014 \u0417\u0410\u0425\u0412\u0410\u0422 \xB7 T \u2014 \u0411\u041B\u041E\u041A" : "T \u2014 \u0411\u041B\u041E\u041A \xB7 R \u2014 \u0421\u0411\u0420\u041E\u0421 \xB7 ESC \u2014 \u041F\u0420\u0418\u0401\u041C\u042B", RW / 2, 238);
+        const close = Math.abs(b.p1.x - b.p2.x) < 70;
+        g.fillText(isTouchUI() ? close ? "P+K \u2014 \u0411\u0420\u041E\u0421\u041E\u041A \xB7 B \u2014 \u0411\u041B\u041E\u041A \xB7 \u2161 \u2014 \u041F\u0420\u0418\u0401\u041C\u042B" : "B \u2014 \u0411\u041B\u041E\u041A \xB7 \u2161 \u2014 \u041F\u0420\u0418\u0401\u041C\u042B" : close ? "P+K \u2014 \u0411\u0420\u041E\u0421\u041E\u041A \xB7 D+P+K \u2014 \u0417\u0410\u0425\u0412\u0410\u0422 \xB7 T \u2014 \u0411\u041B\u041E\u041A" : "T \u2014 \u0411\u041B\u041E\u041A \xB7 R \u2014 \u0421\u0411\u0420\u041E\u0421 \xB7 ESC \u2014 \u041F\u0420\u0418\u0401\u041C\u042B", RW / 2, 238);
       }
       if (S.announce && S.announce.t < 110) {
         const t = S.announce.t;
@@ -10551,6 +10599,7 @@
         updFs,
         resolveHit,
         drawF,
+        drawPort,
         drawArena,
         F,
         Ctrl,

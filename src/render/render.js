@@ -8,15 +8,15 @@ export function createRender({
 }) {
 const abilityFx=createAbilityFx({g,S,FL,GR,lerp,rnd,mix});
 const fighterArt=createFighterArt({g,S,OUT,mix,shade,lerp});
-const portraitCache=new Map();// 25.10: портреты дорогие; кэш обновляется по кругу, чтобы не терять анимацию
+const portraitCache=new WeakMap();// 25.10: портреты дорогие; ключ — сам def, чтобы босс и обычный Кайзер не делили canvas
 let portraitWorkFrame=-1,portraitWorkCount=0;
 function portraitImage(d){
- let item=portraitCache.get(d.id);
+ let item=portraitCache.get(d);
  if(!item){
   const top=fighterArt.portraitTop(d),K=8,c=document.createElement('canvas');
   c.width=48*K;c.height=(30-top)*K;
   const cg=c.getContext('2d'),art=createFighterArt({g:cg,S,OUT,mix,shade,lerp});
-  item={image:c,ctx:cg,art,top,K,frame:-1};portraitCache.set(d.id,item);
+  item={image:c,ctx:cg,art,top,K,frame:-1};portraitCache.set(d,item);
  }
  if(portraitWorkFrame!==S.FRAME){portraitWorkFrame=S.FRAME;portraitWorkCount=0;}
  if(item.frame<0||S.FRAME-item.frame>12){

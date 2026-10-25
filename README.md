@@ -42,10 +42,10 @@
 - Активная разработка: `dev.html` → `src/main.js` → `src/game/karnage.js`.
 - Бойцы и арены вынесены в `src/data`.
 - Основная логика пока остаётся в переходной обёртке монолита; разбор на модули продолжается.
-- Бойцы, портреты, HUD и эффекты рисуются из `src/render/render.js`.
+- Бойцы, портреты, HUD и эффекты рисуются из `src/render/render.js`; титул, логотип и меню — из `src/render/ui-art.js`.
 - Звук, WAV/MP3-банк, SFX и музыка вынесены в `src/audio/audio.js`.
-- FX-пилот подключён: `hitLight`, `hitHeavy`, `dust`.
-- Тесты: 57 сценариев (12 unit + 45 Playwright), ESLint покрывает `src`.
+- Подключены 10 FX-атласов: `hitLight`, `hitHeavy`, `dust`, `block`, `smoke`, `dustRun`, `fireImpact`, `iceImpact`, `shadowImpact`, `explosion`.
+- Тесты: 86 сценариев (13 unit + 73 Playwright), ESLint покрывает `src`.
 - Известные ошибки и ограничения: `DEVNOTES.md`.
 
 ## Запуск
