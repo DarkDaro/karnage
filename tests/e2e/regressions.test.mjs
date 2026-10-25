@@ -1170,6 +1170,91 @@ test('every fighter completes a named throw combo', async () => {
   }
 });
 
+test('specials share a cooldown and blocked casts show feedback', async () => {
+  const result = await page.evaluate(() => {
+    const K = window.KARNAGE;
+    for (const key in K.keys) K.keys[key] = false;
+    K.setDebug({ GAME: 'fight', paused: false });
+    K.newBattle(0, new K.Ctrl(K.KM1), 1, new K.Ctrl(K.KM2), 9);
+    const b = K.battle;
+    b.mode = '2p';
+    b.phase = 'fight';
+    b.phaseT = 200;
+    b.p1.ctrl.ai = false;
+    b.p2.ctrl.ai = false;
+    b.p1.x = 300;
+    b.p2.x = 330;
+    b.p1.face = 1;
+    b.p2.face = -1;
+    b.p1.state = 'idle';
+    b.p1.st = 0;
+    b.p1.ctrl.clear();
+    b.p2.ctrl.clear();
+    const first = b.p1.startSpec(b.p2);
+    const cooldown = b.p1.specCd;
+    const blocked = b.p1.startSpec2(b.p2);
+    const label = K.fx.some((effect) => effect.ty === 'name' && effect.txt === 'ПЕРЕЗАРЯДКА');
+    for (let i = 0; i < 300 && b.p1.specCd > 0; i += 1) K.step();
+    const ready = b.p1.startSpec2(b.p2);
+    return { first, cooldown, blocked, label, ready, max: b.p1.specCdMax };
+  });
+  assert.equal(result.first, true);
+  assert.equal(result.blocked, false);
+  assert.equal(result.label, true);
+  assert.equal(result.ready, true);
+  assert.equal(result.cooldown, 90);
+  assert.equal(result.max, 90);
+});
+
+test('CPU leaves a gap between special casts', async () => {
+  const result = await page.evaluate(() => {
+    const K = window.KARNAGE;
+    K.setDebug({ GAME: 'fight', paused: false });
+    K.newBattle(0, new K.Ctrl(K.KM1), 1, new K.Ctrl(K.KM2), 9);
+    const b = K.battle;
+    b.mode = 'cpu';
+    b.aiLvl = 7;
+    b.phase = 'fight';
+    b.phaseT = 200;
+    b.timer = 999;
+    b.p1.ctrl.ai = true;
+    b.p2.ctrl.ai = false;
+    b.p1.x = 180;
+    b.p2.x = 580;
+    b.p1.face = 1;
+    b.p2.face = -1;
+    b.p1.state = 'idle';
+    b.p2.state = 'idle';
+    b.p1.st = 0;
+    b.p2.st = 0;
+    b.p1.hp = 1000;
+    b.p2.hp = 1000;
+    b.p1.hpLag = 1000;
+    b.p2.hpLag = 1000;
+    b.p1.ctrl.clear();
+    b.p2.ctrl.clear();
+    const random = Math.random;
+    K.setSeed(4242);
+    const casts = [];
+    let prev = false;
+    for (let frame = 0; frame < 1200 && b.phase === 'fight'; frame += 1) {
+      b.p1.x = 180;
+      b.p1.vx = 0;
+      b.p2.x = 580;
+      b.p2.vx = 0;
+      K.step();
+      const now = b.p1.state === 'cast';
+      if (now && !prev) casts.push(frame);
+      prev = now;
+    }
+    Math.random = random;
+    const gaps = casts.slice(1).map((frame, i) => frame - casts[i]);
+    return { casts: casts.length, minGap: gaps.length ? Math.min(...gaps) : 0, phase: b.phase };
+  });
+  assert.ok(result.casts >= 2, `CPU cast ${result.casts} specials`);
+  assert.ok(result.minGap >= 145, `CPU special gap ${result.minGap}`);
+});
+
 test('special cancel works only after a connected hit', async () => {
   const result = await page.evaluate(() => {
     const K = window.KARNAGE;

@@ -1193,6 +1193,8 @@
 
   // src/game/fighter.js
   var ATK = { punch: { d: 6, wd: 5, ac: 3, rc: 8, rng: 28, hh: 0.72 }, kick: { d: 9, wd: 7, ac: 4, rc: 11, rng: 36, hh: 0.6 }, upper: { d: 15, wd: 6, ac: 4, rc: 15, rng: 24, hh: 0.5, launch: 1 }, sweep: { d: 10, wd: 6, ac: 3, rc: 13, rng: 38, hh: 0.12, low: 1 }, jkick: { d: 10, wd: 4, ac: 8, rc: 20, rng: 34, hh: 0.4, overhead: 1 }, rh: { d: 12, wd: 8, ac: 4, rc: 15, rng: 40, hh: 0.55, knock: 1 }, throw: { d: 1, wd: 5, ac: 3, rc: 20, rng: 32, hh: 0.55, throw: 1, grab: 1 } };
+  var SPEC_CD = 90;
+  var AI_SPEC_CD = 150;
   var ZEROC = { l: 0, r: 0, u: 0, d: 0, P: 0, K: 0, B: 0, pP: 0, pK: 0, pl: 0, pr: 0, pu: 0, pd: 0 };
   var WM = { 0: [0.24, 1, 1, 1.5, 0.02], 1: [0.15, 0.65, 0.4, 0.6, 0.1], 2: [0.27, 1.1, 1.3, 1.8, 0], 3: [0.14, 1.2, 0.8, 2.6, 0.06], 4: [0.3, 0.9, 1.4, 1, 0.12], 5: [0.2, 0.7, 0.5, 0.8, -0.03], 6: [0.2, 0.9, 0.7, 1, 0], 7: [0.22, 1.1, 0.5, 1.6, 0.04], 8: [0.13, 0.5, 0.3, 0.4, -0.05], 9: [0.21, 0.95, 1.1, 1.6, 0.03], 10: [0.19, 0.75, 0.6, 0.9, -0.04], 11: [0.28, 0.85, 1.2, 0.9, 0.1], 12: [0.17, 0.6, 0.4, 0.5, -0.02] };
   function hitR(a, b) {
@@ -1292,6 +1294,9 @@
         this.damageTaken = 0;
         this.armor = 0;
         this.armorHit = 0;
+        this.specCd = 0;
+        this.specCdMax = SPEC_CD;
+        this.aiSpecT = 0;
         this.blockStun = 0;
         this.blockLow = 0;
         this.grabbedBy = 0;
@@ -1396,6 +1401,8 @@
         if (this.invis > 0) this.invis--;
         if (this.invuln > 0) this.invuln--;
         if (this.armor > 0) this.armor--;
+        if (this.specCd > 0) this.specCd--;
+        if (this.aiSpecT > 0) this.aiSpecT--;
         if (S.GAME === "fight" && !this.hidden) {
           if (d.id === 0 && FR % 9 === 0) P(this.x + rnd(-4, 4), this.y - d.h - 4, rnd(-0.3, 0.3), rnd(-1.2, -0.5), pick(["#f06020", "#f0a030"]), 26, 1, -0.02);
           if (d.id === 6 && FR % 12 === 0) P(this.x + rnd(-7, 7), this.y - d.h * rnd(0.3, 1), 0, rnd(0.2, 0.6), "#cfeaff", 30, 1, 0.02);
@@ -1481,8 +1488,8 @@
           if (!stunned && ["idle", "walk", "crouch", "block"].includes(this.state) && this.onGround && (c.pP || c.pK)) {
             const btn = c.pP ? "P" : "K", fwd = this.face > 0 ? c.r : c.l, back = this.face > 0 ? c.l : c.r;
             if (this.rage >= 100 && this.ctrl.match("DDP", 75)) this.startSuper();
-            else if (this.ctrl.matchRel(d.spec, this.face, 75)) this.startSpec(foe);
-            else if (this.ctrl.matchRel(d.spec2, this.face, 75)) this.startSpec2(foe);
+            else if (this.ctrl.matchRel(d.spec, this.face, 75)) this.startSpec(foe, this.ctrl.ai);
+            else if (this.ctrl.matchRel(d.spec2, this.face, 75)) this.startSpec2(foe, this.ctrl.ai);
             else if (c.pkChord && c.pkChord()) {
               if (c.d || this.def.grappler && fwd) this.startCmdThrow();
               else this.startAtk("throw");
@@ -1494,8 +1501,8 @@
             else this.startAtk(c.l && !c.r && this.face > 0 || c.r && !c.l && this.face < 0 ? "rh" : "kick");
           }
           if (this.state === "jump" && (c.pP || c.pK)) {
-            if (this.ctrl.matchRel(d.spec, this.face, 75)) this.startSpec(foe);
-            else if (this.ctrl.matchRel(d.spec2, this.face, 75)) this.startSpec2(foe);
+            if (this.ctrl.matchRel(d.spec, this.face, 75)) this.startSpec(foe, this.ctrl.ai);
+            else if (this.ctrl.matchRel(d.spec2, this.face, 75)) this.startSpec2(foe, this.ctrl.ai);
             else this.startAtk("jkick");
           }
         } else this.vx *= 0.98;
@@ -1599,10 +1606,10 @@
           if (this.atk.hit && this.atk.connected && !this.atk.blocked && !this.atk.cancel && !A.throw && this.st > A.wd + A.ac && this.st <= A.wd + A.ac + 16 && this.onGround) {
             if (this.ctrl.matchRel(d.spec, this.face, 75)) {
               this.atk.cancel = 1;
-              this.startSpec(foe);
+              this.startSpec(foe, this.ctrl.ai);
             } else if (this.ctrl.matchRel(d.spec2, this.face, 75)) {
               this.atk.cancel = 1;
-              this.startSpec2(foe);
+              this.startSpec2(foe, this.ctrl.ai);
             }
           }
           if (this.state === "atk" && this.st > A.wd + A.ac + A.rc) {
@@ -1721,7 +1728,18 @@
         }
         for (let i = 0; i < 10; i++) P(foe.x + rnd(-12, 12), foe.y - rnd(8, 50), rnd(-2, 2), rnd(-2.5, 0), col, 24, 2, -0.01);
       }
-      startSpec(foe) {
+      specReady(quiet) {
+        if (this.specCd <= 0 && !(this.ctrl.ai && this.aiSpecT > 0)) return true;
+        if (!quiet) {
+          S.fx.push({ ty: "name", x: this.x + this.face * 10, y: this.y - this.def.h - 10, txt: "\u041F\u0415\u0420\u0415\u0417\u0410\u0420\u042F\u0414\u041A\u0410", col: "#c8a040", life: 28, t: 0 });
+          SFX.whiff();
+        }
+        return false;
+      }
+      startSpec(foe, quiet) {
+        if (!this.specReady(quiet)) return false;
+        this.specCd = SPEC_CD;
+        if (this.ctrl.ai) this.aiSpecT = AI_SPEC_CD;
         this.state = "cast";
         this.st = 0;
         this.face = foe.x < this.x ? -1 : 1;
@@ -1730,8 +1748,12 @@
         this.chain = "";
         this.chainT = 0;
         SFX.cast();
+        return true;
       }
-      startSpec2(foe) {
+      startSpec2(foe, quiet) {
+        if (!this.specReady(quiet)) return false;
+        this.specCd = SPEC_CD;
+        if (this.ctrl.ai) this.aiSpecT = AI_SPEC_CD;
         this.state = "cast";
         this.st = 0;
         this.face = foe.x < this.x ? -1 : 1;
@@ -1740,6 +1762,7 @@
         this.chain = "";
         this.chainT = 0;
         SFX.cast2();
+        return true;
       }
       // 08.09: второй спец — тот же каст, флаг spec2go выбирает ветку в fireSpec
       startSuper() {
@@ -6407,6 +6430,11 @@
         g.fillRect(x, 44, w, 2);
         g.fillStyle = "#c8b040";
         g.fillRect(dir > 0 ? x : x + w - w * f.run / 100, 44, w * f.run / 100, 2);
+        const scd = f.specCdMax || 90, sr = Math.max(0, Math.min(1, 1 - (f.specCd || 0) / scd));
+        g.fillStyle = "#162028";
+        g.fillRect(x, 47, w, 2);
+        g.fillStyle = (f.specCd || 0) > 0 ? "#3888a0" : "#58c8e8";
+        g.fillRect(dir > 0 ? x : x + w - w * sr, 47, w * sr, 2);
         if (f.rage >= 100) {
           g.fillStyle = "#ff5030";
           g.font = '7px "Russo One"';
@@ -8401,18 +8429,20 @@
         f.aiDir = null;
         return;
       }
-      if (["idle", "walk"].includes(f.state) && Math.random() < 0.13 + lvl * 0.02) {
+      if (f.specCd <= 0 && f.aiSpecT <= 0 && ["idle", "walk"].includes(f.state) && Math.random() < 0.07 + lvl * 0.015) {
         const far = RANGED.includes(f.def.id);
         if (far && ad > 110 || !far && ad < 70) {
-          f.startSpec(foe);
+          if (f.startSpec(foe, true)) {
+            f.aiDir = null;
+            return;
+          }
+        }
+      }
+      if (f.specCd <= 0 && f.aiSpecT <= 0 && ["idle", "walk"].includes(f.state) && Math.random() < 0.035 + lvl * 6e-3 && (RANGED.includes(f.def.id) ? ad > 90 : ad > 60)) {
+        if (f.startSpec2(foe, true)) {
           f.aiDir = null;
           return;
         }
-      }
-      if (["idle", "walk"].includes(f.state) && Math.random() < 0.05 + lvl * 8e-3 && (RANGED.includes(f.def.id) ? ad > 90 : ad > 60)) {
-        f.startSpec2(foe);
-        f.aiDir = null;
-        return;
       }
       if (ad > 120) {
         f.aiDir = dx > 0 ? "r" : "l";

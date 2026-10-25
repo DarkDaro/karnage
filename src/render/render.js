@@ -285,6 +285,7 @@ g.fillStyle='#2a0a0a';g.fillRect(x,40,w,3);
 g.fillStyle=f.rage>=100?(blink()?'#ff7050':'#c02010'):'#8a2018';g.fillRect(dir>0?x:x+w-w*f.rage/100,40,w*f.rage/100,3);
 if(f.rage>=100){g.fillStyle='rgba(255,96,64,.35)';g.fillRect(dir>0?x:x+w-w,40,w,3);}// свечение полной ярости
 g.fillStyle='#3a3418';g.fillRect(x,44,w,2);g.fillStyle='#c8b040';g.fillRect(dir>0?x:x+w-w*f.run/100,44,w*f.run/100,2);
+const scd=f.specCdMax||90,sr=Math.max(0,Math.min(1,1-(f.specCd||0)/scd));g.fillStyle='#162028';g.fillRect(x,47,w,2);g.fillStyle=(f.specCd||0)>0?'#3888a0':'#58c8e8';g.fillRect(dir>0?x:x+w-w*sr,47,w*sr,2);
 if(f.rage>=100){g.fillStyle='#ff5030';g.font='7px "Russo One"';g.globalAlpha=.72+.28*(.5+.5*Math.sin(S.FRAME*.08));g.fillText('СУПЕР ГОТОВ',dir>0?x+2:x+w-2,52);g.globalAlpha=1;}};
 bar(p1,40,1);bar(p2,RW-190,-1);
 drawPort(p1.def,24,26.5,.8);drawPort(p2.def,RW-24,26.5,.8);

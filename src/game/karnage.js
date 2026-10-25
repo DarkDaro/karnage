@@ -228,8 +228,8 @@ if(ad<52&&Math.random()<.08+lvl*.02){f.aiDir=null;c.ax[dx>0?'l':'r']=true;c.ax.K
 if(foe.state==='hit'&&ad<50&&Math.random()<.45+lvl*.04){f.aiDir=null;c.ax.P=true;return;}// 08.09: ИИ добивает в стан — комбо
 if((foe.state==='frozen'||foe.state==='net')&&ad<74){f.aiDir=null;if(ad>30)c.ax[dx>0?'r':'l']=true;c.ax.P=true;return;}
 if(f.rage>=100&&['idle','walk'].includes(f.state)&&Math.random()<.5){f.startSuper();f.aiDir=null;return;}
-if(['idle','walk'].includes(f.state)&&Math.random()<.13+lvl*.02){const far=RANGED.includes(f.def.id);if((far&&ad>110)||(!far&&ad<70)){f.startSpec(foe);f.aiDir=null;return;}}
-if(['idle','walk'].includes(f.state)&&Math.random()<.05+lvl*.008&&(RANGED.includes(f.def.id)?ad>90:ad>60)){f.startSpec2(foe);f.aiDir=null;return;}// 08.09: ИИ иногда применяет второй спец (дальникам — издали, ближникам — со средней дистанции)
+if(f.specCd<=0&&f.aiSpecT<=0&&['idle','walk'].includes(f.state)&&Math.random()<.07+lvl*.015){const far=RANGED.includes(f.def.id);if((far&&ad>110)||(!far&&ad<70)){if(f.startSpec(foe,true)){f.aiDir=null;return;}}}
+if(f.specCd<=0&&f.aiSpecT<=0&&['idle','walk'].includes(f.state)&&Math.random()<.035+lvl*.006&&(RANGED.includes(f.def.id)?ad>90:ad>60)){if(f.startSpec2(foe,true)){f.aiDir=null;return;}}// 08.09: ИИ иногда применяет второй спец (дальникам — издали, ближникам — со средней дистанции)
 if(ad>120){f.aiDir=dx>0?'r':'l';if(Math.random()<.08)f.aiDir=null;return;}
 if(ad>56){if(Math.random()<.05+lvl*.012){c.ax.u=true;f.aiDir=dx>0?'r':'l';return;}// 08.09: прыжок-вближение
 f.aiDir=Math.random()<.8?(dx>0?'r':'l'):null;return;}
