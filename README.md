@@ -44,7 +44,7 @@
 - Бойцы, портреты, HUD и эффекты рисуются из `src/render/render.js`.
 - Звук, WAV/MP3-банк, SFX и музыка вынесены в `src/audio/audio.js`.
 - FX-пилот подключён: `hitLight`, `hitHeavy`, `dust`.
-- Тесты: 41 сценарий, `npm run check` — чисто.
+- Тесты: 45 сценариев (7 unit + 38 Playwright), ESLint покрывает `src`.
 - Известные ошибки и ограничения: `DEVNOTES.md`.
 
 ## Запуск
@@ -151,7 +151,7 @@ release                 собранная папка для запуска
 | `npm run build` | Собирает `release/` через esbuild |
 | `npm run build -- --minify` | Собирает release с минифицированным `app.js` |
 | `npm test` | Сборка + unit + e2e |
-| `npm run test:unit` | Проверка данных роспера |
+| `npm run test:unit` | Проверка данных, текстов и комбинаций |
 | `npm run test:e2e` | Браузерные сценарии через dev-server |
 | `npm run check` | Синтаксис, ESLint и аудит |
 | `npm run audit` | UTF-8, BOM, скобки, ростер, документация |

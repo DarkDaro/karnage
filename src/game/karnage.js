@@ -12,6 +12,8 @@ import { createAudio } from '../audio/audio.js';
 
 export function startKarnage(fxAssets = {}, arenaAssets = {}, uiAssets = {}) {
 const RW=424,RH=240,FL=206,AW=760,GR=8,OUT='#0e0b08';
+const UI_GOLD='#e8c040',UI_RED='#e02020',UI_BLUE='#3868c8',UI_TEXT='#e8e0c0',UI_MUTED='#807850',UI_ACCENT='#c8a040';
+const isTouchUI=()=>document.body.classList.contains('touch');
 const FATAL_FRAMES=600,FATAL_INPUT=240;// 25.10: 10 секунд на добивание и 4 секунды на ввод — запас для спокойного набора
 const FX=fxAssets||{},ARENA_IMG=arenaAssets||{},UI=uiAssets||{};
 const S=createState();
@@ -40,6 +42,7 @@ try{const raw=JSON.parse(localStorage.karnageOpts||'{}');if(raw&&typeof raw==='o
 const saveOpts=()=>{try{localStorage.karnageOpts=JSON.stringify(OPT);}catch(e){}};
 const applyCrt=()=>{const el=document.getElementById('crt');if(el)el.style.display=OPT.crt?'block':'none';};
 applyCrt();
+const {P,blood,updParts,drawParts,drawDecals}=createParticles({g,state:S,options:OPT,FL,GR,rnd});
 const { AU, SFX, MU, initA, say, setVol, saveSet, music } = createAudio({ S, clamp, rnd });
 const dayStamp=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};
 const topRaw=()=>{try{const raw=JSON.parse(localStorage.karnageTop||'[]');if(!Array.isArray(raw))return[];return raw.filter(e=>e&&Number.isInteger(e.id)&&e.id>=0&&e.id<CH.length&&Number.isFinite(e.step)&&e.step>=0);}catch(e){return[]}};
@@ -139,7 +142,6 @@ function impactFx(ty,x,y,color,p){const shard=ty==='shard',c=color||'#f8d060';
     const ok=spriteFx('hitLight',x,y,{scale:.34,alpha:.62,duration:7});impactBurst(x,y,c,14);return ok;
   }
   return false;}
-const {P,blood,updParts,drawParts,drawDecals}=createParticles({g,state:S,options:OPT,FL,GR,rnd});
 /* БОЕЦ */
 const {autoHit,resolveHit}=createCombat({S,SFX,P,blood,spriteFx,rnd,pick});
 const F=createFighter({
@@ -408,8 +410,6 @@ if(k==='KeyJ'||k==='Enter'||k==='Space'){s.l1=!s.l1;SFX.sel();}
 if(k==='KeyI'){s.l2=!s.l2;SFX.sel();}
 if(s.l1&&s.l2&&s.ph===0){s.ph=2;s.row=1;SFX.sel();}}// 08.09: 2p — сразу к настройке арены
 /* ЭКРАНЫ: РЕНДЕР */
-const isTouchUI=()=>document.body.classList.contains('touch');
-const UI_GOLD='#e8c040',UI_RED='#e02020',UI_BLUE='#3868c8',UI_TEXT='#e8e0c0',UI_MUTED='#807850',UI_ACCENT='#c8a040';
 function uiHint(text,y=228,size=7,col=UI_MUTED){g.font=size+'px "Russo One"';g.textAlign='center';g.fillStyle=col;g.globalAlpha=.8+.2*(.5+.5*Math.sin(S.FRAME*.08));g.fillText(text,RW/2,y);g.globalAlpha=1;}
 function bgFill(){const sky=g.createLinearGradient(0,0,0,RH);sky.addColorStop(0,'#0b0706');sky.addColorStop(.58,'#090605');sky.addColorStop(1,'#050303');g.fillStyle=sky;g.fillRect(0,0,RW,RH);
 const glow=g.createRadialGradient(RW/2,78,6,RW/2,78,190);glow.addColorStop(0,'rgba(118,24,16,.20)');glow.addColorStop(.5,'rgba(70,14,10,.07)');glow.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=glow;g.fillRect(0,0,RW,RH);

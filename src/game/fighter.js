@@ -147,7 +147,8 @@ export function createFighter({
   case 10:for(let i=-1;i<=1;i++)S.projs.push({ty:'shard',c:'#d82040',x,y:y+i*6,vx:this.face*6.2,vy:i*.9,o:this,d:4,l:90,s:3,bl:1});SFX.slash();break;// 30.09: Кровавые иглы — быстрый веер с кровотечением
   case 11:S.projs.push({ty:'shard',c:'#9adcee',x,y,vx:this.face*5.5,vy:0,o:this,d:7,l:75,s:7});SFX.slash();break;// 30.09: Полумесяц — серп клинка, дальность до ~410px
   case 12:this.marks=this.marks||[];if(this.marks.length>=2)this.marks.shift();this.marks.push({x:clamp(this.x+this.face*46,20,AW-20),y:this.y});SFX.cast2();for(let i=0;i<6;i++)P(this.x+this.face*46+rnd(-8,8),this.y-rnd(0,40),0,rnd(-.5,-.1),'#b89aff',26,2,0);break;// 30.09: Звёздная метка — до двух на арене
-  default:S.projs.push({ty:'wave',x:this.x+this.face*18,y:FL+GR-12,vx:this.face*4,vy:0,o:this,d:9,l:90,c:d.boss?'#f0c850':'#c8d060'});SFX.boom();S.shake=5;break;}}// 08.09: то же для Кайзера; баланс 10→9
+  case 9:S.projs.push({ty:'wave',x:this.x+this.face*18,y:FL+GR-12,vx:this.face*4,vy:0,o:this,d:9,l:90,c:'#c8d060'});SFX.boom();S.shake=5;break;// 25.10: ветка Кайзера явная; баланс 10→9
+  default:throw new Error('Unknown fighter spec: '+d.id);}}
   fireSpec2(foe){const d=this.def;this.face=foe.x<this.x?-1:1;const h=castOrigin(this),x=h.x,y=h.y;castBurst(x,y,d.acc,d.boss?1.25:1);// 08.09: вторые спецприёмы — по одному на бойца
   if(d.boss){SFX.bone();S.shake=5;for(let i=0;i<5;i++)S.projs.push({ty:'meteor',x:clamp(foe.x+rnd(-52,52),20,AW-20),y:-10-i*22,vx:0,vy:5.6,o:this,d:4,l:120});return;}// 25.10: «Метеоритный приговор» — пять метеоров
   switch(d.id){
@@ -164,7 +165,8 @@ export function createFighter({
   case 11:{const ox=this.x;this.x=clamp(foe.x+foe.face*30,20,AW-20);smoke(ox,this.y-30);smoke(this.x,this.y-30);SFX.tele();this.face=foe.x<this.x?-1:1;if(foe.state!=='down'){resolveHit(this,foe,6,{});foe.poison=150;foe.poisonC='#b01818';}break;}// 30.09: Сквозь тень — проход сквозь врага, удар в спину с кровотечением
   case 12:{this.marks=this.marks||[];if(this.marks.length){const m=this.marks.pop();smoke(this.x,this.y-30);this.x=clamp(m.x,20,AW-16);smoke(this.x,this.y-30);SFX.tele();for(let i=0;i<8;i++)P(this.x+rnd(-10,10),this.y-rnd(0,50),rnd(-1,1),rnd(-1.5,.5),'#b89aff',24,2,0);if(Math.abs(foe.x-this.x)<70&&foe.state!=='down'&&foe.state!=='victim'){resolveHit(this,foe,6,{});S.shake=Math.max(S.shake,3);for(let i=0;i<10;i++)P(foe.x+rnd(-14,14),foe.y-rnd(5,55),rnd(-1.5,1.5),rnd(-2,.5),'#b89aff',26,2,0);SFX.cast2();}}// 30.09: мигание к метке; 01.10: взрыв звёзд — 6 урона если враг рядом (метка у врага = комбо)
   else{this.x=clamp(foe.x-foe.face*30,20,AW-20);smoke(this.x,this.y-30);SFX.tele();if(foe.state!=='down')resolveHit(this,foe,5,{});}break;}// без меток — прыжок за спину с ударом
-  default:S.projs.push({ty:'shard',c:'#f8d060',x,y,vx:this.face*2.4,vy:0,o:this,d:10,l:110,s:7,k:1});SFX.shoot();break;}}// Тяжёлый снаряд — медленный, валит
+  case 9:S.projs.push({ty:'shard',c:'#f8d060',x,y,vx:this.face*2.4,vy:0,o:this,d:10,l:110,s:7,k:1});SFX.shoot();break;// Тяжёлый снаряд — медленный, валит
+  default:throw new Error('Unknown fighter spec: '+d.id);}}
   updSuper(){if(this.state!=='super')return;for(const e of this.supEv)if(!e.done&&this.st>=e.t){e.done=1;e.fn();}if(this.st>this.superDur)this.state='idle';}}
 
   return F;

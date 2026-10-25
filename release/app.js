@@ -1670,14 +1670,16 @@
             for (let i = 0; i < 6; i++) P(this.x + this.face * 46 + rnd(-8, 8), this.y - rnd(0, 40), 0, rnd(-0.5, -0.1), "#b89aff", 26, 2, 0);
             break;
           // 30.09: Звёздная метка — до двух на арене
-          default:
-            S.projs.push({ ty: "wave", x: this.x + this.face * 18, y: FL + GR - 12, vx: this.face * 4, vy: 0, o: this, d: 9, l: 90, c: d.boss ? "#f0c850" : "#c8d060" });
+          case 9:
+            S.projs.push({ ty: "wave", x: this.x + this.face * 18, y: FL + GR - 12, vx: this.face * 4, vy: 0, o: this, d: 9, l: 90, c: "#c8d060" });
             SFX.boom();
             S.shake = 5;
             break;
+          // 25.10: ветка Кайзера явная; баланс 10→9
+          default:
+            throw new Error("Unknown fighter spec: " + d.id);
         }
       }
-      // 08.09: то же для Кайзера; баланс 10→9
       fireSpec2(foe) {
         const d = this.def;
         this.face = foe.x < this.x ? -1 : 1;
@@ -1786,13 +1788,15 @@
             break;
           }
           // без меток — прыжок за спину с ударом
-          default:
+          case 9:
             S.projs.push({ ty: "shard", c: "#f8d060", x, y, vx: this.face * 2.4, vy: 0, o: this, d: 10, l: 110, s: 7, k: 1 });
             SFX.shoot();
             break;
+          // Тяжёлый снаряд — медленный, валит
+          default:
+            throw new Error("Unknown fighter spec: " + d.id);
         }
       }
-      // Тяжёлый снаряд — медленный, валит
       updSuper() {
         if (this.state !== "super") return;
         for (const e of this.supEv) if (!e.done && this.st >= e.t) {
@@ -4589,6 +4593,7 @@
       } catch (e) {
       }
     };
+    const MU = { s: 0, next: 0 };
     function initA() {
       if (AU.ctx) return;
       try {
@@ -4949,7 +4954,6 @@
       } catch (e) {
       }
     }
-    const MU = { s: 0, next: 0 };
     const BASS = [0, 0, 3, 0, -2, -2, 3, 5, 0, 0, 3, 0, -4, -4, -2, 2];
     const MBASS = [0, 0, -2, 0, 3, 3, 5, 3, 0, 0, -2, 0, -4, -4, 0, 3];
     const VBASS = [0, 0, 3, 5, 0, 0, 3, 2, 0, 0, 3, 5, 7, 5, 3, 2];
@@ -5021,6 +5025,8 @@
   // src/game/karnage.js
   function startKarnage(fxAssets = {}, arenaAssets = {}, uiAssets = {}) {
     const RW = 424, RH = 240, FL = 206, AW = 760, GR = 8, OUT = "#0e0b08";
+    const UI_GOLD = "#e8c040", UI_RED = "#e02020", UI_BLUE = "#3868c8", UI_TEXT = "#e8e0c0", UI_MUTED = "#807850", UI_ACCENT = "#c8a040";
+    const isTouchUI = () => document.body.classList.contains("touch");
     const FATAL_FRAMES = 600, FATAL_INPUT = 240;
     const FX = fxAssets || {}, ARENA_IMG = arenaAssets || {}, UI = uiAssets || {};
     const S = createState();
@@ -5107,6 +5113,7 @@
       if (el) el.style.display = OPT.crt ? "block" : "none";
     };
     applyCrt();
+    const { P, blood, updParts, drawParts, drawDecals } = createParticles({ g, state: S, options: OPT, FL, GR, rnd });
     const { AU, SFX, MU, initA, say, setVol, saveSet, music } = createAudio({ S, clamp: clamp2, rnd });
     const dayStamp = () => {
       const d = /* @__PURE__ */ new Date();
@@ -5573,7 +5580,6 @@
       }
       return false;
     }
-    const { P, blood, updParts, drawParts, drawDecals } = createParticles({ g, state: S, options: OPT, FL, GR, rnd });
     const { autoHit, resolveHit } = createCombat({ S, SFX, P, blood, spriteFx, rnd, pick });
     const F = createFighter({
       S,
@@ -6702,8 +6708,6 @@
         SFX.sel();
       }
     }
-    const isTouchUI = () => document.body.classList.contains("touch");
-    const UI_GOLD = "#e8c040", UI_RED = "#e02020", UI_BLUE = "#3868c8", UI_TEXT = "#e8e0c0", UI_MUTED = "#807850", UI_ACCENT = "#c8a040";
     function uiHint(text, y = 228, size = 7, col = UI_MUTED) {
       g.font = size + 'px "Russo One"';
       g.textAlign = "center";

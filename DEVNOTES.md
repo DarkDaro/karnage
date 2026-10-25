@@ -84,7 +84,7 @@
 ## Тестирование
 
 - `npm test` — сборка release + unit + e2e (Playwright, Chromium).
-- `npm run test:unit` — данные роспера.
+- `npm run test:unit` — данные роспера, целостность текста и комбинации.
 - `npm run test:e2e` — браузерные сценарии через dev-server.
 - `npm run check` — синтаксис, ESLint, аудит.
 - `npm run audit` — UTF-8, BOM, скобки, ростер, доки, комментарии.

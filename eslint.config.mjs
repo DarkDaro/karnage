@@ -16,6 +16,8 @@ const browserGlobals = {
   document: 'readonly',
   location: 'readonly',
   localStorage: 'readonly',
+  navigator: 'readonly',
+  Image: 'readonly',
   AudioContext: 'readonly',
   webkitAudioContext: 'readonly',
   SpeechSynthesisUtterance: 'readonly',
@@ -30,7 +32,7 @@ const browserGlobals = {
 
 const rules = {
   'no-undef': 'error',
-  'no-unused-vars': ['warn', { args: 'none', varsIgnorePattern: '^_' }],
+  'no-unused-vars': ['warn', { args: 'none', caughtErrors: 'none', varsIgnorePattern: '^_' }],
   'no-use-before-define': ['error', { functions: false, classes: false }],
   'no-unreachable': 'error',
   'no-dupe-keys': 'error',
@@ -50,7 +52,6 @@ export default [
       'archive/**',
       'release/**',
       'src/legacy/**',
-      'src/game/karnage.js',
       'test-results/**',
       'assets/fonts/**'
     ]
