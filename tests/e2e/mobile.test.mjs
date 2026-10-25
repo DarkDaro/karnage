@@ -48,13 +48,25 @@ after(async () => {
   server?.kill();
 });
 
-test('mobile layout exposes touch controls', async () => {
-  const state = await page.evaluate(() => ({
-    touch: Boolean(document.getElementById('touch')),
-    body: document.body.className
-  }));
+test('mobile layout exposes touch controls and fills landscape width', async () => {
+  const state = await page.evaluate(() => {
+    const canvas = document.getElementById('cv').getBoundingClientRect();
+    return {
+      touch: Boolean(document.getElementById('touch')),
+      body: document.body.className,
+      viewport: { width: window.innerWidth, height: window.innerHeight },
+      canvas: { width: canvas.width, height: canvas.height },
+      rw: window.KARNAGE.RW,
+      rh: window.KARNAGE.RH,
+      baseRW: window.KARNAGE.baseRW
+    };
+  });
   assert.equal(state.touch, true);
   assert.match(state.body, /touch/);
+  assert.ok(state.rw > state.baseRW);
+  assert.ok(Math.abs(state.canvas.width - state.viewport.width) <= 1);
+  assert.ok(Math.abs(state.canvas.height - state.viewport.height) <= 1);
+  assert.ok(Math.abs(state.rw / state.rh - state.viewport.width / state.viewport.height) < .01);
 });
 
 test('touch controls navigate the menu and hold fight buttons', async () => {

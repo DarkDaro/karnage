@@ -3,7 +3,7 @@
 import { createAbilityFx } from './ability-fx.js';
 import { createFighterArt } from './fighter-art.js';
 export function createRender({
-  g, S, UI, CH, WM, RW, FL, GR, OUT,
+  g, S, UI, CH, WM, view, FL, GR, OUT,
   lerp, rnd, mix, shade, blink, fatalMapped, fatalFrames,
 }) {
 const abilityFx=createAbilityFx({g,S,FL,GR,lerp,rnd,mix});
@@ -265,8 +265,8 @@ function drawFake(i,px,py,sc,face){const fk=typeof i==='object'?Object.assign({}
 /* HUD */
 function drawHUD(b){const p1=b.p1,p2=b.p2;// 30.09: модернизированный HUD — градиентная панель, свечение, акценты цвета бойца
 const pg=g.createLinearGradient(0,6,0,40);pg.addColorStop(0,'rgba(28,22,14,.96)');pg.addColorStop(.5,'rgba(12,9,6,.96)');pg.addColorStop(1,'rgba(5,4,3,.96)');
-g.fillStyle=pg;g.fillRect(6,6,RW-12,34);frame(6,6,RW-12,34);
-g.fillStyle='rgba(248,220,140,.28)';g.fillRect(7,7,RW-14,1);// световая кромка
+g.fillStyle=pg;g.fillRect(6,6,view.RW-12,34);frame(6,6,view.RW-12,34);
+g.fillStyle='rgba(248,220,140,.28)';g.fillRect(7,7,view.RW-14,1);// световая кромка
 const bar=(f,x,dir)=>{const w=150,d=f.def;
 g.fillStyle='#1a0505';g.fillRect(x-1,12,w+2,10);
 g.strokeStyle='rgba(200,160,64,.5)';g.lineWidth=1;g.strokeRect(x-.5,12.5,w+1,9);// тонкая золотая рамка бара
@@ -289,21 +289,21 @@ if(f.rage>=100){g.fillStyle='rgba(255,96,64,.35)';g.fillRect(dir>0?x:x+w-w,40,w,
 g.fillStyle='#3a3418';g.fillRect(x,44,w,2);g.fillStyle='#c8b040';g.fillRect(dir>0?x:x+w-w*f.run/100,44,w*f.run/100,2);
 const scd=f.specCdMax||90,sr=Math.max(0,Math.min(1,1-(f.specCd||0)/scd));g.fillStyle='#162028';g.fillRect(x,47,w,2);g.fillStyle=(f.specCd||0)>0?'#3888a0':'#58c8e8';g.fillRect(dir>0?x:x+w-w*sr,47,w*sr,2);
 if(f.rage>=100){g.fillStyle='#ff5030';g.font='7px "Russo One"';g.globalAlpha=.72+.28*(.5+.5*Math.sin(S.FRAME*.08));g.fillText('СУПЕР ГОТОВ',dir>0?x+2:x+w-2,52);g.globalAlpha=1;}};
-bar(p1,40,1);bar(p2,RW-190,-1);
-drawPort(p1.def,24,26.5,.8);drawPort(p2.def,RW-24,26.5,.8);
+bar(p1,40,1);bar(p2,view.RW-190,-1);
+drawPort(p1.def,24,26.5,.8);drawPort(p2.def,view.RW-24,26.5,.8);
 const pt1=portraitTop(p1.def),pt2=portraitTop(p2.def);// рамки портретов в цвете стихии, с запасом под рога/нимб/корону
-g.strokeStyle=p1.def.acc;g.lineWidth=1;g.strokeRect(14.5,26+pt1*.8,19,(15-pt1)*.8+1);g.strokeStyle=p2.def.acc;g.strokeRect(RW-33.5,26+pt2*.8,19,(15-pt2)*.8+1);
-g.fillStyle='rgba(0,0,0,.78)';g.fillRect(RW/2-18,7,36,22);frame(RW/2-18,7,36,22);
-if(b.timer<11){g.strokeStyle=blink()?'#ff5030':'#801818';g.lineWidth=1;g.strokeRect(RW/2-17.5,7.5,35,21);}// таймер краснеет в конце
-g.font='15px "Russo One"';g.fillStyle=(b.timer<11&&blink())?'#ff5030':'#f0e8d0';g.textAlign='center';g.fillText(b.mode==='training'?'∞':''+Math.ceil(b.timer),RW/2,23);
+g.strokeStyle=p1.def.acc;g.lineWidth=1;g.strokeRect(14.5,26+pt1*.8,19,(15-pt1)*.8+1);g.strokeStyle=p2.def.acc;g.strokeRect(view.RW-33.5,26+pt2*.8,19,(15-pt2)*.8+1);
+g.fillStyle='rgba(0,0,0,.78)';g.fillRect(view.RW/2-18,7,36,22);frame(view.RW/2-18,7,36,22);
+if(b.timer<11){g.strokeStyle=blink()?'#ff5030':'#801818';g.lineWidth=1;g.strokeRect(view.RW/2-17.5,7.5,35,21);}// таймер краснеет в конце
+g.font='15px "Russo One"';g.fillStyle=(b.timer<11&&blink())?'#ff5030':'#f0e8d0';g.textAlign='center';g.fillText(b.mode==='training'?'∞':''+Math.ceil(b.timer),view.RW/2,23);
 const pip=(x,y,on)=>{g.fillStyle=on?'#e04020':'#2a2522';g.beginPath();g.moveTo(x+3,y);g.lineTo(x+6,y+3);g.lineTo(x+3,y+6);g.lineTo(x,y+3);g.closePath();g.fill();if(on){g.fillStyle='rgba(255,140,110,.6)';g.fillRect(x+2,y+2,2,2);}};// ромбовидные пипсы побед
-for(let i=0;i<2;i++){pip(RW/2-45-i*9,10,i<p1.wins);pip(RW/2+39+i*9,10,i<p2.wins);}}
-function bigText(t,y,col,sc){g.save();g.translate(RW/2,y);g.scale(sc,sc);g.font='20px "Rubik Mono One","Russo One",sans-serif';g.textAlign='center';g.fillStyle='#000';for(let dx=-2;dx<=2;dx+=2)for(let dy=-2;dy<=2;dy+=2)g.fillText(t,dx,dy);g.fillStyle=col;g.fillText(t,0,0);g.restore();}// 08.09: заголовочный шрифт Rubik Mono One
+for(let i=0;i<2;i++){pip(view.RW/2-45-i*9,10,i<p1.wins);pip(view.RW/2+39+i*9,10,i<p2.wins);}}
+function bigText(t,y,col,sc){g.save();g.translate(view.RW/2,y);g.scale(sc,sc);g.font='20px "Rubik Mono One","Russo One",sans-serif';g.textAlign='center';g.fillStyle='#000';for(let dx=-2;dx<=2;dx+=2)for(let dy=-2;dy<=2;dy+=2)g.fillText(t,dx,dy);g.fillStyle=col;g.fillText(t,0,0);g.restore();}// 08.09: заголовочный шрифт Rubik Mono One
 function frame(x,y,w,h,key='panel'){const p=UI[key];if(p&&p.ready){const sm=p.slice||12,dm=Math.min(sm,Math.max(2,Math.floor(Math.min(w,h)/2))),iw=p.image.width,ih=p.image.height,cw=iw-sm*2,ch=ih-sm*2;g.save();g.imageSmoothingEnabled=false;g.drawImage(p.image,0,0,sm,sm,x,y,dm,dm);g.drawImage(p.image,iw-sm,0,sm,sm,x+w-dm,y,dm,dm);g.drawImage(p.image,0,ih-sm,sm,sm,x,y+h-dm,dm,dm);g.drawImage(p.image,iw-sm,ih-sm,sm,sm,x+w-dm,y+h-dm,dm,dm);g.drawImage(p.image,sm,0,cw,sm,x+dm,y,w-dm*2,dm);g.drawImage(p.image,sm,ih-sm,cw,sm,x+dm,y+h-dm,w-dm*2,dm);g.drawImage(p.image,0,sm,sm,ch,x,y+dm,dm,h-dm*2);g.drawImage(p.image,iw-sm,sm,sm,ch,x+w-dm,y+dm,dm,h-dm*2);g.restore();return true;}g.strokeStyle='#c8a040';g.lineWidth=1;g.strokeRect(x+.5,y+.5,w-1,h-1);g.fillStyle='#c8a040';g.fillRect(x,y,3,3);g.fillRect(x+w-3,y,3,3);g.fillRect(x,y+h-3,3,3);g.fillRect(x+w-3,y+h-3,3,3);return false;}
 function panel(x,y,w,h){g.fillStyle='rgba(10,8,6,.93)';g.fillRect(x,y,w,h);frame(x,y,w,h);}
 const seqTxt=(s,p2,face=1,generic=false)=>s.split('').map(x=>{if(face<0&&x==='L')x='R';else if(face<0&&x==='R')x='L';return ({D:'\u2193',U:'\u2191',L:'\u2190',R:'\u2192',P:generic?'P':p2?'I':'J',K:generic?'K':p2?'O':'K'})[x];}).join(' ');
 function drawFatalPanel(b){
-const left=Math.max(0,1-b.phaseT/fatalFrames);g.fillStyle='rgba(0,0,0,.6)';g.fillRect(RW/2-80,220,160,5);g.fillStyle=left>.35?'#c8a040':'#e04020';g.fillRect(RW/2-80,220,160*left,5);g.strokeStyle='#c8a040';g.lineWidth=1;g.strokeRect(RW/2-80.5,219.5,161,6);
+const left=Math.max(0,1-b.phaseT/fatalFrames);g.fillStyle='rgba(0,0,0,.6)';g.fillRect(view.RW/2-80,220,160,5);g.fillStyle=left>.35?'#c8a040':'#e04020';g.fillRect(view.RW/2-80,220,160*left,5);g.strokeStyle='#c8a040';g.lineWidth=1;g.strokeRect(view.RW/2-80.5,219.5,161,6);
 if(!b.winner.ctrl.ai){const w=b.winner,p2=w===b.p2,fdir=b.fatalFace||w.face,prog=b.fatalProg||0,seq=fatalMapped(w.def.fat,fdir),n=seq.length,secs=Math.max(0,Math.ceil((fatalFrames-b.phaseT)/60));
 g.fillStyle='rgba(8,5,4,.86)';g.fillRect(116,52,192,36);frame(116,52,192,36);
 g.font='7px "Russo One"';g.fillStyle='#c8a040';g.textAlign='left';g.fillText('ФАТАЛИТИ · '+(w.def.fatN||''),124,63);

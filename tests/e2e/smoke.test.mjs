@@ -74,7 +74,7 @@ test('renders at an internal resolution above the logical world', async () => {
     width: el.width,
     height: el.height,
     ratio: el.width / el.height,
-    logicalRatio: 424 / 240
+    logicalRatio: window.KARNAGE.RW / window.KARNAGE.RH
   }));
   assert.ok(canvas.width >= 424 * 4);
   assert.ok(canvas.height >= 240 * 4);

@@ -841,11 +841,11 @@
     const b = parseInt(value.slice(4, 6), 16);
     return `rgba(${r},${g},${b},${alpha})`;
   }
-  function createArenaView({ g, RW, RH, FL, AR: AR2, assets, shade, mix }) {
+  function createArenaView({ g, view, RH, FL, AR: AR2, assets, shade, mix }) {
     function drawLayer(layer2, cam, opacity = 1) {
       const image = layer2.image;
       if (!image) return;
-      const maxSource = Math.max(0, image.width - RW);
+      const maxSource = Math.max(0, image.width - view.RW);
       const sourceX = clamp(Math.round(cam * (layer2.scroll ?? 1)), 0, maxSource);
       const height = Math.min(layer2.height ?? RH, RH);
       const y = layer2.y ?? 0;
@@ -853,14 +853,14 @@
       g.globalAlpha = (layer2.alpha ?? 1) * opacity;
       g.imageSmoothingEnabled = false;
       if (layer2.blend) g.globalCompositeOperation = layer2.blend;
-      g.drawImage(image, sourceX, 0, RW, height, 0, y, RW, height);
+      g.drawImage(image, sourceX, 0, view.RW, height, 0, y, view.RW, height);
       g.restore();
     }
     function drawFog(asset, cam, time) {
       if (!asset.fog) return;
       const color = asset.fogColor || "#b8a4e8";
       for (let i = 0; i < 3; i++) {
-        const x = ((i * 174 - cam * 0.24 + time * 0.18) % (RW + 260) + RW + 260) % (RW + 260) - 130;
+        const x = ((i * 174 - cam * 0.24 + time * 0.18) % (view.RW + 260) + view.RW + 260) % (view.RW + 260) - 130;
         const horizon = g.createRadialGradient(x, FL - 18, 8, x, FL - 18, 94);
         horizon.addColorStop(0, rgba(color, 0.15));
         horizon.addColorStop(1, rgba(color, 0));
@@ -872,26 +872,26 @@
       haze.addColorStop(0.68, rgba(color, 0.14));
       haze.addColorStop(1, rgba(color, 0.03));
       g.fillStyle = haze;
-      g.fillRect(0, FL - 40, RW, 40);
+      g.fillRect(0, FL - 40, view.RW, 40);
     }
     function drawGround(A, asset, cam, time) {
       const gr = g.createLinearGradient(0, FL, 0, RH);
       gr.addColorStop(0, A.gr);
       gr.addColorStop(1, shade(A.gr, 0.55));
       g.fillStyle = gr;
-      g.fillRect(0, FL, RW, RH - FL);
+      g.fillRect(0, FL, view.RW, RH - FL);
       g.fillStyle = mix(A.gr, "#ffffff", 0.14);
-      g.fillRect(0, FL, RW, 1);
+      g.fillRect(0, FL, view.RW, 1);
       g.fillStyle = "rgba(0,0,0,.25)";
-      g.fillRect(0, FL, RW, 2);
+      g.fillRect(0, FL, view.RW, 2);
       const horizon = g.createLinearGradient(0, FL - 12, 0, FL);
       horizon.addColorStop(0, "rgba(178,188,208,0)");
       horizon.addColorStop(1, "rgba(178,188,208,.08)");
       g.fillStyle = horizon;
-      g.fillRect(0, FL - 12, RW, 12);
+      g.fillRect(0, FL - 12, view.RW, 12);
       g.strokeStyle = "rgba(0,0,0,.15)";
       g.lineWidth = 1;
-      const vanishX = RW / 2 - (cam - RW / 2) * 0.35;
+      const vanishX = view.RW / 2 - (cam - view.RW / 2) * 0.35;
       for (let i = -8; i <= 8; i++) {
         g.beginPath();
         g.moveTo(vanishX + i * 26, FL + 2);
@@ -901,13 +901,13 @@
       for (const y of [FL + 5, FL + 14, FL + 26]) {
         g.beginPath();
         g.moveTo(0, y);
-        g.lineTo(RW, y);
+        g.lineTo(view.RW, y);
         g.stroke();
       }
       if (Array.isArray(A.rb)) {
         g.fillStyle = A.gr2;
         for (const rb of A.rb) {
-          const x = Math.round(((rb.x - cam) % (RW + 40) + RW + 40) % (RW + 40) - 20);
+          const x = Math.round(((rb.x - cam) % (view.RW + 40) + view.RW + 40) % (view.RW + 40) - 20);
           g.globalAlpha = rb.a;
           g.fillRect(x, rb.y, rb.w, 2);
         }
@@ -918,11 +918,11 @@
         sheen.addColorStop(0, "rgba(150,190,210,.12)");
         sheen.addColorStop(1, "rgba(150,190,210,0)");
         g.fillStyle = sheen;
-        g.fillRect(0, FL, RW, 26);
+        g.fillRect(0, FL, view.RW, 26);
         for (const light of asset.lights || []) {
           if (light.y < FL - 40) continue;
           const x = light.x - cam * 0.82;
-          if (x < -20 || x > RW + 20) continue;
+          if (x < -20 || x > view.RW + 20) continue;
           const reflection = g.createLinearGradient(0, FL, 0, Math.min(RH, FL + 30));
           reflection.addColorStop(0, rgba(light.color, 0.16));
           reflection.addColorStop(1, rgba(light.color, 0));
@@ -931,11 +931,11 @@
         }
       }
       g.fillStyle = "rgba(0,0,0,.25)";
-      g.fillRect(0, FL, RW, 2);
+      g.fillRect(0, FL, view.RW, 2);
       if (asset.wet) {
         const ripple = 0.06 + Math.sin(time * 0.08) * 0.02;
         g.fillStyle = `rgba(190,220,235,${ripple})`;
-        g.fillRect(0, FL + 3, RW, 1);
+        g.fillRect(0, FL + 3, view.RW, 1);
       }
     }
     function drawLights(asset, cam, time) {
@@ -944,7 +944,7 @@
       g.globalCompositeOperation = "lighter";
       for (const light of asset.lights) {
         const x = light.x - cam * 0.82;
-        if (x < -light.radius || x > RW + light.radius) continue;
+        if (x < -light.radius || x > view.RW + light.radius) continue;
         const flicker = 0.88 + Math.sin(time * 0.07 + light.x * 0.5) * 0.12;
         const halo = g.createRadialGradient(x, light.y, 2, x, light.y, light.radius);
         halo.addColorStop(0, rgba(light.color, light.alpha * flicker));
@@ -982,17 +982,17 @@
       return Boolean(asset && asset.ready && Array.isArray(asset.layers) && asset.layers.some((layer2) => layer2.foreground));
     }
     function post() {
-      const vignette = g.createRadialGradient(RW * 0.5, FL * 0.52, 80, RW * 0.5, FL * 0.52, 310);
+      const vignette = g.createRadialGradient(view.RW * 0.5, FL * 0.52, 80, view.RW * 0.5, FL * 0.52, 310);
       vignette.addColorStop(0, "rgba(0,0,0,0)");
       vignette.addColorStop(0.72, "rgba(0,0,0,.03)");
       vignette.addColorStop(1, "rgba(0,0,0,.18)");
       g.fillStyle = vignette;
-      g.fillRect(0, 0, RW, RH);
+      g.fillRect(0, 0, view.RW, RH);
       const top = g.createLinearGradient(0, 0, 0, 26);
       top.addColorStop(0, "rgba(0,0,0,.16)");
       top.addColorStop(1, "rgba(0,0,0,0)");
       g.fillStyle = top;
-      g.fillRect(0, 0, RW, 26);
+      g.fillRect(0, 0, view.RW, 26);
     }
     function ambient({ arena, cam, frame, parts }) {
       const asset = assets[arena];
@@ -1002,7 +1002,7 @@
         if (frame % every !== 0) continue;
         if (item.type === "rain") {
           parts.push({
-            x: cam + Math.random() * (RW + 50) - 20,
+            x: cam + Math.random() * (view.RW + 50) - 20,
             y: -6,
             vx: item.wind ?? -0.5,
             vy: 7,
@@ -1015,7 +1015,7 @@
           });
         } else if (item.type === "snow") {
           parts.push({
-            x: cam + Math.random() * RW,
+            x: cam + Math.random() * view.RW,
             y: -4,
             vx: (Math.random() - 0.5) * 0.4,
             vy: 0.32 + Math.random() * 0.35,
@@ -1027,7 +1027,7 @@
           });
         } else if (item.type === "sand") {
           parts.push({
-            x: cam + RW + 10,
+            x: cam + view.RW + 10,
             y: FL - Math.random() * 158,
             vx: -1.6 - Math.random() * 1.2,
             vy: 0.04,
@@ -1039,7 +1039,7 @@
           });
         } else if (item.type === "ember") {
           parts.push({
-            x: cam + Math.random() * RW,
+            x: cam + Math.random() * view.RW,
             y: FL + Math.random() * 10,
             vx: (Math.random() - 0.5) * 0.3,
             vy: -0.4 - Math.random() * 0.6,
@@ -1050,7 +1050,7 @@
           });
         } else if (item.type === "motes") {
           parts.push({
-            x: cam + Math.random() * RW,
+            x: cam + Math.random() * view.RW,
             y: FL - Math.random() * 145,
             vx: (Math.random() - 0.5) * 0.24,
             vy: -0.06 - Math.random() * 0.16,
@@ -4830,7 +4830,7 @@
     UI,
     CH: CH2,
     WM: WM2,
-    RW,
+    view,
     FL,
     GR,
     OUT,
@@ -6486,10 +6486,10 @@
       pg.addColorStop(0.5, "rgba(12,9,6,.96)");
       pg.addColorStop(1, "rgba(5,4,3,.96)");
       g.fillStyle = pg;
-      g.fillRect(6, 6, RW - 12, 34);
-      frame(6, 6, RW - 12, 34);
+      g.fillRect(6, 6, view.RW - 12, 34);
+      frame(6, 6, view.RW - 12, 34);
       g.fillStyle = "rgba(248,220,140,.28)";
-      g.fillRect(7, 7, RW - 14, 1);
+      g.fillRect(7, 7, view.RW - 14, 1);
       const bar = (f, x, dir) => {
         const w = 150, d = f.def;
         g.fillStyle = "#1a0505";
@@ -6553,27 +6553,27 @@
         }
       };
       bar(p1, 40, 1);
-      bar(p2, RW - 190, -1);
+      bar(p2, view.RW - 190, -1);
       drawPort(p1.def, 24, 26.5, 0.8);
-      drawPort(p2.def, RW - 24, 26.5, 0.8);
+      drawPort(p2.def, view.RW - 24, 26.5, 0.8);
       const pt1 = portraitTop(p1.def), pt2 = portraitTop(p2.def);
       g.strokeStyle = p1.def.acc;
       g.lineWidth = 1;
       g.strokeRect(14.5, 26 + pt1 * 0.8, 19, (15 - pt1) * 0.8 + 1);
       g.strokeStyle = p2.def.acc;
-      g.strokeRect(RW - 33.5, 26 + pt2 * 0.8, 19, (15 - pt2) * 0.8 + 1);
+      g.strokeRect(view.RW - 33.5, 26 + pt2 * 0.8, 19, (15 - pt2) * 0.8 + 1);
       g.fillStyle = "rgba(0,0,0,.78)";
-      g.fillRect(RW / 2 - 18, 7, 36, 22);
-      frame(RW / 2 - 18, 7, 36, 22);
+      g.fillRect(view.RW / 2 - 18, 7, 36, 22);
+      frame(view.RW / 2 - 18, 7, 36, 22);
       if (b.timer < 11) {
         g.strokeStyle = blink() ? "#ff5030" : "#801818";
         g.lineWidth = 1;
-        g.strokeRect(RW / 2 - 17.5, 7.5, 35, 21);
+        g.strokeRect(view.RW / 2 - 17.5, 7.5, 35, 21);
       }
       g.font = '15px "Russo One"';
       g.fillStyle = b.timer < 11 && blink() ? "#ff5030" : "#f0e8d0";
       g.textAlign = "center";
-      g.fillText(b.mode === "training" ? "\u221E" : "" + Math.ceil(b.timer), RW / 2, 23);
+      g.fillText(b.mode === "training" ? "\u221E" : "" + Math.ceil(b.timer), view.RW / 2, 23);
       const pip = (x, y, on) => {
         g.fillStyle = on ? "#e04020" : "#2a2522";
         g.beginPath();
@@ -6589,13 +6589,13 @@
         }
       };
       for (let i = 0; i < 2; i++) {
-        pip(RW / 2 - 45 - i * 9, 10, i < p1.wins);
-        pip(RW / 2 + 39 + i * 9, 10, i < p2.wins);
+        pip(view.RW / 2 - 45 - i * 9, 10, i < p1.wins);
+        pip(view.RW / 2 + 39 + i * 9, 10, i < p2.wins);
       }
     }
     function bigText(t, y, col, sc) {
       g.save();
-      g.translate(RW / 2, y);
+      g.translate(view.RW / 2, y);
       g.scale(sc, sc);
       g.font = '20px "Rubik Mono One","Russo One",sans-serif';
       g.textAlign = "center";
@@ -6645,12 +6645,12 @@
     function drawFatalPanel(b) {
       const left = Math.max(0, 1 - b.phaseT / fatalFrames);
       g.fillStyle = "rgba(0,0,0,.6)";
-      g.fillRect(RW / 2 - 80, 220, 160, 5);
+      g.fillRect(view.RW / 2 - 80, 220, 160, 5);
       g.fillStyle = left > 0.35 ? "#c8a040" : "#e04020";
-      g.fillRect(RW / 2 - 80, 220, 160 * left, 5);
+      g.fillRect(view.RW / 2 - 80, 220, 160 * left, 5);
       g.strokeStyle = "#c8a040";
       g.lineWidth = 1;
-      g.strokeRect(RW / 2 - 80.5, 219.5, 161, 6);
+      g.strokeRect(view.RW / 2 - 80.5, 219.5, 161, 6);
       if (!b.winner.ctrl.ai) {
         const w = b.winner, p2 = w === b.p2, fdir = b.fatalFace || w.face, prog = b.fatalProg || 0, seq = fatalMapped(w.def.fat, fdir), n = seq.length, secs = Math.max(0, Math.ceil((fatalFrames - b.phaseT) / 60));
         g.fillStyle = "rgba(8,5,4,.86)";
@@ -7094,11 +7094,23 @@
     context.fillRect(cx - 9, 36, 18, 1);
   }
   function createUiArt({ RW, RH }) {
-    const base4 = layer(RW, RH, 2);
-    const title = layer(RW, RH, 2);
-    const logo = layer(RW, 160, CACHE_SCALE);
-    const compact = layer(RW, 48, CACHE_SCALE);
+    let base4 = layer(RW, RH, 2);
+    let title = layer(RW, RH, 2);
+    let logo = layer(RW, 160, CACHE_SCALE);
+    let compact = layer(RW, 48, CACHE_SCALE);
     let revision = 0;
+    function resize(nextRW, nextRH) {
+      nextRW = Math.max(1, Math.round(nextRW));
+      nextRH = Math.max(1, Math.round(nextRH));
+      if (nextRW === RW && nextRH === RH) return;
+      RW = nextRW;
+      RH = nextRH;
+      base4 = layer(RW, RH, 2);
+      title = layer(RW, RH, 2);
+      logo = layer(RW, 160, CACHE_SCALE);
+      compact = layer(RW, 48, CACHE_SCALE);
+      revision += 1;
+    }
     const ensureBase = () => {
       if (base4.ready) return;
       base4.context.clearRect(0, 0, RW, RH);
@@ -7220,7 +7232,7 @@
         revision
       };
     }
-    return { drawBase, drawTitleBackground, drawLogo, drawMenuBackground, drawCompact, invalidate, info };
+    return { drawBase, drawTitleBackground, drawLogo, drawMenuBackground, drawCompact, invalidate, resize, info };
   }
 
   // src/audio/audio.js
@@ -7724,7 +7736,12 @@
 
   // src/game/karnage.js
   function startKarnage(fxAssets = {}, arenaAssets = {}, uiAssets = {}) {
-    const RW = 424, RH = 240, FL = 206, AW = 760, GR = 8, OUT = "#0e0b08";
+    const BASE_RW = 424, RH = 240, FL = 206, AW = 760, GR = 8, OUT = "#0e0b08";
+    const VIEW = { RW: BASE_RW, RH };
+    let RW = VIEW.RW;
+    let resizeUi = () => {
+    }, resizeArenas = () => {
+    };
     const UI_GOLD = "#e8c040", UI_RED = "#e02020", UI_BLUE = "#3868c8", UI_TEXT = "#e8e0c0", UI_MUTED = "#807850", UI_ACCENT = "#c8a040";
     const AI_DIFF_NAMES = ["\u041B\u0401\u0413\u041A\u0410\u042F", "\u041D\u041E\u0420\u041C\u0410\u041B\u042C\u041D\u0410\u042F", "\u0422\u042F\u0416\u0401\u041B\u0410\u042F"];
     const isTouchUI = () => document.body.classList.contains("touch");
@@ -7750,12 +7767,20 @@
       scaleDirty = false;
     }
     function fit() {
+      const touch = navigator.maxTouchPoints > 0, aspect = innerWidth / Math.max(1, innerHeight);
+      const nextRW = touch ? Math.max(BASE_RW, Math.min(AW, Math.round(RH * aspect))) : BASE_RW;
+      if (nextRW !== RW) {
+        RW = nextRW;
+        VIEW.RW = RW;
+        resizeUi(RW, RH);
+        resizeArenas();
+      }
       let s = Math.min(innerWidth / RW, innerHeight / RH);
-      if (s >= 2) s = Math.floor(s);
+      if (s >= 2 && !touch) s = Math.floor(s);
       cv.style.width = s * RW + "px";
       cv.style.height = s * RH + "px";
       document.body.classList.toggle("portrait", innerHeight > innerWidth);
-      const touch = navigator.maxTouchPoints > 0, dpr = Math.min(3, window.devicePixelRatio || 1), cap = touch ? 4 : 6;
+      const dpr = Math.min(3, window.devicePixelRatio || 1), cap = touch ? 4 : 6;
       lastDpr = window.devicePixelRatio || 1;
       MAX_SCALE = Math.max(touch ? 3 : 4, Math.min(cap, Math.round(s * dpr * 1.5)));
       MIN_SCALE = Math.min(touch ? 2 : 4, MAX_SCALE);
@@ -7781,6 +7806,7 @@
       };
     }
     initArenas({ mul, RW, RH, FL, GR });
+    resizeArenas = () => initArenas({ mul, RW, RH, FL, GR });
     function colorParts(c) {
       if (c[0] === "#") return [parseInt(c.slice(1, 3), 16), parseInt(c.slice(3, 5), 16), parseInt(c.slice(5, 7), 16)];
       const m = /^rgba?\((\d+),\s*(\d+),\s*(\d+)/.exec(c);
@@ -7811,7 +7837,7 @@
       UI,
       CH,
       WM,
-      RW,
+      view: VIEW,
       FL,
       GR,
       OUT,
@@ -7824,6 +7850,7 @@
       fatalFrames: FATAL_FRAMES
     });
     const uiArt = createUiArt({ RW, RH });
+    resizeUi = (w, h) => uiArt.resize(w, h);
     const redrawUiArt = () => uiArt.invalidate();
     if (document.fonts) {
       document.fonts.load('20px "Russo One"').then(redrawUiArt).catch(() => {
@@ -7833,7 +7860,7 @@
       document.fonts.load('24px "Rubik Mono One"').then(redrawUiArt).catch(() => {
       });
     }
-    const arenaView = createArenaView({ g, RW, RH, FL, AR, assets: ARENA_IMG, shade, mix });
+    const arenaView = createArenaView({ g, view: VIEW, RH, FL, AR, assets: ARENA_IMG, shade, mix });
     const OPT = { crt: true, blood: true, shake: true, reduce: false };
     try {
       const raw = JSON.parse(localStorage.karnageOpts || "{}");
@@ -10675,6 +10702,15 @@
         },
         get uiCache() {
           return uiArt.info();
+        },
+        get RW() {
+          return RW;
+        },
+        get RH() {
+          return RH;
+        },
+        get baseRW() {
+          return BASE_RW;
         },
         get OPT() {
           return OPT;

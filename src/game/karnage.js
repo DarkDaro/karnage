@@ -12,7 +12,9 @@ import { createUiArt } from '../render/ui-art.js';
 import { createAudio } from '../audio/audio.js';
 
 export function startKarnage(fxAssets = {}, arenaAssets = {}, uiAssets = {}) {
-const RW=424,RH=240,FL=206,AW=760,GR=8,OUT='#0e0b08';
+const BASE_RW=424,RH=240,FL=206,AW=760,GR=8,OUT='#0e0b08';
+const VIEW={RW:BASE_RW,RH};let RW=VIEW.RW;
+let resizeUi=()=>{},resizeArenas=()=>{};
 const UI_GOLD='#e8c040',UI_RED='#e02020',UI_BLUE='#3868c8',UI_TEXT='#e8e0c0',UI_MUTED='#807850',UI_ACCENT='#c8a040';
 const AI_DIFF_NAMES=['ЛЁГКАЯ','НОРМАЛЬНАЯ','ТЯЖЁЛАЯ'];
 const isTouchUI=()=>document.body.classList.contains('touch');
@@ -24,8 +26,13 @@ let RSCALE=5,MAX_SCALE=6,MIN_SCALE=3,scaleReady=false,scaleDirty=false,lastDpr=w
 let perfAcc=0,perfFrames=0,perfBadWin=0,perfGoodWin=0,perfWarm=400,perfCool=0,perfLast=0,perfAvg=0;
 function resetPerf(){perfAcc=0;perfFrames=0;perfBadWin=0;perfGoodWin=0;perfCool=0;}
 function applyRScale(){const w=RW*RSCALE,h=RH*RSCALE;if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h;}scaleDirty=false;}
-function fit(){let s=Math.min(innerWidth/RW,innerHeight/RH);if(s>=2)s=Math.floor(s);cv.style.width=s*RW+'px';cv.style.height=s*RH+'px';document.body.classList.toggle('portrait',innerHeight>innerWidth);
-const touch=navigator.maxTouchPoints>0,dpr=Math.min(3,window.devicePixelRatio||1),cap=touch?4:6;
+function fit(){const touch=navigator.maxTouchPoints>0,aspect=innerWidth/Math.max(1,innerHeight);
+const nextRW=touch?Math.max(BASE_RW,Math.min(AW,Math.round(RH*aspect))):BASE_RW;
+if(nextRW!==RW){RW=nextRW;VIEW.RW=RW;resizeUi(RW,RH);resizeArenas();}
+let s=Math.min(innerWidth/RW,innerHeight/RH);
+if(s>=2&&!touch)s=Math.floor(s);
+cv.style.width=s*RW+'px';cv.style.height=s*RH+'px';document.body.classList.toggle('portrait',innerHeight>innerWidth);
+const dpr=Math.min(3,window.devicePixelRatio||1),cap=touch?4:6;
 lastDpr=window.devicePixelRatio||1;
 MAX_SCALE=Math.max(touch?3:4,Math.min(cap,Math.round(s*dpr*1.5)));
 MIN_SCALE=Math.min(touch?2:4,MAX_SCALE);
@@ -37,6 +44,7 @@ if(document.fonts)document.fonts.load('20px "Russo One"');
 const clamp=(v,a,b)=>v<a?a:v>b?b:v,lerp=(a,b,t)=>a+(b-a)*t,rnd=(a,b)=>a+Math.random()*(b-a),pick=a=>a[Math.random()*a.length|0],blink=()=>((S.FRAME>>4)%2===0);
 function mul(s){return function(){s|=0;s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;}}
 initArenas({ mul, RW, RH, FL, GR });
+resizeArenas=()=>initArenas({ mul, RW, RH, FL, GR });
 function colorParts(c){if(c[0]==='#')return[parseInt(c.slice(1,3),16),parseInt(c.slice(3,5),16),parseInt(c.slice(5,7),16)];const m=/^rgba?\((\d+),\s*(\d+),\s*(\d+)/.exec(c);return m?[+m[1],+m[2],+m[3]]:[0,0,0];}
 function mix(a,b,t){const A=colorParts(a),B=colorParts(b);return'rgb('+(lerp(A[0],B[0],t)|0)+','+(lerp(A[1],B[1],t)|0)+','+(lerp(A[2],B[2],t)|0)+')';}
 const shade=(h,k)=>mix(h,'#000000',1-k);
@@ -44,17 +52,18 @@ const {
   drawF, drawFighterGlow, drawPort, drawPortFit, drawFake, drawHUD, drawFatalPanel,
   bigText, frame, panel, seqTxt, drawProjs, drawFx,
 } = createRender({
-  g, S, UI, CH, WM, RW, FL, GR, OUT,
+  g, S, UI, CH, WM, view:VIEW, FL, GR, OUT,
   lerp, rnd, mix, shade, blink, fatalMapped, fatalFrames: FATAL_FRAMES,
 });
 const uiArt=createUiArt({RW,RH});
+resizeUi=(w,h)=>uiArt.resize(w,h);
 const redrawUiArt=()=>uiArt.invalidate();
 if(document.fonts){
   document.fonts.load('20px "Russo One"').then(redrawUiArt).catch(()=>{});
   document.fonts.load('50px "Russo One"').then(redrawUiArt).catch(()=>{});
   document.fonts.load('24px "Rubik Mono One"').then(redrawUiArt).catch(()=>{});
 }
-const arenaView=createArenaView({g,RW,RH,FL,AR,assets:ARENA_IMG,shade,mix});
+const arenaView=createArenaView({g,view:VIEW,RH,FL,AR,assets:ARENA_IMG,shade,mix});
 /* ЗВУК */
 // 25.10: звук включён по умолчанию; контекст создаётся после первого ввода
 const OPT={crt:true,blood:true,shake:true,reduce:false};
@@ -770,6 +779,9 @@ if (new URLSearchParams(location.search).has('debug')) {
     get arenaAssets() { return ARENA_IMG; },
     get uiAssets() { return UI; },
     get uiCache() { return uiArt.info(); },
+    get RW() { return RW; },
+    get RH() { return RH; },
+    get baseRW() { return BASE_RW; },
     get OPT() { return OPT; },
     get settingsIdx() { return S.settingsIdx; },
     get ladder() { return S.ladder; },

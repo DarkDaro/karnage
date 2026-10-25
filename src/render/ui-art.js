@@ -422,11 +422,24 @@ function buildCompactLogo(context, RW) {
 }
 
 export function createUiArt({ RW, RH }) {
-  const base = layer(RW, RH, 2);
-  const title = layer(RW, RH, 2);
-  const logo = layer(RW, 160, CACHE_SCALE);
-  const compact = layer(RW, 48, CACHE_SCALE);
+  let base = layer(RW, RH, 2);
+  let title = layer(RW, RH, 2);
+  let logo = layer(RW, 160, CACHE_SCALE);
+  let compact = layer(RW, 48, CACHE_SCALE);
   let revision = 0;
+
+  function resize(nextRW, nextRH) {
+    nextRW = Math.max(1, Math.round(nextRW));
+    nextRH = Math.max(1, Math.round(nextRH));
+    if (nextRW === RW && nextRH === RH) return;
+    RW = nextRW;
+    RH = nextRH;
+    base = layer(RW, RH, 2);
+    title = layer(RW, RH, 2);
+    logo = layer(RW, 160, CACHE_SCALE);
+    compact = layer(RW, 48, CACHE_SCALE);
+    revision += 1;
+  }
 
   const ensureBase = () => {
     if (base.ready) return;
@@ -563,5 +576,5 @@ export function createUiArt({ RW, RH }) {
     };
   }
 
-  return { drawBase, drawTitleBackground, drawLogo, drawMenuBackground, drawCompact, invalidate, info };
+  return { drawBase, drawTitleBackground, drawLogo, drawMenuBackground, drawCompact, invalidate, resize, info };
 }
