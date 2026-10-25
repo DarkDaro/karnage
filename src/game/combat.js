@@ -1,6 +1,7 @@
 export function createCombat({ S, SFX, P, blood, spriteFx, rnd, pick }) {
   function comboScale(f){const chain=(f.comboT!==undefined&&f.comboT<60)?(f.combo||0):0;return Math.max(.55,1-chain*.07);}// 24.10: спад урона в длинной серии
   function hitStunFor(att,opts){const combo=(att.comboT!==undefined&&att.comboT<60)?(att.combo||0):0;return opts&&opts.launch?18:Math.max(12,18-combo*2);}// 25.10: длинная серия быстрее отпускает жертву
+  function massScale(f){const w=(f.def&&f.def.weight)||f.weight||1;return Math.max(.82,Math.min(1.15,1.12-(w-1)*.16));}// 25.10: масса гасит горизонтальный отброс
   function autoHit(a,dmg){
   const f=a.foe;
   if(!f||f.hidden||f.dodging||f.defeated)return;
@@ -48,7 +49,7 @@ export function createCombat({ S, SFX, P, blood, spriteFx, rnd, pick }) {
   if(opts.throw)def.blockStun=0;
   if(def.state==='block'&&!opts.throw&&!((opts.low&&!def.blockLow)||(opts.overhead&&def.blockLow))){def.hp=Math.max(1,def.hp-1);def.blockStun=6;def.damageTaken=(def.damageTaken||0)+1;SFX.block();att.rage=Math.min(100,att.rage+1);def.rage=Math.min(100,def.rage+1);def.vx=att.face*2;def.hvx=0;att.chain='';att.chainT=0;spriteFx('block',def.x+def.face*8,def.y-def.def.h*.55,{scale:.9,alpha:.9});for(let i=0;i<4;i++)P(def.x+def.face*8,def.y-def.def.h*.55,rnd(-1.5,1.5),rnd(-2,0),'#fff',10,2,0);
   return'block';}
-  let d=dmg*att.def.dmg*comboScale(att);if(opts.target){d*=1.2;S.fx.push({ty:'name',x:att.x+att.face*10,y:att.y-att.def.h-20,txt:opts.target.n,col:att.def.acc,life:45,t:0});S.shake=Math.max(S.shake,3);}if(def.frozen>0){d*=1.4;def.frozen=0;for(let i=0;i<6;i++)P(def.x+rnd(-8,8),def.y-rnd(10,50),rnd(-2,2),rnd(-3,0),'#c8ecff',18,2,.04);}
+  let d=dmg*(opts.flat?1:att.def.dmg)*comboScale(att);if(opts.target){d*=1.2;S.fx.push({ty:'name',x:att.x+att.face*10,y:att.y-att.def.h-20,txt:opts.target.n,col:att.def.acc,life:45,t:0});S.shake=Math.max(S.shake,3);}if(def.frozen>0){d*=1.4;def.frozen=0;for(let i=0;i<6;i++)P(def.x+rnd(-8,8),def.y-rnd(10,50),rnd(-2,2),rnd(-3,0),'#c8ecff',18,2,.04);}
   // 08.09: баланс Крио — урон по льду 1.6→1.4// 08.09: осколки льда при разбивании
   def.hp=Math.max(0,def.hp-d);if(def.hp<=0)S.freeze=Math.max(S.freeze,12);def.hitStun=hitStunFor(att,opts);def.blockStun=0;def.damageTaken=(def.damageTaken||0)+d;def.netT=0;def.spec2go=0;def.atk=null;def.invis=0;def.chain='';def.chainT=0;
   att.combo=(att.comboT!==undefined&&att.comboT<60?att.combo:0)+1;att.comboT=0;if(def.combo>=3)SFX.cbreak();// 30.09: разрыв длинной серии звучит
@@ -65,7 +66,7 @@ export function createCombat({ S, SFX, P, blood, spriteFx, rnd, pick }) {
     for(let i=0;i<6;i++)P(def.x-att.face*8,def.y-def.def.h*.55,rnd(-2.5,2.5),rnd(-2.5,1),pick(['#fff','#f8d060','#f0a030']),10,rnd(1,2),.05);
   }
   S.freeze=def.hp<=0?Math.max(S.freeze,12):Math.max(S.freeze,Math.min(6,2+d*.25));
-  const kb=opts.kb||5;def.hitStatus=opts.status||(opts.launch?'launch':opts.knock?'knockdown':'stagger');
+  const mass=massScale(def),kb=(opts.kb||5)*(opts.knock?mass:1);def.hitStatus=opts.status||(opts.launch?'launch':opts.knock?'knockdown':'stagger');
   if(opts.launch){def.vy=-8;def.vx=att.face*Math.min(3,kb);def.state='hit';def.st=0;def.hvx=att.face*Math.min(3,kb);SFX.upper();S.shake=5;}
   else if(def.hp<=0&&S.battle.phase==='fight'){def.state='hit';def.st=0;def.hvx=att.face*4;SFX.hitH();}
   else if((opts.knock||d>9||def.hp<=0)&&!opts.chain){def.state='down';def.st=0;def.vx=att.face*kb;def.vy=-5;def.hvx=att.face*3;SFX.hitH();S.shake=6;if(!opts.noHitFx)S.fx.push({ty:'ring',x:def.x,y:def.y-def.def.h*.55,t:0,col:'#f8d060'});}// 08.09: roundhouse всегда валит + ударное кольцо

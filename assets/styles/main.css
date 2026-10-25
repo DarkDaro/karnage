@@ -68,6 +68,8 @@ canvas {
 }
 
 #touch {
+  --dpad: clamp(38px, 10.5vw, 46px);
+  --act: clamp(44px, 13vw, 56px);
   display: none;
   position: fixed;
   inset: 0;
@@ -107,21 +109,21 @@ body.touch.portrait #touch::before {
 
 #touch .dpad {
   position: absolute;
-  left: calc(14px + env(safe-area-inset-left));
-  bottom: calc(14px + env(safe-area-inset-bottom));
+  left: calc(12px + env(safe-area-inset-left));
+  bottom: calc(12px + env(safe-area-inset-bottom));
   display: grid;
-  grid-template: repeat(3, 40px) / repeat(3, 40px);
+  grid-template: repeat(3, var(--dpad)) / repeat(3, var(--dpad));
   gap: 4px;
   pointer-events: none;
 }
 
 #touch .actions {
   position: absolute;
-  right: calc(14px + env(safe-area-inset-right));
-  bottom: calc(14px + env(safe-area-inset-bottom));
+  right: calc(12px + env(safe-area-inset-right));
+  bottom: calc(12px + env(safe-area-inset-bottom));
   display: grid;
-  grid-template: repeat(2, 54px) / repeat(2, 54px);
-  gap: 8px;
+  grid-template: repeat(2, var(--act)) / repeat(3, var(--act));
+  gap: 7px;
   pointer-events: none;
 }
 
@@ -131,26 +133,12 @@ body.touch.portrait #touch::before {
   border-radius: 50%;
   background: radial-gradient(circle at 35% 28%, rgba(44, 30, 18, .55), rgba(10, 8, 6, .46));
   color: #e8d8a8;
-  font: 12px "Russo One", sans-serif;
+  font: 13px "Russo One", sans-serif;
   text-shadow: 0 1px 0 #000;
   box-shadow: inset 0 0 12px rgba(0, 0, 0, .42);
   touch-action: none;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
-}
-
-body.touch:not(.portrait) #touch .dpad {
-  grid-template: repeat(3, 36px) / repeat(3, 36px);
-  gap: 3px;
-  left: calc(10px + env(safe-area-inset-left));
-  bottom: calc(10px + env(safe-area-inset-bottom));
-}
-
-body.touch:not(.portrait) #touch .actions {
-  grid-template: repeat(2, 46px) / repeat(2, 46px);
-  gap: 6px;
-  right: calc(10px + env(safe-area-inset-right));
-  bottom: calc(10px + env(safe-area-inset-bottom));
 }
 
 #touch button.on {
@@ -165,13 +153,15 @@ body.touch:not(.portrait) #touch .actions {
 #touch .right { grid-area: 2 / 3; }
 #touch .punch { grid-area: 1 / 1; }
 #touch .kick { grid-area: 1 / 2; }
-#touch .block { grid-area: 2 / 1 / 3 / 3; border-radius: 18px; }
+#touch .block { grid-area: 1 / 3; border-radius: 16px; font-size: 12px; }
+#touch .throw { grid-area: 2 / 1 / 3 / 3; border-radius: 18px; font-size: 12px; }
+#touch .cmdthrow { grid-area: 2 / 3; border-radius: 16px; font-size: 10px; }
 #touch .pause {
   position: absolute;
   top: calc(10px + env(safe-area-inset-top));
   right: calc(14px + env(safe-area-inset-right));
-  width: 42px;
-  height: 42px;
+  width: 44px;
+  height: 44px;
   border-radius: 12px;
   font-size: 13px;
 }

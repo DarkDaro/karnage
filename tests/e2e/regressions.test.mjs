@@ -1244,6 +1244,40 @@ test('Kryo ice needles cast from the ground and from the air can hit', async () 
   assert.ok(result.airCast.hp < 100, 'air ice needles must hit');
 });
 
+test('weight changes physical knockback', async () => {
+  const result = await page.evaluate(() => {
+    const K = window.KARNAGE;
+    const hit = (id) => {
+      for (const code in K.keys) K.keys[code] = false;
+      K.setDebug({ GAME: 'fight', paused: false });
+      K.newBattle(0, new K.Ctrl(K.KM1), id, new K.Ctrl(K.KM2), 9);
+      const battle = K.battle;
+      battle.mode = '2p';
+      battle.phase = 'fight';
+      battle.phaseT = 200;
+      battle.p1.ctrl.ai = false;
+      battle.p2.ctrl.ai = false;
+      battle.p1.x = 300;
+      battle.p2.x = 330;
+      battle.p1.y = battle.p2.y = 214;
+      battle.p1.face = 1;
+      battle.p2.face = -1;
+      battle.p1.state = 'idle';
+      battle.p2.state = 'idle';
+      battle.p1.st = battle.p2.st = 0;
+      battle.p2.hp = 100;
+      battle.p2.defeated = 0;
+      const hitResult = K.resolveHit(battle.p1, battle.p2, 1, { knock: 1, kb: 5 });
+      return { hitResult, vx: battle.p2.vx, weight: battle.p2.def.weight };
+    };
+    return { heavy: hit(3), light: hit(5) };
+  });
+  assert.equal(result.heavy.hitResult, 'hit');
+  assert.equal(result.light.hitResult, 'hit');
+  assert.ok(result.light.weight < result.heavy.weight);
+  assert.ok(result.light.vx > result.heavy.vx, `light fighter must be knocked back farther: ${JSON.stringify(result)}`);
+});
+
 test('throw input forgives sequential P and K and shows feedback', async () => {
   const result = await page.evaluate(() => {
     const K = window.KARNAGE;

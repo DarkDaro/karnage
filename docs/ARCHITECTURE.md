@@ -44,8 +44,8 @@
 - `F` — боец: `def`, `ctrl`, `x`, `y`, `state`, `st`, `hp`, `rage`, `atk`,
   статусы (`frozen`, `netT`, `poison`, `invis`), буферы (`jbuf`, `abuf`).
   Создаётся фабрикой `createFighter` из `src/game/fighter.js`.
-- `throwN`, `throwT`, `throwC`, `throwD` — имя, стихия, цвет и урон добивания; назначаются в `src/data/characters.js` каждому бойцу и боссу.
-- Захват: `ATK.throw` с `grab:1` переводит жертву в `grabbed`; `F.finishThrow` через 8 кадров удержания наносит именной урон и запускает эффект стихии.
+- `throwN`, `throwT`, `throwC`, `throwD` — имя, стихия, цвет и базовый урон добивания; назначаются в `src/data/characters.js` каждому бойцу и боссу. Множитель `dmg` к броску не применяется.
+- Захват: `ATK.throw` с `grab:1` переводит жертву в `grabbed`; `F.finishThrow` через 8 кадров удержания наносит именной урон, запускает эффект стихии и передаёт `flat:1` в `resolveHit`.
 - `createRender({...})` из `src/render/render.js` возвращает `drawF`, `drawFighterGlow`, `drawGear`, `drawPort`, `drawFake`, `drawHUD`, `drawFatalPanel`, `frame`, `panel`, `bigText`, `seqTxt`, `drawProjs` и `drawFx`; зависимости передаются явно, модуль только читает состояние.
 - `createAudio({S, clamp, rnd})` из `src/audio/audio.js` возвращает `AU`, `SFX`, `MU`, `initA`, `say`, `setVol`, `saveSet`, `music` и загрузчики сэмплов; AudioContext создаётся только после первого ввода.
 - `drawF(f, cam)` — рисует бойца; не мутирует игровое состояние.

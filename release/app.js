@@ -1727,7 +1727,7 @@
           SFX.hitV();
           return;
         }
-        const res = resolveHit(this, foe, dmg, { throw: 1, knock: !launch, launch: launch ? 1 : 0 });
+        const res = resolveHit(this, foe, dmg, { throw: 1, knock: !launch, launch: launch ? 1 : 0, flat: 1 });
         this.atk.thrown = 1;
         this.atk.grabbed = 0;
         if (res !== "hit") return;
@@ -2246,6 +2246,10 @@
       const combo = att.comboT !== void 0 && att.comboT < 60 ? att.combo || 0 : 0;
       return opts && opts.launch ? 18 : Math.max(12, 18 - combo * 2);
     }
+    function massScale(f) {
+      const w = f.def && f.def.weight || f.weight || 1;
+      return Math.max(0.82, Math.min(1.15, 1.12 - (w - 1) * 0.16));
+    }
     function autoHit(a, dmg) {
       const f = a.foe;
       if (!f || f.hidden || f.dodging || f.defeated) return;
@@ -2404,7 +2408,7 @@
         for (let i = 0; i < 4; i++) P(def.x + def.face * 8, def.y - def.def.h * 0.55, rnd(-1.5, 1.5), rnd(-2, 0), "#fff", 10, 2, 0);
         return "block";
       }
-      let d = dmg * att.def.dmg * comboScale(att);
+      let d = dmg * (opts.flat ? 1 : att.def.dmg) * comboScale(att);
       if (opts.target) {
         d *= 1.2;
         S.fx.push({ ty: "name", x: att.x + att.face * 10, y: att.y - att.def.h - 20, txt: opts.target.n, col: att.def.acc, life: 45, t: 0 });
@@ -2449,7 +2453,7 @@
         for (let i = 0; i < 6; i++) P(def.x - att.face * 8, def.y - def.def.h * 0.55, rnd(-2.5, 2.5), rnd(-2.5, 1), pick(["#fff", "#f8d060", "#f0a030"]), 10, rnd(1, 2), 0.05);
       }
       S.freeze = def.hp <= 0 ? Math.max(S.freeze, 12) : Math.max(S.freeze, Math.min(6, 2 + d * 0.25));
-      const kb = opts.kb || 5;
+      const mass = massScale(def), kb = (opts.kb || 5) * (opts.knock ? mass : 1);
       def.hitStatus = opts.status || (opts.launch ? "launch" : opts.knock ? "knockdown" : "stagger");
       if (opts.launch) {
         def.vy = -8;
@@ -7966,27 +7970,31 @@
       document.body.classList.add("touch");
       const root = document.createElement("div");
       root.id = "touch";
-      root.innerHTML = '<div class="dpad"><button class="up" data-key="u">\u25B2</button><button class="left" data-key="l">\u25C0</button><button class="down" data-key="d">\u25BC</button><button class="right" data-key="r">\u25B6</button></div><div class="actions"><button class="punch" data-key="P">P</button><button class="kick" data-key="K">K</button><button class="block" data-key="B">\u0411\u041B\u041E\u041A</button></div><button class="pause" data-key="pause">\u2161</button>';
+      root.innerHTML = '<div class="dpad"><button class="up" data-key="u">\u25B2</button><button class="left" data-key="l">\u25C0</button><button class="down" data-key="d">\u25BC</button><button class="right" data-key="r">\u25B6</button></div><div class="actions"><button class="punch" data-key="P" aria-label="\u0420\u0443\u043A\u0430">P</button><button class="kick" data-key="K" aria-label="\u041D\u043E\u0433\u0430">K</button><button class="block" data-key="B" aria-label="\u0411\u043B\u043E\u043A">\u0411\u041B\u041E\u041A</button><button class="throw" data-keys="P K" aria-label="\u0411\u0440\u043E\u0441\u043E\u043A P+K">P+K</button><button class="cmdthrow" data-keys="d P K" aria-label="\u041A\u043E\u043C\u0430\u043D\u0434\u043D\u044B\u0439 \u0431\u0440\u043E\u0441\u043E\u043A D+P+K">D+P+K</button></div><button class="pause" data-key="pause" aria-label="\u041F\u0430\u0443\u0437\u0430">\u2161</button>';
       document.body.appendChild(root);
       const codes = { l: "ArrowLeft", r: "ArrowRight", u: "ArrowUp", d: "ArrowDown", P: "Enter", K: "KeyK", B: "Escape" };
-      const held = /* @__PURE__ */ new Map();
-      const btnOf = (key) => root.querySelector(`[data-key="${key}"]`);
-      const release = (key, id) => {
-        const ids = held.get(key);
-        if (!ids || !ids.delete(id) || ids.size) return;
-        held.delete(key);
-        if (key !== "pause") TOUCH[key] = 0;
-        btnOf(key)?.classList.remove("on");
+      const held = /* @__PURE__ */ new Map(), active = /* @__PURE__ */ new Map();
+      const release = (id) => {
+        const rec = active.get(id);
+        if (!rec) return;
+        active.delete(id);
+        for (const key of rec.keys) {
+          const ids = held.get(key);
+          if (!ids) continue;
+          ids.delete(id);
+          if (ids.size) continue;
+          held.delete(key);
+          if (key !== "pause") TOUCH[key] = 0;
+        }
+        rec.btn.classList.remove("on");
       };
-      const releasePointer = (id) => {
-        for (const key of [...held.keys()]) if (held.get(key).has(id)) release(key, id);
-      };
+      const releasePointer = (id) => release(id);
       const releaseAll = () => {
-        for (const key of [...held.keys()]) for (const id of [...held.get(key)]) release(key, id);
+        for (const id of [...active.keys()]) release(id);
       };
       resetTouch = releaseAll;
       for (const btn of root.querySelectorAll("button")) {
-        const key = btn.dataset.key;
+        const keys2 = (btn.dataset.keys || btn.dataset.key || "").split(/\s+/).filter(Boolean);
         const down = (e) => {
           e.preventDefault();
           e.stopPropagation();
@@ -7994,23 +8002,33 @@
             btn.setPointerCapture(e.pointerId);
           } catch (err) {
           }
-          if (!held.has(key)) held.set(key, /* @__PURE__ */ new Set());
-          held.get(key).add(e.pointerId);
+          if (active.has(e.pointerId)) return;
+          active.set(e.pointerId, { btn, keys: keys2 });
+          for (const key of keys2) {
+            if (!held.has(key)) held.set(key, /* @__PURE__ */ new Set());
+            held.get(key).add(e.pointerId);
+          }
           btn.classList.add("on");
           initA();
           if (AU.ctx && AU.ctx.state === "suspended") AU.ctx.resume();
-          if (key === "pause") {
+          if (keys2.includes("pause")) {
             onKey("Escape");
             return;
           }
-          TOUCH[key] = 1;
-          press(key, S.FRAME);
-          if (S.GAME !== "fight" || S.paused) onKey(codes[key]);
-          else if (key === "P") onKey("KeyJ");
+          const fighting = S.GAME === "fight" && !S.paused;
+          if (fighting) for (const key of keys2) {
+            TOUCH[key] = 1;
+            press(key, S.FRAME);
+          }
+          if (!fighting) {
+            if (keys2.length === 1) onKey(codes[keys2[0]]);
+            return;
+          }
+          if (keys2.includes("P")) onKey("KeyJ");
         };
         const up = (e) => {
           e.preventDefault();
-          release(key, e.pointerId);
+          release(e.pointerId);
         };
         btn.addEventListener("pointerdown", down);
         btn.addEventListener("pointerup", up);

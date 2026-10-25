@@ -244,7 +244,7 @@ export const DUMMY = {
 };
 
 // 25.10: масса связывает ширину тела и рост; полоски в выборе бойца считаются от неё.
-const WEIGHT_POWER = 2.4;
+export const WEIGHT_POWER = 2.4;
 for (const c of [...CH, BOSS, DUMMY]) c.weight = +(c.bulk * Math.pow(c.h / 60, WEIGHT_POWER)).toFixed(2);
 export const WEIGHT_MAX = Math.max(...CH.map((c) => c.weight));
 export function statBars(fighter) {

@@ -80,6 +80,49 @@ test('touch controls navigate the menu and hold fight buttons', async () => {
   const released = await page.evaluate(() => window.KARNAGE.TOUCH.P);
   assert.equal(held, 1);
   assert.equal(released, 0);
+
+  const throwButton = page.locator('[data-keys="P K"]');
+  await throwButton.dispatchEvent('pointerdown', { pointerId: 2, pointerType: 'touch' });
+  const chord = await page.evaluate(() => ({ P: window.KARNAGE.TOUCH.P, K: window.KARNAGE.TOUCH.K }));
+  const chordStarted = await page.evaluate(() => {
+    const K = window.KARNAGE;
+    K.step();
+    return Boolean(K.battle.p1.atk?.A?.throw);
+  });
+  await throwButton.dispatchEvent('pointerup', { pointerId: 2, pointerType: 'touch' });
+  const chordReleased = await page.evaluate(() => ({ P: window.KARNAGE.TOUCH.P, K: window.KARNAGE.TOUCH.K }));
+  assert.deepEqual(chord, { P: 1, K: 1 });
+  assert.equal(chordStarted, true);
+  assert.deepEqual(chordReleased, { P: 0, K: 0 });
+
+  await page.evaluate(() => {
+    const K = window.KARNAGE;
+    K.newBattle(0, new K.Ctrl(K.KM1), 1, new K.Ctrl(K.KM2), 9);
+    K.battle.mode = '2p';
+    K.battle.phase = 'fight';
+    K.battle.phaseT = 200;
+  });
+  const cmdThrowButton = page.locator('[data-keys="d P K"]');
+  await cmdThrowButton.dispatchEvent('pointerdown', { pointerId: 3, pointerType: 'touch' });
+  const cmdChord = await page.evaluate(() => ({
+    d: window.KARNAGE.TOUCH.d,
+    P: window.KARNAGE.TOUCH.P,
+    K: window.KARNAGE.TOUCH.K
+  }));
+  const cmdStarted = await page.evaluate(() => {
+    const K = window.KARNAGE;
+    K.step();
+    return Boolean(K.battle.p1.atk?.cmdThrow);
+  });
+  await cmdThrowButton.dispatchEvent('pointerup', { pointerId: 3, pointerType: 'touch' });
+  const cmdReleased = await page.evaluate(() => ({
+    d: window.KARNAGE.TOUCH.d,
+    P: window.KARNAGE.TOUCH.P,
+    K: window.KARNAGE.TOUCH.K
+  }));
+  assert.deepEqual(cmdChord, { d: 1, P: 1, K: 1 });
+  assert.equal(cmdStarted, true);
+  assert.deepEqual(cmdReleased, { d: 0, P: 0, K: 0 });
 });
 
 test('touch menu hides 2P and training hints use touch buttons', async () => {
@@ -188,7 +231,14 @@ test('portrait touch layout keeps controls inside the viewport', async () => {
         body: document.body.className,
         viewport: { width: window.innerWidth, height: window.innerHeight },
         canvas: rect('#cv'),
-        controls: ['l', 'r', 'u', 'd', 'P', 'K', 'B', 'pause'].map((key) => rect(`[data-key="${key}"]`)),
+        dpad: ['l', 'r', 'u', 'd', 'pause'].map((key) => rect(`[data-key="${key}"]`)),
+        actions: [
+          '[data-key="P"]',
+          '[data-key="K"]',
+          '[data-key="B"]',
+          '[data-keys="P K"]',
+          '[data-keys="d P K"]'
+        ].map((selector) => rect(selector)),
         overflow: document.documentElement.scrollWidth - window.innerWidth
       };
     });
@@ -196,8 +246,13 @@ test('portrait touch layout keeps controls inside the viewport', async () => {
     assert.match(layout.body, /portrait/);
     assert.ok(layout.canvas.width <= layout.viewport.width);
     assert.ok(layout.overflow <= 1);
-    for (const control of layout.controls) {
-      assert.ok(control.width >= 36 && control.height >= 36, JSON.stringify(control));
+    for (const control of layout.dpad) {
+      assert.ok(control.width >= 38 && control.height >= 38, JSON.stringify(control));
+    }
+    for (const control of layout.actions) {
+      assert.ok(control.width >= 44 && control.height >= 44, JSON.stringify(control));
+    }
+    for (const control of [...layout.dpad, ...layout.actions]) {
       assert.ok(control.left >= 0 && control.top >= 0, JSON.stringify(control));
       assert.ok(control.right <= layout.viewport.width && control.bottom <= layout.viewport.height, JSON.stringify(control));
     }

@@ -15,7 +15,7 @@
 - CC0-эффекты: `hitLight`, `hitHeavy`, `dust`, `block`, `smoke`, `dustRun`, `fireImpact`, `iceImpact`, `shadowImpact`, `explosion`.
 - Все 10 арен на ассетах: слои `far/mid/props/fg`, параллакс, свет и погода; передний план не перекрывает бойцов.
 - UI: 9-slice панели из Kenney Fantasy UI, общий фон меню, карточки паузы и выбора без наложений.
-- Мобильный режим: touch D-pad, P/K/блок, пауза, safe-area; в landscape кнопки компактные и полупрозрачные, в portrait игра центрируется над управлением.
+- Мобильный режим: touch D-pad, P/K/блок, отдельные кнопки броска `P+K` и командного броска `D+P+K`, пауза, safe-area; кнопки адаптивные 44–56 px; в portrait игра центрируется над управлением.
 - Локальные шрифты, без CDN.
 - Настройки в главном меню: звук, голос, громкость, CRT, кровь, тряска и reduce motion.
 - Звук включён по умолчанию; WAV-эффекты и MP3-музыка, настройка сохраняется.
@@ -45,7 +45,7 @@
 - Бойцы, портреты, HUD и эффекты рисуются из `src/render/render.js`; титул, логотип и меню — из `src/render/ui-art.js`.
 - Звук, WAV/MP3-банк, SFX и музыка вынесены в `src/audio/audio.js`.
 - Подключены 10 FX-атласов: `hitLight`, `hitHeavy`, `dust`, `block`, `smoke`, `dustRun`, `fireImpact`, `iceImpact`, `shadowImpact`, `explosion`.
-- Тесты: 89 сценариев (14 unit + 75 Playwright), ESLint покрывает `src`.
+- Тесты: 90 сценариев (14 unit + 76 Playwright), ESLint покрывает `src`.
 - Известные ошибки и ограничения: `DEVNOTES.md`.
 
 ## Запуск
