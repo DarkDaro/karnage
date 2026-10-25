@@ -592,7 +592,7 @@ g.fillStyle='#c8a040';g.fillText('['+seqTxt(d.spec2,p2,f.face)+']',x,131);
 g.fillStyle='#e8e0c0';g.fillText('СУПЕР: '+d.sup,x,141);
 g.fillStyle='#c8a040';g.fillText('['+seqTxt('DDP',p2,f.face)+'] при ярости 100',x,150);
 g.fillStyle='#e8e0c0';g.fillText('ФАТАЛИТИ: ['+seqTxt(d.fat,p2,f.face)+']',x,161);
-g.fillStyle='#e8e0c0';g.fillText('БРОСОК: '+(d.throwN||'ЗАХВАТ'),x,172,118);
+g.fillStyle='#e8e0c0';g.fillText('БРОСОК [P+K]: '+(d.throwN||'ЗАХВАТ'),x,172,118);
 g.fillStyle='#c8a040';g.fillText('ЗАХВАТ: '+seqTxt('DPK',p2,f.face).replace(/ /g,'')+(d.grappler?' · '+seqTxt('RPK',p2,f.face).replace(/ /g,''):''),x,183);
 g.fillStyle='#e8e0c0';g.fillText('ЦЕПЬ: '+d.target.seq.split('').join('+'),x,194);
 g.font='6px "Russo One"';g.fillStyle='#807850';g.fillText('P '+Math.round(d.norm.punch.d*d.dmg)+'/'+Math.round(d.norm.punch.rng*d.bulk)+' · K '+Math.round(d.norm.kick.d*d.dmg)+'/'+Math.round(d.norm.kick.rng*d.bulk)+' · RH '+Math.round(d.norm.rh.d*d.dmg)+'/'+Math.round(d.norm.rh.rng*d.bulk),x,205);};
@@ -664,7 +664,7 @@ if(b.mode==='training'){
   const ik={L:'←',R:'→',U:'↑',D:'↓',P:'P',K:'K'},recent=b.p1.ctrl.buf.slice(-8).map(e=>ik[e.k]||e.k).join(' ');
   g.font='6px "Russo One"';g.textAlign='left';g.fillStyle=UI_TEXT;g.fillText('ВВОД: '+(recent||'—'),8,230);
   g.textAlign='right';g.fillStyle=b.trainBlock?'#f08020':UI_MUTED;g.fillText('МАНЕКЕН: '+(b.trainBlock?'БЛОК':'СТОИТ'),RW-8,230);
-  g.textAlign='center';g.fillStyle=UI_MUTED;g.fillText('T — БЛОК · R — СБРОС · ESC — ПРИЁМЫ',RW/2,238);}
+  g.textAlign='center';g.fillStyle=UI_MUTED;g.fillText(Math.abs(b.p1.x-b.p2.x)<70?'P+K — БРОСОК · D+P+K — ЗАХВАТ · T — БЛОК':'T — БЛОК · R — СБРОС · ESC — ПРИЁМЫ',RW/2,238);}// 25.10: подсказка захвата вблизи — броски неочевидны
 if(S.announce&&S.announce.t<110){const t=S.announce.t;const sc=t<10?3-t*.2:1;
 let a=1;if(t>90)a=1-(t-90)/20;
 g.save();g.globalAlpha=clamp(a,0,1);

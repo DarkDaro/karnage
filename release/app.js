@@ -498,7 +498,7 @@
   CH[8].spec2N = "\u041F\u0440\u043E\u043A\u043B\u044F\u0442\u0438\u0435";
   CH[9].spec2 = "URP";
   CH[9].spec2N = "\u0422\u044F\u0436\u0451\u043B\u044B\u0439 \u0441\u043D\u0430\u0440\u044F\u0434";
-  CH.push({ id: 10, name: "\u041A\u0410\u0420\u041C\u0418\u041D", en: "CARMINE", skin: "#e8d8d0", suit: "#6a1020", acc: "#d82040", hair: "#d8d0e0", gear: "corona", dress: 1, longhair: 1, fan: 1, h: 58, bulk: 0.9, spd: 2.2, jmp: 8.6, dmg: 0.95, specN: "\u041A\u0440\u043E\u0432\u0430\u0432\u044B\u0435 \u0438\u0433\u043B\u044B", spec: "RDP", sup: "\u0410\u043B\u044B\u0439 \u043F\u0438\u043E\u043D", fat: "RDLP", arena: 9 });
+  CH.push({ id: 10, name: "\u041A\u0410\u0420\u041C\u0418\u041D", en: "CARMINE", skin: "#e8d8d0", suit: "#6a1020", acc: "#d82040", hair: "#d8d0e0", gear: "corona", dress: 1, longhair: 1, fan: 1, female: 1, h: 58, bulk: 0.9, spd: 2.2, jmp: 8.6, dmg: 0.95, specN: "\u041A\u0440\u043E\u0432\u0430\u0432\u044B\u0435 \u0438\u0433\u043B\u044B", spec: "RDP", sup: "\u0410\u043B\u044B\u0439 \u043F\u0438\u043E\u043D", fat: "RDLP", arena: 9 });
   CH.push({ id: 11, name: "\u0410\u042F\u041C\u042D", en: "AYAME", skin: "#e0c8b8", suit: "#1a1f33", acc: "#7ac8d8", hair: "#0a0d1a", gear: "tail", blade: 1, h: 57, bulk: 0.85, spd: 2.7, jmp: 9.2, dmg: 1, specN: "\u041F\u043E\u043B\u0443\u043C\u0435\u0441\u044F\u0446", spec: "DRP", sup: "\u0421\u0442\u043E \u0442\u0435\u043D\u0435\u0439", fat: "LDRP", arena: 4 });
   CH.push({ id: 12, name: "\u0412\u0415\u0413\u0410", en: "VEGA", skin: "#c8a888", suit: "#241540", acc: "#b89aff", hair: "#e8e8ff", gear: "halo", bow: 1, ponytail: 1, skirt: 1, female: 1, h: 60, bulk: 0.95, spd: 2.3, jmp: 8.8, dmg: 1.05, specN: "\u0417\u0432\u0451\u0437\u0434\u043D\u0430\u044F \u043C\u0435\u0442\u043A\u0430", spec: "UDK", sup: "\u041D\u0435\u0431\u0435\u0441\u043D\u044B\u0439 \u043B\u043E\u0432\u0435\u0446", fat: "UDRP", arena: 1 });
   CH[10].spec2 = "RRK";
@@ -1253,7 +1253,7 @@
         }
         this.state = "atk";
         this.st = 0;
-        this.atk = { t: type, name, A, target, chainPart, hit: 0, blocked: 0, connected: 0, cancel: 0 };
+        this.atk = { t: type, name, A, target, chainPart, btn: btn || null, hit: 0, blocked: 0, connected: 0, cancel: 0 };
         this.invis = 0;
         this.spec2go = 0;
         this.jumpGrace = 0;
@@ -1397,7 +1397,7 @@
             if (this.rage >= 100 && this.ctrl.match("DDP", 60)) this.startSuper();
             else if (this.ctrl.matchRel(d.spec, this.face, 60)) this.startSpec(foe);
             else if (this.ctrl.matchRel(d.spec2, this.face, 60)) this.startSpec2(foe);
-            else if (c.pP && c.pK) {
+            else if (c.pkChord && c.pkChord()) {
               if (c.d || this.def.grappler && fwd) this.startCmdThrow();
               else this.startAtk("throw");
             } else if (!c.d && fwd && btn === "P") this.startCmd("fP");
@@ -1475,6 +1475,14 @@
           foe.x = clamp2(foe.x, 16, AW - 16);
         }
         if (["idle", "walk", "crouch", "block"].includes(this.state)) this.face = foe.x < this.x ? -1 : 1;
+        if (this.state === "atk" && this.atk && !this.atk.hit && this.atk.btn && !this.atk.target && this.st <= this.atk.A.wd + this.atk.A.ac && c.pkChord && c.pkChord()) {
+          const pressed = this.atk.btn === "P" ? c.pK : c.pP;
+          if (pressed) {
+            const fwd2 = this.face > 0 ? c.r : c.l;
+            if (c.d || this.def.grappler && fwd2) this.startCmdThrow();
+            else this.startAtk("throw");
+          }
+        }
         if (this.state === "atk" && this.atk) {
           const A = this.atk.A;
           if (c.pP) {
@@ -1499,6 +1507,7 @@
             SFX.whiff();
             const hb = this.atkBox();
             S.fx.push({ ty: "whiff", x: hb ? hb.x + hb.w / 2 : this.x + this.face * 22, y: hb ? hb.y + hb.h / 2 : this.y - this.def.h * 0.6, face: this.face, t: 0, life: 12, col: this.def.acc || "#cfe8ff" });
+            if (A.throw) S.fx.push({ ty: "name", x: this.x + this.face * 12, y: this.y - this.def.h - 6, txt: "\u041F\u0420\u041E\u041C\u0410\u0425", col: "#c8a0a0", life: 34, t: 0 });
           }
           if (this.atk.hit && this.atk.connected && !this.atk.blocked && !this.atk.cancel && !A.throw && this.st > A.wd + A.ac && this.st <= A.wd + A.ac + 10 && this.onGround) {
             if (this.ctrl.matchRel(d.spec, this.face, 60)) {
@@ -1555,9 +1564,10 @@
         foe.vx = this.face * (launch ? 4.5 : 5);
         this.x = clamp2(this.x - this.face * 3, 16, AW - 16);
         this.squash = 0.86;
+        for (let i = S.fx.length; i--; ) if (S.fx[i].ty === "name" && S.fx[i].txt === "\u0417\u0410\u0425\u0412\u0410\u0422!") S.fx.splice(i, 1);
         S.shake = Math.max(S.shake, type === "slam" || type === "blast" || type === "royal" ? 7 : 4);
         S.fx.push({ ty: "ring", x: foe.x, y: foe.y - foe.def.h * 0.55, t: 0, col });
-        S.fx.push({ ty: "name", x: this.x + this.face * 10, y: this.y - this.def.h - 10, txt: name, col, life: 60, t: 0 });
+        S.fx.push({ ty: "name", x: this.x + this.face * 10, y: this.y - this.def.h - 10, txt: name, col, life: 70, t: 0, big: 1 });
         if (type === "fire") {
           SFX.fire();
           foe.poison = 50;
@@ -2129,6 +2139,8 @@
         S.freeze = Math.max(S.freeze, 2);
         if (def.hp <= 0) S.freeze = Math.max(S.freeze, 12);
         for (let i = 0; i < 4; i++) P(def.x + rnd(-8, 8), def.y - rnd(10, 48), rnd(-1, 1), rnd(-1.5, 0), "#fff", 12, 2, 0.03);
+        S.fx.push({ ty: "ring", x: def.x, y: def.y - def.def.h * 0.5, t: 0, col: att.def.acc || "#f8d060" });
+        S.fx.push({ ty: "name", x: att.x + att.face * 12, y: att.y - att.def.h - 12, txt: "\u0417\u0410\u0425\u0412\u0410\u0422!", col: "#f8d060", life: 30, t: 0, big: 1 });
         return "grab";
       }
       if (opts.throw) def.blockStun = 0;
@@ -2243,10 +2255,14 @@
         this.ai = false;
         this.buf = [];
         this._ = {};
+        this.fr = -999;
+        this.tP = -999;
+        this.tK = -999;
       }
       poll(FR) {
         const q = (k) => this.ai ? !!this.ax[k] : !!keys[this.m[k]] || this.m === KM1 && !!TOUCH[k];
         const o = { l: q("l"), r: q("r"), u: q("u"), d: q("d"), P: q("P"), K: q("K"), B: q("B") };
+        this.fr = FR;
         this.pP = o.P && !this._.P;
         this.pK = o.K && !this._.K;
         this.pB = o.B && !this._.B;
@@ -2257,13 +2273,24 @@
         this._ = o;
         Object.assign(this, o);
         const push = (k) => this.buf.push({ k, t: FR });
-        if (this.pP) push("P");
-        if (this.pK) push("K");
+        if (this.pP) {
+          push("P");
+          this.tP = FR;
+        }
+        if (this.pK) {
+          push("K");
+          this.tK = FR;
+        }
         if (this.pl) push("L");
         if (this.pr) push("R");
         if (this.pd) push("D");
         if (this.pu) push("U");
         if (this.buf.length > 14) this.buf.splice(0, this.buf.length - 14);
+      }
+      // 25.10: P+K — дружелюбный к человеческому вводу аккорд: обе кнопки одновременно, одна удерживается, либо нажаты с малым зазором
+      pkChord(win) {
+        win = win || 8;
+        return this.P && this.K || this.fr - this.tP <= win && this.fr - this.tK <= win;
       }
       match(seq, win) {
         win = win || 60;
@@ -3429,8 +3456,11 @@
           const pr = f.t / (f.life || 60), a = 1 - pr;
           g.save();
           g.globalAlpha = a;
-          g.font = '9px "Russo One"';
+          g.font = (f.big ? "12px" : "9px") + ' "Russo One"';
           g.textAlign = "center";
+          g.lineWidth = 2;
+          g.strokeStyle = "rgba(0,0,0,.85)";
+          g.strokeText(f.txt, x, f.y - pr * 14);
           g.fillStyle = f.col;
           g.fillText(f.txt, x, f.y - pr * 14);
           g.restore();
@@ -4115,6 +4145,13 @@
         g.fillStyle = shade(d.hair, 0.75);
         g.fillRect(hx - 8, hy + 6, 3, 4);
         g.fillRect(hx + 6, hy + 6, 3, 4);
+        if (d.female) {
+          g.fillStyle = d.hair;
+          g.fillRect(hx - 5, hy - 7, 4, 2);
+          g.fillRect(hx - 3, hy - 6, 2, 1);
+          g.fillStyle = mix(d.hair, "#ffffff", 0.45);
+          g.fillRect(hx - 5, hy - 7, 3, 1);
+        }
       }
       if (d.ponytail && !f.charred && !f.pale) {
         const sw = Math.sin(f.animT * 0.08) * 2;
@@ -4171,7 +4208,7 @@
         g.fillRect(d.female ? hx + 4 : hx + 3, hy - 5, d.female ? 1 : 2, 2);
         if (d.female) {
           g.fillStyle = "#141414";
-          g.fillRect(hx + 4, hy - 6, 1, 1);
+          g.fillRect(hx + 3, hy - 6, 2, 1);
         }
       } else if (expr === 1) {
         g.fillStyle = "#141414";
@@ -4186,8 +4223,12 @@
       if (d.female) {
         g.fillStyle = shade(skin, 0.6);
         g.fillRect(hx - 1, hy - 5, 1, 2);
-        g.fillStyle = "#a85060";
+        g.fillStyle = "#8a3040";
+        g.fillRect(hx - 1, hy - 1, 3, 1);
+        g.fillStyle = "#c86070";
         g.fillRect(hx, hy - 1, 2, 1);
+        g.fillStyle = shade(skin, 0.55);
+        g.fillRect(hx + 3, hy + 1, 1, 1);
       }
       drawGear(f, hx, hy);
       if (f.state === "cast" || f.state === "super") abilityFx.drawCastCharge(f, fa);
@@ -4420,10 +4461,15 @@
         g.fillRect(hx - 6, hy - 10, 12, 1);
         g.fillStyle = "#f0d8d0";
         g.fillRect(hx - 1, hy - 11, 2, 1);
-        g.fillStyle = "#141414";
-        g.fillRect(hx - 1, hy - 5, 3, 2);
-        g.fillStyle = shade(d.skin, 0.75);
-        g.fillRect(hx - 6, hy - 2, 2, 4);
+        if (d.female) {
+          g.fillStyle = mix(ac, "#ffffff", 0.55);
+          g.fillRect(hx - 7, hy - 1, 1, 2);
+        } else {
+          g.fillStyle = "#141414";
+          g.fillRect(hx - 1, hy - 5, 3, 2);
+          g.fillStyle = shade(d.skin, 0.75);
+          g.fillRect(hx - 6, hy - 2, 2, 4);
+        }
       } else {
         if (d.id === 0) {
           for (let i = 0; i < 3; i++) {
@@ -4537,6 +4583,13 @@
         g.fillStyle = mix(d.hair, "#ffffff", 0.3);
         g.fillRect(-8, -10, 2, 1);
         g.fillRect(6, -10, 2, 1);
+        if (d.female) {
+          g.fillStyle = d.hair;
+          g.fillRect(-5, -10, 4, 2);
+          g.fillRect(-3, -9, 2, 1);
+          g.fillStyle = mix(d.hair, "#ffffff", 0.45);
+          g.fillRect(-5, -10, 3, 1);
+        }
       }
       g.fillStyle = OUT;
       g.fillRect(-6, -12, 12, 17);
@@ -4557,11 +4610,15 @@
       g.fillRect(d.female ? 2 : 1, -7, d.female ? 1 : 2, 2);
       if (d.female) {
         g.fillStyle = "#141414";
-        g.fillRect(2, -8, 1, 1);
+        g.fillRect(2, -8, 2, 1);
         g.fillStyle = shade(d.skin, 0.6);
         g.fillRect(0, -5, 1, 1);
-        g.fillStyle = "#a85060";
+        g.fillStyle = "#8a3040";
+        g.fillRect(-1, -2, 3, 1);
+        g.fillStyle = "#c86070";
         g.fillRect(0, -2, 2, 1);
+        g.fillStyle = shade(d.skin, 0.55);
+        g.fillRect(3, 0, 1, 1);
       }
       g.fillStyle = shade(d.skin, 0.72);
       g.fillRect(0, d.female ? -9 : -8, 4, 1);
@@ -7615,7 +7672,7 @@
         g.fillStyle = "#e8e0c0";
         g.fillText("\u0424\u0410\u0422\u0410\u041B\u0418\u0422\u0418: [" + seqTxt(d.fat, p2, f.face) + "]", x, 161);
         g.fillStyle = "#e8e0c0";
-        g.fillText("\u0411\u0420\u041E\u0421\u041E\u041A: " + (d.throwN || "\u0417\u0410\u0425\u0412\u0410\u0422"), x, 172, 118);
+        g.fillText("\u0411\u0420\u041E\u0421\u041E\u041A [P+K]: " + (d.throwN || "\u0417\u0410\u0425\u0412\u0410\u0422"), x, 172, 118);
         g.fillStyle = "#c8a040";
         g.fillText("\u0417\u0410\u0425\u0412\u0410\u0422: " + seqTxt("DPK", p2, f.face).replace(/ /g, "") + (d.grappler ? " \xB7 " + seqTxt("RPK", p2, f.face).replace(/ /g, "") : ""), x, 183);
         g.fillStyle = "#e8e0c0";
@@ -7869,7 +7926,7 @@
         g.fillText("\u041C\u0410\u041D\u0415\u041A\u0415\u041D: " + (b.trainBlock ? "\u0411\u041B\u041E\u041A" : "\u0421\u0422\u041E\u0418\u0422"), RW - 8, 230);
         g.textAlign = "center";
         g.fillStyle = UI_MUTED;
-        g.fillText("T \u2014 \u0411\u041B\u041E\u041A \xB7 R \u2014 \u0421\u0411\u0420\u041E\u0421 \xB7 ESC \u2014 \u041F\u0420\u0418\u0401\u041C\u042B", RW / 2, 238);
+        g.fillText(Math.abs(b.p1.x - b.p2.x) < 70 ? "P+K \u2014 \u0411\u0420\u041E\u0421\u041E\u041A \xB7 D+P+K \u2014 \u0417\u0410\u0425\u0412\u0410\u0422 \xB7 T \u2014 \u0411\u041B\u041E\u041A" : "T \u2014 \u0411\u041B\u041E\u041A \xB7 R \u2014 \u0421\u0411\u0420\u041E\u0421 \xB7 ESC \u2014 \u041F\u0420\u0418\u0401\u041C\u042B", RW / 2, 238);
       }
       if (S.announce && S.announce.t < 110) {
         const t = S.announce.t;

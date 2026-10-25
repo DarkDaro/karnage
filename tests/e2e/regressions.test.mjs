@@ -778,6 +778,121 @@ test('throw grabs, holds and finishes with character combo', async () => {
   assert.equal(result.final.combo, 2);
 });
 
+test('throw input forgives sequential P and K and shows feedback', async () => {
+  const result = await page.evaluate(() => {
+    const K = window.KARNAGE;
+    const setup = (id) => {
+      for (const code in K.keys) K.keys[code] = false;
+      K.setDebug({ GAME: 'fight', paused: false });
+      K.newBattle(id, new K.Ctrl(K.KM1), (id + 1) % K.CH.length, new K.Ctrl(K.KM2), 9);
+      const battle = K.battle;
+      battle.mode = '2p';
+      battle.phase = 'fight';
+      battle.phaseT = 200;
+      battle.p1.ctrl.ai = false;
+      battle.p2.ctrl.ai = false;
+      battle.p1.x = 300;
+      battle.p2.x = 330;
+      battle.p1.y = battle.p2.y = 214;
+      battle.p1.face = 1;
+      battle.p2.face = -1;
+      battle.p1.state = 'idle';
+      battle.p1.st = 0;
+      battle.p1.atk = null;
+      battle.p2.state = 'idle';
+      battle.p2.st = 0;
+      battle.p2.atk = null;
+      battle.p2.hp = 100;
+      battle.p2.defeated = 0;
+      battle.p1.ctrl.clear();
+      battle.p2.ctrl.clear();
+      return battle;
+    };
+    const press = (code) => {
+      K.keys[code] = true;
+      K.step();
+      K.keys[code] = false;
+      K.step();
+    };
+    const gaps = [];
+    for (const idle of [0, 1, 3]) {
+      const battle = setup(0);
+      press('KeyJ');
+      for (let i = 0; i < idle; i += 1) K.step();
+      press('KeyK');
+      gaps.push({ idle, type: battle.p1.atk?.t || '', cmd: !!battle.p1.atk?.cmdThrow });
+    }
+
+    const reverseBattle = setup(0);
+    press('KeyK');
+    press('KeyJ');
+    const reverse = reverseBattle.p1.atk?.t || '';
+
+    const commandBattle = setup(0);
+    K.keys.KeyS = true;
+    K.step();
+    K.step();
+    press('KeyJ');
+    press('KeyK');
+    K.keys.KeyS = false;
+    K.step();
+    const command = { type: commandBattle.p1.atk?.t || '', cmd: !!commandBattle.p1.atk?.cmdThrow };
+
+    const signatureBattle = setup(3);
+    K.keys.KeyD = true;
+    K.step();
+    K.step();
+    press('KeyJ');
+    press('KeyK');
+    K.keys.KeyD = false;
+    K.step();
+    const signature = { type: signatureBattle.p1.atk?.t || '', cmd: !!signatureBattle.p1.atk?.cmdThrow };
+
+    const grabBattle = setup(0);
+    press('KeyJ');
+    press('KeyK');
+    const labels = [];
+    let held = false;
+    for (let i = 0; i < 50; i += 1) {
+      K.step();
+      if (grabBattle.p2.state === 'grabbed') held = true;
+      for (const fx of K.fx) if (fx.ty === 'name') labels.push(fx.txt);
+    }
+
+    const missBattle = setup(0);
+    missBattle.p2.x = 390;
+    press('KeyJ');
+    press('KeyK');
+    const missLabels = [];
+    for (let i = 0; i < 30; i += 1) {
+      K.step();
+      for (const fx of K.fx) if (fx.ty === 'name') missLabels.push(fx.txt);
+    }
+
+    return {
+      gaps,
+      reverse,
+      command,
+      signature,
+      finisher: grabBattle.p1.def.throwN,
+      held,
+      labels,
+      missLabels
+    };
+  });
+  for (const item of result.gaps) {
+    assert.equal(item.type, 'throw', `P then K with ${item.idle} idle frames`);
+    assert.equal(item.cmd, false);
+  }
+  assert.equal(result.reverse, 'throw');
+  assert.deepEqual(result.command, { type: 'throw', cmd: true });
+  assert.deepEqual(result.signature, { type: 'throw', cmd: true });
+  assert.equal(result.held, true);
+  assert.ok(result.labels.includes('ЗАХВАТ!'), 'grab label');
+  assert.ok(result.labels.includes(result.finisher), 'throw finisher label');
+  assert.ok(result.missLabels.includes('ПРОМАХ'), 'whiff label');
+});
+
 test('every fighter completes a named throw combo', async () => {
   const result = await page.evaluate(() => {
     const K = window.KARNAGE;

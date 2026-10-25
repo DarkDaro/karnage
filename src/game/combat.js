@@ -35,7 +35,9 @@ export function createCombat({ S, SFX, P, blood, spriteFx, rnd, pick }) {
   const d=dmg*att.def.dmg*comboScale(att);def.hp=Math.max(0,def.hp-d);def.damageTaken=(def.damageTaken||0)+d;def.flash=4;def.state='grabbed';def.st=0;def.vx=0;def.vy=0;def.grabbedBy=att;def.atk=null;def.spec2go=0;def.invis=0;def.netT=0;def.chain='';def.chainT=0;def.blockStun=0;def.frozen=0;def.face=-att.face;att.throwTarget=def;
   att.combo=(att.comboT!==undefined&&att.comboT<60?att.combo:0)+1;att.comboT=0;att.rage=Math.min(100,att.rage+2);def.rage=Math.min(100,def.rage+d*.9);
   if(S.bstat){const k=att===S.battle.p1?'1':'2';S.bstat['h'+k]++;S.bstat['d'+k]+=d;S.bstat['c'+k]=Math.max(S.bstat['c'+k],att.combo||0);}
-  SFX.hitV();S.freeze=Math.max(S.freeze,2);if(def.hp<=0)S.freeze=Math.max(S.freeze,12);for(let i=0;i<4;i++)P(def.x+rnd(-8,8),def.y-rnd(10,48),rnd(-1,1),rnd(-1.5,0),'#fff',12,2,.03);return'grab';}
+  SFX.hitV();S.freeze=Math.max(S.freeze,2);if(def.hp<=0)S.freeze=Math.max(S.freeze,12);for(let i=0;i<4;i++)P(def.x+rnd(-8,8),def.y-rnd(10,48),rnd(-1,1),rnd(-1.5,0),'#fff',12,2,.03);
+  S.fx.push({ty:'ring',x:def.x,y:def.y-def.def.h*.5,t:0,col:att.def.acc||'#f8d060'});
+  S.fx.push({ty:'name',x:att.x+att.face*12,y:att.y-att.def.h-12,txt:'ЗАХВАТ!',col:'#f8d060',life:30,t:0,big:1});return'grab';}
   if(opts.throw)def.blockStun=0;
   if(def.state==='block'&&!opts.throw&&!((opts.low&&!def.blockLow)||(opts.overhead&&def.blockLow))){def.hp=Math.max(1,def.hp-1);def.blockStun=6;def.damageTaken=(def.damageTaken||0)+1;SFX.block();att.rage=Math.min(100,att.rage+1);def.rage=Math.min(100,def.rage+1);def.vx=att.face*2;def.hvx=0;att.chain='';att.chainT=0;spriteFx('block',def.x+def.face*8,def.y-def.def.h*.55,{scale:.9,alpha:.9});for(let i=0;i<4;i++)P(def.x+def.face*8,def.y-def.def.h*.55,rnd(-1.5,1.5),rnd(-2,0),'#fff',10,2,0);
   return'block';}
