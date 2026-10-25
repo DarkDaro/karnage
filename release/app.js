@@ -218,7 +218,24 @@
   function loadImage(src) {
     return new Promise((resolve, reject) => {
       const image = new Image();
-      image.onload = () => resolve(image);
+      image.onload = () => {
+        let settled = false;
+        const ready = () => {
+          if (settled) return;
+          settled = true;
+          resolve(image);
+        };
+        if (image.decode) {
+          try {
+            const decoded = image.decode();
+            if (decoded && decoded.then) decoded.then(ready, ready);
+            else ready();
+          } catch {
+            ready();
+          }
+          setTimeout(ready, 300);
+        } else ready();
+      };
       image.onerror = reject;
       image.src = src;
     });
@@ -410,7 +427,24 @@
   function loadImage2(src) {
     return new Promise((resolve, reject) => {
       const image = new Image();
-      image.onload = () => resolve(image);
+      image.onload = () => {
+        let settled = false;
+        const ready = () => {
+          if (settled) return;
+          settled = true;
+          resolve(image);
+        };
+        if (image.decode) {
+          try {
+            const decoded = image.decode();
+            if (decoded && decoded.then) decoded.then(ready, ready);
+            else ready();
+          } catch {
+            ready();
+          }
+          setTimeout(ready, 300);
+        } else ready();
+      };
       image.onerror = reject;
       image.src = src;
     });
@@ -446,7 +480,24 @@
   function loadImage3(src) {
     return new Promise((resolve, reject) => {
       const image = new Image();
-      image.onload = () => resolve(image);
+      image.onload = () => {
+        let settled = false;
+        const ready = () => {
+          if (settled) return;
+          settled = true;
+          resolve(image);
+        };
+        if (image.decode) {
+          try {
+            const decoded = image.decode();
+            if (decoded && decoded.then) decoded.then(ready, ready);
+            else ready();
+          } catch {
+            ready();
+          }
+          setTimeout(ready, 300);
+        } else ready();
+      };
       image.onerror = reject;
       image.src = src;
     });
@@ -6308,7 +6359,7 @@
 
   // src/audio/audio.js
   function createAudio({ S, clamp: clamp2, rnd }) {
-    const AU = { ctx: null, on: true, voice: true, vol: 100, samples: {}, loading: {}, audioLoading: false, musicSrc: null, musicGain: null, musicTrack: "", lastSample: "" };
+    const AU = { ctx: null, on: true, voice: true, vol: 100, samples: {}, loading: {}, audioLoading: false, musicSrc: null, musicEl: null, musicNode: null, musicGain: null, musicTrack: "", lastSample: "" };
     try {
       if (localStorage.karnageVox !== void 0) AU.voice = localStorage.karnageVox === "1";
       if (localStorage.karnageVol !== void 0) {
@@ -6340,6 +6391,19 @@
         AU.mg = AU.ctx.createGain();
         AU.mg.gain.value = 0.3;
         AU.mg.connect(AU.master);
+        try {
+          AU.musicGain = AU.ctx.createGain();
+          AU.musicGain.gain.value = 0.3;
+          AU.musicGain.connect(AU.master);
+          AU.musicEl = document.createElement("audio");
+          AU.musicEl.preload = "auto";
+          AU.musicNode = AU.ctx.createMediaElementSource(AU.musicEl);
+          AU.musicNode.connect(AU.musicGain);
+        } catch (e) {
+          AU.musicEl = null;
+          AU.musicNode = null;
+          AU.musicGain = null;
+        }
         MU.next = AU.ctx.currentTime + 0.1;
         loadAudio();
       } catch (e) {
@@ -6559,8 +6623,35 @@
     function loadAudio() {
       if (!AU.ctx || AU.audioLoading) return;
       AU.audioLoading = true;
-      const paths = [.../* @__PURE__ */ new Set([...Object.values(SAMPLES).flat(), ...Object.values(MUSIC_TRACKS).map((t) => t.src)])];
-      Promise.all(paths.map(loadBuffer)).finally(() => {
+      const paths = [...new Set([
+        SAMPLES.hit[2],
+        SAMPLES.hitH[1],
+        SAMPLES.hitV[0],
+        SAMPLES.block[1],
+        SAMPLES.upper[1],
+        SAMPLES.step[0],
+        SAMPLES.land[0],
+        SAMPLES.menu[1],
+        SAMPLES.sel[1],
+        SAMPLES.tick[0],
+        SAMPLES.zap[0],
+        SAMPLES.shoot[2],
+        SAMPLES.slash[1],
+        SAMPLES.fire[1],
+        SAMPLES.ice[0],
+        SAMPLES.net[0],
+        SAMPLES.tele[1],
+        SAMPLES.boom[0],
+        SAMPLES.ko[0],
+        SAMPLES.rdy[1]
+      ].filter(Boolean))];
+      (async () => {
+        for (const path of paths) {
+          while (S.GAME === "fight") await new Promise((resolve) => setTimeout(resolve, 200));
+          await loadBuffer(path);
+          await new Promise((resolve) => setTimeout(resolve, 0));
+        }
+      })().finally(() => {
         AU.audioLoading = false;
       });
     }
@@ -6570,7 +6661,7 @@
       if (!list) return false;
       const ready = list.filter((path2) => AU.samples[path2]);
       if (!ready.length) {
-        for (const path2 of list) loadBuffer(path2);
+        loadBuffer(list[0]);
         return false;
       }
       const path = ready[Math.random() * ready.length | 0];
@@ -6593,42 +6684,49 @@
       if (AU.musicSrc) {
         try {
           AU.musicSrc.onended = null;
-          AU.musicSrc.stop();
+          if (typeof AU.musicSrc.stop === "function") AU.musicSrc.stop();
+          else {
+            AU.musicSrc.pause();
+            AU.musicSrc.currentTime = 0;
+          }
         } catch (e) {
         }
       }
       AU.musicSrc = null;
-      AU.musicGain = null;
       AU.musicTrack = "";
     }
     function startMusic(name) {
       const track = MUSIC_TRACKS[name];
-      if (!track) return false;
-      if (AU.musicTrack === name) return true;
-      if (!AU.samples[track.src]) {
-        loadBuffer(track.src);
+      if (!track || !AU.ctx || !AU.musicEl || !AU.musicGain) return false;
+      if (AU.musicTrack === name && AU.musicSrc) return true;
+      stopMusic();
+      const el = AU.musicEl;
+      try {
+        el.src = new URL(track.src, location.href).href;
+        el.loop = track.loop !== false;
+        AU.musicGain.gain.value = track.vol;
+        AU.musicSrc = el;
+        AU.musicTrack = name;
+        el.onended = () => {
+          if (AU.musicSrc === el) {
+            AU.musicSrc = null;
+            AU.musicTrack = "";
+          }
+        };
+        const played = el.play();
+        if (played && played.catch) played.catch(() => {
+          if (AU.musicSrc === el) stopMusic();
+        });
+      } catch (e) {
+        stopMusic();
         return false;
       }
-      stopMusic();
-      const c = AU.ctx, src = c.createBufferSource(), gain = c.createGain();
-      src.buffer = AU.samples[track.src];
-      src.loop = track.loop !== false;
-      gain.gain.value = track.vol;
-      src.connect(gain);
-      gain.connect(AU.master);
-      src.onended = () => {
-        if (AU.musicSrc === src) AU.musicSrc = null;
-      };
-      src.start();
-      AU.musicSrc = src;
-      AU.musicGain = gain;
-      AU.musicTrack = name;
       return true;
     }
     function musicTrackFor(md) {
       if (md === "fight") return S.battle && S.battle.mode === "arcade" ? "battle8" : "battle";
       if (md === "menu") return "menu";
-      if (md === "vs") return "battle8";
+      if (md === "vs") return S.battle && S.battle.mode === "arcade" ? "battle8" : "battle";
       if (md === "pause") return "pause";
       if (md === "end") return S.GAME === "ending" ? "victory" : "pause";
       return "";

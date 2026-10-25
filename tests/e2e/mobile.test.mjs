@@ -40,7 +40,7 @@ before(async () => {
     window.requestAnimationFrame = () => 0;
   });
   await page.goto(entry, { waitUntil: 'load' });
-  await page.waitForFunction(() => Boolean(window.KARNAGE));
+  await page.waitForFunction(() => Boolean(window.KARNAGE), null, { polling: 100 });
 });
 
 after(async () => {
@@ -95,7 +95,7 @@ test('portrait touch layout keeps controls inside the viewport', async () => {
   });
   try {
     await portrait.goto(entry, { waitUntil: 'load' });
-    await portrait.waitForFunction(() => Boolean(window.KARNAGE));
+    await portrait.waitForFunction(() => Boolean(window.KARNAGE), null, { polling: 100 });
     const layout = await portrait.evaluate(() => {
       const rect = (selector) => {
         const box = document.querySelector(selector).getBoundingClientRect();

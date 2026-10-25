@@ -1,12 +1,12 @@
 // 25.10: звук, банк WAV/MP3, синтез SFX и музыка вынесены из монолита.
 // Модуль держит AudioContext, кэш сэмплов и настройки; игровое состояние читает только для выбора трека.
 export function createAudio({ S, clamp, rnd }) {
-const AU={ctx:null,on:true,voice:true,vol:100,samples:{},loading:{},audioLoading:false,musicSrc:null,musicGain:null,musicTrack:'',lastSample:''};
+const AU={ctx:null,on:true,voice:true,vol:100,samples:{},loading:{},audioLoading:false,musicSrc:null,musicEl:null,musicNode:null,musicGain:null,musicTrack:'',lastSample:''};
 try{if(localStorage.karnageVox!==undefined)AU.voice=localStorage.karnageVox==='1';if(localStorage.karnageVol!==undefined){const v=parseFloat(localStorage.karnageVol);if(Number.isFinite(v))AU.vol=clamp(v,0,100);}if(localStorage.karnageSnd!==undefined)AU.on=localStorage.karnageSnd==='1';}catch(e){}
 const setVol=()=>{if(AU.master)AU.master.gain.value=AU.on ? .9*AU.vol/100 : 0;};// 08.09: применение громкости; 24.10: mute применяется сразу
 const saveSet=()=>{try{localStorage.karnageSnd=AU.on?1:0;localStorage.karnageVox=AU.voice?1:0;localStorage.karnageVol=AU.vol;}catch(e){}};// 08.09
 const MU={s:0,next:0};
-function initA(){if(AU.ctx)return;try{AU.ctx=new(window.AudioContext||window.webkitAudioContext)();AU.master=AU.ctx.createGain();AU.master.gain.value=AU.on ? .9*AU.vol/100 : 0;AU.master.connect(AU.ctx.destination);AU.mg=AU.ctx.createGain();AU.mg.gain.value=.3;AU.mg.connect(AU.master);MU.next=AU.ctx.currentTime+.1;loadAudio();}catch(e){}}
+function initA(){if(AU.ctx)return;try{AU.ctx=new(window.AudioContext||window.webkitAudioContext)();AU.master=AU.ctx.createGain();AU.master.gain.value=AU.on ? .9*AU.vol/100 : 0;AU.master.connect(AU.ctx.destination);AU.mg=AU.ctx.createGain();AU.mg.gain.value=.3;AU.mg.connect(AU.master);try{AU.musicGain=AU.ctx.createGain();AU.musicGain.gain.value=.3;AU.musicGain.connect(AU.master);AU.musicEl=document.createElement('audio');AU.musicEl.preload='auto';AU.musicNode=AU.ctx.createMediaElementSource(AU.musicEl);AU.musicNode.connect(AU.musicGain);}catch(e){AU.musicEl=null;AU.musicNode=null;AU.musicGain=null;}MU.next=AU.ctx.currentTime+.1;loadAudio();}catch(e){}}
 function tone(o){if(!AU.ctx||!AU.on)return;const c=AU.ctx,t=c.currentTime+(o.w||0);const os=c.createOscillator(),gn=c.createGain();os.type=o.t||'square';os.frequency.setValueAtTime(o.f,t);if(o.f2)os.frequency.exponentialRampToValueAtTime(Math.max(1,o.f2),t+(o.d||.1));gn.gain.setValueAtTime(o.v||.3,t);gn.gain.exponentialRampToValueAtTime(.001,t+(o.d||.1));os.connect(gn);gn.connect(o.m?AU.mg:AU.master);os.start(t);os.stop(t+(o.d||.1)+.02);}
 function nz(o){if(!AU.ctx||!AU.on)return;const c=AU.ctx,t=c.currentTime+(o.w||0),d=o.d||.1;const n=c.sampleRate*d|0,b=c.createBuffer(1,Math.max(1,n),c.sampleRate),ch=b.getChannelData(0);for(let i=0;i<n;i++)ch[i]=Math.random()*2-1;const s=c.createBufferSource();s.buffer=b;const f=c.createBiquadFilter();f.type=o.ft||'lowpass';f.frequency.setValueAtTime(o.fl||800,t);if(o.fl2)f.frequency.exponentialRampToValueAtTime(o.fl2,t+d);const gn=c.createGain();gn.gain.setValueAtTime(o.v||.3,t);gn.gain.exponentialRampToValueAtTime(.001,t+d);s.connect(f);f.connect(gn);gn.connect(o.m?AU.mg:AU.master);s.start(t);s.stop(t+d+.02);}
 const SFX={swing:()=>nz({d:.06,v:.09,ft:'highpass',fl:1500}),hit:()=>{nz({d:.09,v:.45,fl:520,fl2:120});tone({f:130,f2:55,d:.08,v:.24});},hitH:()=>{nz({d:.14,v:.55,fl:340,fl2:80});tone({f:95,f2:38,d:.12,v:.3});},block:()=>{tone({f:620,d:.04,v:.15});nz({d:.05,v:.12,ft:'highpass',fl:2600});},upper:()=>{tone({f:170,f2:640,d:.18,t:'sawtooth',v:.2});nz({d:.12,v:.2,fl:700,fl2:1800});},land:()=>nz({d:.09,v:.22,fl:300,fl2:90}),fire:()=>{nz({d:.3,v:.28,ft:'bandpass',fl:420,fl2:150});tone({f:100,f2:60,d:.25,t:'sawtooth',v:.11});},ice:()=>{tone({f:1150,f2:1750,d:.12,t:'triangle',v:.15});tone({f:1600,d:.07,t:'sine',v:.09,w:.05});},zap:()=>{for(let i=0;i<4;i++)tone({f:rnd(300,2400),d:.03,v:.11,w:i*.025});nz({d:.12,v:.18,ft:'highpass',fl:1800});},tele:()=>{tone({f:900,f2:90,d:.22,t:'sine',v:.2});nz({d:.15,v:.1,ft:'bandpass',fl:900,fl2:200});},boom:()=>{nz({d:.45,v:.6,fl:260,fl2:50});tone({f:70,f2:28,d:.4,t:'sine',v:.4});},net:()=>nz({d:.18,v:.2,ft:'highpass',fl:1000,fl2:3000}),slash:()=>{nz({d:.05,v:.28,ft:'highpass',fl:2200});nz({d:.05,v:.22,ft:'highpass',fl:1800,w:.05});},shoot:()=>{tone({f:240,f2:60,d:.05,v:.18});nz({d:.04,v:.2,ft:'highpass',fl:1500});},bone:()=>tone({f:190,f2:80,d:.06,v:.24}),sting:()=>{tone({f:82,d:1,t:'sawtooth',v:.2});tone({f:87,d:1,t:'sawtooth',v:.16});},menu:()=>tone({f:420,d:.04,v:.11}),sel:()=>tone({f:520,f2:760,d:.09,v:.13}),fatal:()=>{tone({f:60,d:1.2,t:'sawtooth',v:.3});nz({d:1,v:.2,fl:200,fl2:40});},rdy:()=>{tone({f:330,f2:880,d:.25,t:'sawtooth',v:.15});tone({f:660,f2:1320,d:.25,t:'sawtooth',v:.1,w:.08});},jump:()=>nz({d:.12,v:.1,ft:'bandpass',fl:300,fl2:1400}),freeze:()=>{tone({f:1400,d:.3,t:'triangle',v:.12});tone({f:2100,d:.25,t:'sine',v:.08,w:.06});nz({d:.2,v:.06,ft:'highpass',fl:4000});},supwave:()=>{nz({d:.5,v:.4,fl:400,fl2:60});tone({f:55,f2:30,d:.5,t:'sine',v:.35});},win:()=>{tone({f:392,d:.12,t:'square',v:.12});tone({f:523,d:.12,t:'square',v:.12,w:.12});tone({f:659,d:.22,t:'square',v:.12,w:.24});},step:()=>nz({d:.03,v:.05,fl:400}),
@@ -65,17 +65,29 @@ function loadBuffer(path){
  AU.loading[path]=fetch(url,{cache:'force-cache'}).then(r=>{if(!r.ok)throw new Error(r.status);return r.arrayBuffer();}).then(buf=>AU.ctx.decodeAudioData(buf)).then(buffer=>{AU.samples[path]=buffer;return buffer;}).catch(()=>null);
  return AU.loading[path];
 }
+// 25.10: сначала боевые SFX, тяжёлые треки и редкие сэмплы — по требованию; во время боя очередь стоит.
 function loadAudio(){
  if(!AU.ctx||AU.audioLoading)return;
  AU.audioLoading=true;
- const paths=[...new Set([...Object.values(SAMPLES).flat(),...Object.values(MUSIC_TRACKS).map(t=>t.src)])];
- Promise.all(paths.map(loadBuffer)).finally(()=>{AU.audioLoading=false;});
+ const paths=[...new Set([
+  SAMPLES.hit[2],SAMPLES.hitH[1],SAMPLES.hitV[0],SAMPLES.block[1],SAMPLES.upper[1],
+  SAMPLES.step[0],SAMPLES.land[0],SAMPLES.menu[1],SAMPLES.sel[1],SAMPLES.tick[0],
+  SAMPLES.zap[0],SAMPLES.shoot[2],SAMPLES.slash[1],SAMPLES.fire[1],SAMPLES.ice[0],
+  SAMPLES.net[0],SAMPLES.tele[1],SAMPLES.boom[0],SAMPLES.ko[0],SAMPLES.rdy[1]
+ ].filter(Boolean))];
+ (async()=>{
+  for(const path of paths){
+   while(S.GAME==='fight')await new Promise(resolve=>setTimeout(resolve,200));
+   await loadBuffer(path);
+   await new Promise(resolve=>setTimeout(resolve,0));
+  }
+ })().finally(()=>{AU.audioLoading=false;});
 }
 function playSample(key,volume=.5,pitch=.03){
  if(!AU.ctx||!AU.on||AU.vol<=0)return false;
  const list=SAMPLES[key];if(!list)return false;
  const ready=list.filter(path=>AU.samples[path]);
- if(!ready.length){for(const path of list)loadBuffer(path);return false;}
+ if(!ready.length){loadBuffer(list[0]);return false;}
  const path=ready[Math.random()*ready.length|0];
  const c=AU.ctx,src=c.createBufferSource(),gain=c.createGain();
  src.buffer=AU.samples[path];
@@ -91,27 +103,35 @@ function playSample(key,volume=.5,pitch=.03){
  return true;
 }
 function stopMusic(){
- if(AU.musicSrc){try{AU.musicSrc.onended=null;AU.musicSrc.stop();}catch(e){}}
- AU.musicSrc=null;AU.musicGain=null;AU.musicTrack='';
+ if(AU.musicSrc){
+  try{
+   AU.musicSrc.onended=null;
+   if(typeof AU.musicSrc.stop==='function')AU.musicSrc.stop();
+   else{AU.musicSrc.pause();AU.musicSrc.currentTime=0;}
+  }catch(e){}
+ }
+ AU.musicSrc=null;AU.musicTrack='';
 }
 function startMusic(name){
- const track=MUSIC_TRACKS[name];if(!track)return false;
- if(AU.musicTrack===name)return true;
- if(!AU.samples[track.src]){loadBuffer(track.src);return false;}
+ const track=MUSIC_TRACKS[name];if(!track||!AU.ctx||!AU.musicEl||!AU.musicGain)return false;
+ if(AU.musicTrack===name&&AU.musicSrc)return true;
  stopMusic();
- const c=AU.ctx,src=c.createBufferSource(),gain=c.createGain();
- src.buffer=AU.samples[track.src];src.loop=track.loop!==false;
- gain.gain.value=track.vol;
- src.connect(gain);gain.connect(AU.master);
- src.onended=()=>{if(AU.musicSrc===src)AU.musicSrc=null;};
- src.start();
- AU.musicSrc=src;AU.musicGain=gain;AU.musicTrack=name;
+ const el=AU.musicEl;
+ try{
+  el.src=new URL(track.src,location.href).href;
+  el.loop=track.loop!==false;
+  AU.musicGain.gain.value=track.vol;
+  AU.musicSrc=el;AU.musicTrack=name;
+  el.onended=()=>{if(AU.musicSrc===el){AU.musicSrc=null;AU.musicTrack='';}};
+  const played=el.play();
+  if(played&&played.catch)played.catch(()=>{if(AU.musicSrc===el)stopMusic();});
+ }catch(e){stopMusic();return false;}
  return true;
 }
 function musicTrackFor(md){
  if(md==='fight')return S.battle&&S.battle.mode==='arcade'?'battle8':'battle';
  if(md==='menu')return 'menu';
- if(md==='vs')return 'battle8';
+ if(md==='vs')return S.battle&&S.battle.mode==='arcade'?'battle8':'battle';
  if(md==='pause')return 'pause';
  if(md==='end')return S.GAME==='ending'?'victory':'pause';
  return '';

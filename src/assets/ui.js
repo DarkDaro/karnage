@@ -5,7 +5,24 @@ const base = new URL('assets/ui/', location.href);
 function loadImage(src) {
   return new Promise((resolve, reject) => {
     const image = new Image();
-    image.onload = () => resolve(image);
+    image.onload = () => {
+      let settled = false;
+      const ready = () => {
+        if (settled) return;
+        settled = true;
+        resolve(image);
+      };
+      if (image.decode) {
+        try {
+          const decoded = image.decode();
+          if (decoded && decoded.then) decoded.then(ready, ready);
+          else ready();
+        } catch {
+          ready();
+        }
+        setTimeout(ready, 300);
+      } else ready();
+    };
     image.onerror = reject;
     image.src = src;
   });

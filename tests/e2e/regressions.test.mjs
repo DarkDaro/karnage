@@ -40,7 +40,7 @@ before(async () => {
     window.requestAnimationFrame = () => 0;
   });
   await page.goto(entry, { waitUntil: 'load' });
-  await page.waitForFunction(() => Boolean(window.KARNAGE));
+  await page.waitForFunction(() => Boolean(window.KARNAGE), null, { polling: 100 });
 });
 
 after(async () => {
@@ -406,7 +406,7 @@ test('arcade saves progress, resumes and ends with final boss', async () => {
   assert.equal(saved.ladder.length, 11);
 
   await page.reload({ waitUntil: 'load' });
-  await page.waitForFunction(() => Boolean(window.KARNAGE));
+  await page.waitForFunction(() => Boolean(window.KARNAGE), null, { polling: 100 });
   const resumed = await page.evaluate(() => {
     const K = window.KARNAGE;
     const run = K.loadArcRun();
@@ -994,7 +994,7 @@ test('settings load from storage on reload', async () => {
     localStorage.setItem('karnageSnd', '1');
   });
   await page.reload({ waitUntil: 'load' });
-  await page.waitForFunction(() => Boolean(window.KARNAGE));
+  await page.waitForFunction(() => Boolean(window.KARNAGE), null, { polling: 100 });
   const result = await page.evaluate(() => ({
     options: window.KARNAGE.OPT,
     crt: document.getElementById('crt').style.display,

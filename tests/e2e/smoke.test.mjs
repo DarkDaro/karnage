@@ -45,7 +45,7 @@ before(async () => {
     window.requestAnimationFrame = () => 0;
   });
   await page.goto(index, { waitUntil: 'load' });
-  await page.waitForFunction(() => Boolean(window.KARNAGE));
+  await page.waitForFunction(() => Boolean(window.KARNAGE), null, { polling: 100 });
 });
 
 after(async () => {

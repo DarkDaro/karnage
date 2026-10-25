@@ -25,7 +25,7 @@ for (const [name, entry] of Object.entries(entries)) {
         window.requestAnimationFrame = () => 0;
       });
       await page.goto(entry, { waitUntil: 'load' });
-      await page.waitForFunction(() => Boolean(window.KARNAGE));
+      await page.waitForFunction(() => Boolean(window.KARNAGE), null, { polling: 100 });
       const state = await page.evaluate(() => ({
         game: window.KARNAGE.snapshot().GAME,
         fighters: window.KARNAGE.CH.length,
