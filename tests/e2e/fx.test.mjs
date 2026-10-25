@@ -246,3 +246,161 @@ test('whiff and super spawn their own effects', async () => {
   assert.equal(result.superLife, 26);
   assert.equal(result.remaining, 0);
 });
+
+test('projectile and AoE hits keep a single impact sprite', async () => {
+  const result = await page.evaluate(() => {
+    const K = window.KARNAGE;
+    K.setDebug({ GAME: 'fight', paused: false });
+    K.newBattle(0, new K.Ctrl(K.KM1), 1, new K.Ctrl(K.KM2), 9);
+    const battle = K.battle;
+    battle.mode = '2p';
+    battle.phase = 'fight';
+    battle.phaseT = 200;
+    battle.p1.ctrl.ai = false;
+    battle.p2.ctrl.ai = false;
+    battle.p1.x = 300;
+    battle.p2.x = 330;
+    battle.p1.face = 1;
+    battle.p2.state = 'idle';
+    battle.p2.hp = 100;
+    battle.p2.invuln = 0;
+    battle.p2.armor = 0;
+    battle.p2.dodging = 0;
+    battle.p2.defeated = 0;
+    const names = () => K.fx
+      .filter((effect) => effect.ty === 'sprite')
+      .map((effect) => effect.img.src.split('/').pop());
+    K.fx.length = 0;
+    K.projs.length = 0;
+    K.projs.push({
+      ty: 'fire',
+      x: battle.p2.x,
+      y: battle.p2.y - battle.p2.def.h * 0.5,
+      vx: 0,
+      vy: 0,
+      o: battle.p1,
+      d: 5,
+      l: 10
+    });
+    K.step();
+    const projectile = names();
+    const hp = battle.p2.hp;
+    K.fx.length = 0;
+    K.projs.length = 0;
+    battle.p2.state = 'idle';
+    battle.p2.hp = 100;
+    battle.p2.x = 330;
+    K.projs.push({ ty: 'meteor', x: 330, y: 220, vx: 0, vy: 0, o: battle.p1, d: 5, l: 10 });
+    K.step();
+    const aoe = names();
+    K.fx.length = 0;
+    K.projs.length = 0;
+    battle.p2.state = 'block';
+    battle.p2.hp = 100;
+    battle.p2.x = 330;
+    K.projs.push({
+      ty: 'ice',
+      x: battle.p2.x,
+      y: battle.p2.y - battle.p2.def.h * 0.5,
+      vx: 0,
+      vy: 0,
+      o: battle.p1,
+      d: 5,
+      l: 10
+    });
+    K.step();
+    return { projectile, hp, aoe, block: names() };
+  });
+  assert.deepEqual(result.projectile, ['fire-impact.png']);
+  assert.ok(result.hp < 100, JSON.stringify(result));
+  assert.deepEqual(result.aoe, ['explosion.png', 'dust.png']);
+  assert.deepEqual(result.block, ['block.png']);
+});
+
+test('round reset clears loose particles', async () => {
+  const result = await page.evaluate(() => {
+    const K = window.KARNAGE;
+    K.setDebug({ GAME: 'fight', paused: false });
+    K.newBattle(0, new K.Ctrl(K.KM1), 1, new K.Ctrl(K.KM2), 9);
+    K.parts.length = 0;
+    K.parts.push({ x: 300, y: 100, vx: 0, vy: 0, c: '#fff', l: 30, s: 1, gv: 0 });
+    const before = K.parts.length;
+    K.startRound();
+    return { before, after: K.parts.length };
+  });
+  assert.equal(result.before, 1);
+  assert.equal(result.after, 0);
+});
+
+test('snow is culled at the floor', async () => {
+  const result = await page.evaluate(() => {
+    const K = window.KARNAGE;
+    K.setDebug({ GAME: 'fight', paused: false });
+    K.newBattle(0, new K.Ctrl(K.KM1), 1, new K.Ctrl(K.KM2), 7);
+    const battle = K.battle;
+    battle.mode = '2p';
+    battle.phase = 'fight';
+    battle.phaseT = 200;
+    battle.p1.ctrl.ai = false;
+    battle.p2.ctrl.ai = false;
+    K.parts.length = 0;
+    for (let i = 0; i < 12; i += 1) K.step();
+    const snow = K.parts.filter((particle) => particle.c === 'rgba(230,240,255,.7)');
+    K.parts.push({ x: 300, y: 215, vx: 0, vy: 0.5, c: 'rgba(230,240,255,.7)', l: 60, s: 1, gv: 0, kf: 1 });
+    K.step();
+    return {
+      count: snow.length,
+      tagged: snow.length > 0 && snow.every((particle) => particle.kf === 1),
+      below: K.parts.some((particle) => particle.c === 'rgba(230,240,255,.7)' && particle.y > 214)
+    };
+  });
+  assert.ok(result.count > 0, JSON.stringify(result));
+  assert.equal(result.tagged, true, JSON.stringify(result));
+  assert.equal(result.below, false, JSON.stringify(result));
+});
+
+test('wave dust stays on the floor', async () => {
+  const result = await page.evaluate(() => {
+    const K = window.KARNAGE;
+    K.fx.length = 0;
+    K.impactFx('wave', 300, 160);
+    const dust = K.fx.find((effect) => effect.ty === 'sprite');
+    return { y: dust?.y };
+  });
+  assert.equal(result.y, 214);
+});
+
+test('sprite atlas uses nearest-neighbor and all frames', async () => {
+  const result = await page.evaluate(() => {
+    const K = window.KARNAGE;
+    const proto = window.CanvasRenderingContext2D.prototype;
+    const original = proto.drawImage;
+    const samples = [];
+    proto.drawImage = function capture(image, sx) {
+      if (image?.src?.endsWith('/hit-light.png')) {
+        samples.push({ sx, smoothing: this.imageSmoothingEnabled });
+      }
+      return original.apply(this, arguments);
+    };
+    try {
+      K.setDebug({ GAME: 'fight', paused: false });
+      K.newBattle(0, new K.Ctrl(K.KM1), 1, new K.Ctrl(K.KM2), 9);
+      const battle = K.battle;
+      battle.mode = '2p';
+      battle.phase = 'fight';
+      battle.phaseT = 200;
+      K.fx.length = 0;
+      K.spriteFx('hitLight', 300, 160, { duration: 8 });
+      for (let i = 0; i < 8; i += 1) {
+        K.step();
+        K.render();
+      }
+      return samples;
+    } finally {
+      proto.drawImage = original;
+    }
+  });
+  assert.equal(result.length, 8, JSON.stringify(result));
+  assert.deepEqual(result.map((sample) => sample.sx), [0, 48, 96, 144, 192, 240, 288, 336]);
+  assert.ok(result.every((sample) => sample.smoothing === false), JSON.stringify(result));
+});

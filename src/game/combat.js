@@ -53,13 +53,15 @@ export function createCombat({ S, SFX, P, blood, spriteFx, rnd, pick }) {
   if(S.bstat){const k=att===S.battle.p1?'1':'2';S.bstat['h'+k]++;S.bstat['d'+k]+=d;S.bstat['c'+k]=Math.max(S.bstat['c'+k],att.combo||0);}
   // 08.09: статистика боя для экрана реванша
   blood(def.x,def.y-def.def.h*.55,Math.min(14,3+d),d>10?1.6:1);
-  spriteFx(d>15?'hitHeavy':'hitLight',def.x,def.y-def.def.h*.55,{scale:d>15?1:.65,alpha:d>15?.45:.65});
-  for(let i=0;i<6;i++)P(def.x-att.face*8,def.y-def.def.h*.55,rnd(-2.5,2.5),rnd(-2.5,1),pick(['#fff','#f8d060','#f0a030']),10,rnd(1,2),.05);
+  if(!opts.noHitFx){// 25.10: снаряд и AoE уже дают свой импакт — не дублируем hit-спрайт и искры
+    spriteFx(d>15?'hitHeavy':'hitLight',def.x,def.y-def.def.h*.55,{scale:d>15?1:.65,alpha:d>15?.45:.65});
+    for(let i=0;i<6;i++)P(def.x-att.face*8,def.y-def.def.h*.55,rnd(-2.5,2.5),rnd(-2.5,1),pick(['#fff','#f8d060','#f0a030']),10,rnd(1,2),.05);
+  }
   S.freeze=def.hp<=0?Math.max(S.freeze,12):Math.max(S.freeze,Math.min(6,2+d*.25));
   const kb=opts.kb||5;def.hitStatus=opts.status||(opts.launch?'launch':opts.knock?'knockdown':'stagger');
   if(opts.launch){def.vy=-8;def.vx=att.face*Math.min(3,kb);def.state='hit';def.st=0;def.hvx=att.face*Math.min(3,kb);SFX.upper();S.shake=5;}
   else if(def.hp<=0&&S.battle.phase==='fight'){def.state='hit';def.st=0;def.hvx=att.face*4;SFX.hitH();}
-  else if((opts.knock||d>9||def.hp<=0)&&!opts.chain){def.state='down';def.st=0;def.vx=att.face*kb;def.vy=-5;def.hvx=att.face*3;SFX.hitH();S.shake=6;S.fx.push({ty:'ring',x:def.x,y:def.y-def.def.h*.55,t:0,col:'#f8d060'});}// 08.09: roundhouse всегда валит + ударное кольцо
+  else if((opts.knock||d>9||def.hp<=0)&&!opts.chain){def.state='down';def.st=0;def.vx=att.face*kb;def.vy=-5;def.hvx=att.face*3;SFX.hitH();S.shake=6;if(!opts.noHitFx)S.fx.push({ty:'ring',x:def.x,y:def.y-def.def.h*.55,t:0,col:'#f8d060'});}// 08.09: roundhouse всегда валит + ударное кольцо
   else{def.state='hit';def.st=0;def.hvx=opts.still?0:att.face*Math.min(2.4,kb);if(opts.chain){def.vx=0;def.hvx=0;}def.vy=def.onGround?-2:0;(Math.random()<.4?SFX.hitV:SFX.hit)();S.shake=2;}return'hit';}// 01.10: +opts.still — AoE не отбрасывает
 
   return { autoHit, resolveHit };

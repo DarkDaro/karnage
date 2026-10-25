@@ -204,6 +204,7 @@ export function createArenaView({ g, RW, RH, FL, AR, assets, shade, mix }) {
           l: 420,
           s: 1 + Math.random(),
           gv: 0,
+          kf: 1,
         });
       } else if (item.type === 'sand') {
         parts.push({

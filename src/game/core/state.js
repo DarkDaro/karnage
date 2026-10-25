@@ -73,6 +73,7 @@ export function resetRound(state, wipe) {
   state.shake = 0;
   state.flashS = 0;
   state.wipe = wipe; // шторки раунда
+  state.parts.length = 0; // свободные частицы не переходят в следующий раунд
   state.decals.length = 0; // кровь и снаряды не копятся между раундами
   state.projs.length = 0;
   state.fx.length = 0;

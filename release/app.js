@@ -976,7 +976,8 @@
             c: item.color || "rgba(230,240,255,.7)",
             l: 420,
             s: 1 + Math.random(),
-            gv: 0
+            gv: 0,
+            kf: 1
           });
         } else if (item.type === "sand") {
           parts.push({
@@ -1095,6 +1096,7 @@
     state.shake = 0;
     state.flashS = 0;
     state.wipe = wipe;
+    state.parts.length = 0;
     state.decals.length = 0;
     state.projs.length = 0;
     state.fx.length = 0;
@@ -2274,8 +2276,10 @@
         S.bstat["c" + k] = Math.max(S.bstat["c" + k], att.combo || 0);
       }
       blood(def.x, def.y - def.def.h * 0.55, Math.min(14, 3 + d), d > 10 ? 1.6 : 1);
-      spriteFx(d > 15 ? "hitHeavy" : "hitLight", def.x, def.y - def.def.h * 0.55, { scale: d > 15 ? 1 : 0.65, alpha: d > 15 ? 0.45 : 0.65 });
-      for (let i = 0; i < 6; i++) P(def.x - att.face * 8, def.y - def.def.h * 0.55, rnd(-2.5, 2.5), rnd(-2.5, 1), pick(["#fff", "#f8d060", "#f0a030"]), 10, rnd(1, 2), 0.05);
+      if (!opts.noHitFx) {
+        spriteFx(d > 15 ? "hitHeavy" : "hitLight", def.x, def.y - def.def.h * 0.55, { scale: d > 15 ? 1 : 0.65, alpha: d > 15 ? 0.45 : 0.65 });
+        for (let i = 0; i < 6; i++) P(def.x - att.face * 8, def.y - def.def.h * 0.55, rnd(-2.5, 2.5), rnd(-2.5, 1), pick(["#fff", "#f8d060", "#f0a030"]), 10, rnd(1, 2), 0.05);
+      }
       S.freeze = def.hp <= 0 ? Math.max(S.freeze, 12) : Math.max(S.freeze, Math.min(6, 2 + d * 0.25));
       const kb = opts.kb || 5;
       def.hitStatus = opts.status || (opts.launch ? "launch" : opts.knock ? "knockdown" : "stagger");
@@ -2300,7 +2304,7 @@
         def.hvx = att.face * 3;
         SFX.hitH();
         S.shake = 6;
-        S.fx.push({ ty: "ring", x: def.x, y: def.y - def.def.h * 0.55, t: 0, col: "#f8d060" });
+        if (!opts.noHitFx) S.fx.push({ ty: "ring", x: def.x, y: def.y - def.def.h * 0.55, t: 0, col: "#f8d060" });
       } else {
         def.state = "hit";
         def.st = 0;
@@ -4669,8 +4673,9 @@
       for (const f of S.fx) {
         const x = f.x - cam;
         if (f.ty === "sprite") {
-          const frame2 = Math.min(f.frames - 1, Math.floor(f.t / f.dur * f.frames));
+          const frame2 = f.frames <= 1 ? 0 : Math.min(f.frames - 1, Math.floor(Math.max(0, f.t - 1) / Math.max(1, f.dur - 1) * (f.frames - 1)));
           g.save();
+          g.imageSmoothingEnabled = false;
           g.globalCompositeOperation = f.blend;
           g.globalAlpha = f.alpha;
           g.drawImage(f.img, frame2 * f.frameW, 0, f.frameW, f.frameH, x - f.anchor[0] * f.scale, f.y - f.anchor[1] * f.scale, f.frameW * f.scale, f.frameH * f.scale);
@@ -7424,7 +7429,7 @@
       if (arenaView.ambient({ arena: S.battle.arena, cam: S.cam, frame: S.FRAME, parts: S.parts })) return;
       const A = AR[S.battle.arena];
       if (A.rain && S.FRAME % 2 === 0) S.parts.push({ x: S.cam + rnd(-20, RW + 30), y: -6, vx: -0.6, vy: 7, c: "rgba(170,190,215,.28)", l: 60, s: 1, gv: 0, line: 1, kf: 1 });
-      if (A.snow && S.FRAME % 2 === 0) S.parts.push({ x: S.cam + rnd(-10, RW + 10), y: -4, vx: rnd(-0.3, 0.3), vy: rnd(0.3, 0.6), c: "rgba(230,240,255,.7)", l: 420, s: 1, gv: 0 });
+      if (A.snow && S.FRAME % 2 === 0) S.parts.push({ x: S.cam + rnd(-10, RW + 10), y: -4, vx: rnd(-0.3, 0.3), vy: rnd(0.3, 0.6), c: "rgba(230,240,255,.7)", l: 420, s: 1, gv: 0, kf: 1 });
       if (A.sand && S.FRAME % 8 === 0) S.parts.push({ x: S.cam + RW + 10, y: rnd(60, FL), vx: rnd(-2.6, -1.6), vy: 0, c: "rgba(220,180,110,.2)", l: 120, s: 1, gv: 0, line: 1, kf: 1 });
       if (A.ember && S.FRAME % 3 === 0) S.parts.push({ x: S.cam + rnd(0, RW), y: FL + rnd(-4, 10), vx: rnd(-0.3, 0.3), vy: -rnd(0.4, 1), c: pick(["#f06020", "#c84018", "#f0a030"]), l: rnd(60, 120), s: rnd(1, 2), gv: -0.01 });
       if (A.rain && Math.random() < 4e-3) {
@@ -7478,7 +7483,7 @@
         return ok;
       }
       if (ty === "wave") {
-        const ok = spriteFx("dust", x, y, { scale: 1.05, alpha: 0.55, duration: 14 });
+        const ok = spriteFx("dust", x, FL + GR, { scale: 1.05, alpha: 0.55, duration: 14 });
         impactBurst(x, y, c, 24);
         for (let i = 0; i < 8; i++) P(x + rnd(-10, 10), y - 2, rnd(-1.6, 1.6), rnd(-2.6, -0.5), c, 18, 2, 0.08);
         return ok;
@@ -7593,8 +7598,8 @@
           const b = f.box;
           if (p.ty !== "meteor" && p.ty !== "rocket" && p.ty !== "bomb" && p.x > b.x - 4 && p.x < b.x + b.w + 4 && p.y > b.y - 6 && p.y < b.y + b.h + 4) {
             const wf = f.frozen > 0;
-            impactFx(p.ty, p.x, p.y, p.c, p);
-            resolveHit(p.o, f, p.d, p.k ? { knock: 1 } : {});
+            const hit = resolveHit(p.o, f, p.d, p.k ? { knock: 1, noHitFx: 1 } : { noHitFx: 1 });
+            if (hit !== "block") impactFx(p.ty, p.x, p.y, p.c, p);
             const blk = f.state === "block";
             if (p.ty === "ice" && !wf && !blk && f.hp > 0) {
               f.frozen = 85;
@@ -7634,7 +7639,7 @@
           for (let j = 0; j < 10; j++) P(p.x + rnd(-14, 14), FL + GR - 2, rnd(-2.4, 2.4), rnd(-3.4, -0.6), pick(["#6a5a44", "#3a3028", "#8a7a5c"]), 24, 2, 0.12);
           for (let j = 0; j < 8; j++) P(p.x + rnd(-10, 10), FL + GR - 4, rnd(-1.5, 1.5), rnd(-2.5, -0.4), pick(["#f06020", "#f8d060", "#f0a030"]), 18, 2, -0.01);
           const f2 = p.o.foe;
-          if (f2 && !f2.dodging && Math.abs(f2.x - p.x) < 30 && f2.state !== "down" && f2.state !== "victim") resolveHit(p.o, f2, p.d, { still: 1 });
+          if (f2 && !f2.dodging && Math.abs(f2.x - p.x) < 30 && f2.state !== "down" && f2.state !== "victim") resolveHit(p.o, f2, p.d, { still: 1, noHitFx: 1 });
           S.projs.splice(i, 1);
           continue;
         }
