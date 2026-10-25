@@ -74,15 +74,22 @@ function loadArcRun(){try{const run=JSON.parse(localStorage[ARC_KEY]||'null');re
 function saveArcRun(){try{if(!Number.isInteger(S.arcP1)||!S.ladder.length||!Number.isInteger(S.lStep))return;const run={v:ARC_VERSION,c1:S.arcP1,ladder:S.ladder.slice(),step:S.lStep};if(validArcRun(run))localStorage[ARC_KEY]=JSON.stringify(run);}catch(e){}}
 function clearArcRun(){try{localStorage.removeItem(ARC_KEY);}catch(e){}}
 function arcTotal(){return S.ladder.length?S.ladder.length+1:ARC_TOTAL;}
-addEventListener('pointerdown',()=>{initA();if(AU.ctx&&AU.ctx.state==='suspended')AU.ctx.resume();if(S.GAME==='title'){toLobby('menu');SFX.sel();}});// 08.09: клик мыши на титуле тоже открывает меню
 /* ВВОД */
 const {keys,TOUCH,KM1,KM2,Ctrl,press,clearPress}=createInput();
-function bindTouch(){const isTouch=('ontouchstart' in window)||navigator.maxTouchPoints>0;if(!isTouch)return;document.body.classList.add('touch');const root=document.createElement('div');root.id='touch';root.innerHTML='<div class="dpad"><button class="up" data-key="u">▲</button><button class="left" data-key="l">◀</button><button class="down" data-key="d">▼</button><button class="right" data-key="r">▶</button></div><div class="actions"><button class="punch" data-key="P">P</button><button class="kick" data-key="K">K</button><button class="block" data-key="B">БЛОК</button></div><button class="pause" data-key="pause">Ⅱ</button>';document.body.appendChild(root);const codes={l:'ArrowLeft',r:'ArrowRight',u:'ArrowUp',d:'ArrowDown',P:'Enter',K:'KeyK',B:'Escape'};for(const btn of root.querySelectorAll('button')){const key=btn.dataset.key;const down=e=>{e.preventDefault();e.stopPropagation();if(btn.setPointerCapture)try{btn.setPointerCapture(e.pointerId);}catch(err){}btn.classList.add('on');initA();if(AU.ctx&&AU.ctx.state==='suspended')AU.ctx.resume();if(key==='pause'){onKey('Escape');return;}TOUCH[key]=1;press(key,S.FRAME);if(S.GAME!=='fight'||S.paused)onKey(codes[key]);else if(key==='P')onKey('KeyJ');};const up=e=>{e.preventDefault();btn.classList.remove('on');if(key!=='pause')TOUCH[key]=0;};btn.addEventListener('pointerdown',down);btn.addEventListener('pointerup',up);btn.addEventListener('pointercancel',up);btn.addEventListener('lostpointercapture',up);}}// 24.10: touch-управление
+let resetTouch=()=>{};
+function resetInput(){for(const k in keys)keys[k]=false;for(const k in TOUCH)TOUCH[k]=0;clearPress();resetTouch();}// 25.10: после переходов и паузы старый ввод не должен протекать в бой
+addEventListener('pointerdown',()=>{initA();if(AU.ctx&&AU.ctx.state==='suspended')AU.ctx.resume();if(S.GAME==='title'){toLobby('menu');SFX.sel();}});// 08.09: клик мыши на титуле тоже открывает меню
+function bindTouch(){const isTouch=('ontouchstart' in window)||navigator.maxTouchPoints>0;if(!isTouch)return;document.body.classList.add('touch');const root=document.createElement('div');root.id='touch';root.innerHTML='<div class="dpad"><button class="up" data-key="u">▲</button><button class="left" data-key="l">◀</button><button class="down" data-key="d">▼</button><button class="right" data-key="r">▶</button></div><div class="actions"><button class="punch" data-key="P">P</button><button class="kick" data-key="K">K</button><button class="block" data-key="B">БЛОК</button></div><button class="pause" data-key="pause">Ⅱ</button>';document.body.appendChild(root);const codes={l:'ArrowLeft',r:'ArrowRight',u:'ArrowUp',d:'ArrowDown',P:'Enter',K:'KeyK',B:'Escape'};const held=new Map();const btnOf=key=>root.querySelector(`[data-key="${key}"]`);const release=(key,id)=>{const ids=held.get(key);if(!ids||!ids.delete(id)||ids.size)return;held.delete(key);if(key!=='pause')TOUCH[key]=0;btnOf(key)?.classList.remove('on');};const releasePointer=id=>{for(const key of [...held.keys()])if(held.get(key).has(id))release(key,id);};const releaseAll=()=>{for(const key of [...held.keys()])for(const id of [...held.get(key)])release(key,id);};
+resetTouch=releaseAll;
+for(const btn of root.querySelectorAll('button')){const key=btn.dataset.key;const down=e=>{e.preventDefault();e.stopPropagation();if(btn.setPointerCapture)try{btn.setPointerCapture(e.pointerId);}catch(err){}if(!held.has(key))held.set(key,new Set());held.get(key).add(e.pointerId);btn.classList.add('on');initA();if(AU.ctx&&AU.ctx.state==='suspended')AU.ctx.resume();if(key==='pause'){onKey('Escape');return;}TOUCH[key]=1;press(key,S.FRAME);if(S.GAME!=='fight'||S.paused)onKey(codes[key]);else if(key==='P')onKey('KeyJ');};const up=e=>{e.preventDefault();release(key,e.pointerId);};btn.addEventListener('pointerdown',down);btn.addEventListener('pointerup',up);btn.addEventListener('pointercancel',up);btn.addEventListener('lostpointercapture',up);}
+addEventListener('pointerup',e=>releasePointer(e.pointerId),true);// 25.10: отпускание вне кнопки больше не оставляет блок/удар зажатыми
+addEventListener('pointercancel',e=>releasePointer(e.pointerId),true);
+addEventListener('touchcancel',releaseAll,{passive:true});}// 24.10: touch-управление
 bindTouch();
-addEventListener('keydown',e=>{if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code))e.preventDefault();if(!e.repeat){keys[e.code]=true;press(e.code,S.FRAME);initA();if(AU.ctx&&AU.ctx.state==='suspended')AU.ctx.resume();onKey(e.code);}});
+addEventListener('keydown',e=>{if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code))e.preventDefault();if(e.repeat){if((S.GAME!=='fight'||S.paused)&&['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','KeyW','KeyA','KeyS','KeyD'].includes(e.code))onKey(e.code);return;}keys[e.code]=true;press(e.code,S.FRAME);initA();if(AU.ctx&&AU.ctx.state==='suspended')AU.ctx.resume();onKey(e.code);});// 25.10: удержание стрелок листает меню, но не повторяет выбор
 addEventListener('keyup',e=>{keys[e.code]=false;});
-addEventListener('blur',()=>{for(const k in keys)keys[k]=false;for(const k in TOUCH)TOUCH[k]=0;clearPress();document.querySelectorAll('#touch button.on').forEach(btn=>btn.classList.remove('on'));if(S.GAME==='fight'&&!S.paused){S.paused=true;S.pauseIdx=0;}});
-addEventListener('visibilitychange',()=>{if(document.hidden){for(const k in keys)keys[k]=false;for(const k in TOUCH)TOUCH[k]=0;clearPress();document.querySelectorAll('#touch button.on').forEach(btn=>btn.classList.remove('on'));if(S.GAME==='fight'&&!S.paused){S.paused=true;S.pauseIdx=0;}}});
+addEventListener('blur',()=>{resetInput();if(S.GAME==='fight'&&!S.paused){S.paused=true;S.pauseIdx=0;}});
+addEventListener('visibilitychange',()=>{if(document.hidden){resetInput();if(S.GAME==='fight'&&!S.paused){S.paused=true;S.pauseIdx=0;}}});
 /* ПЕРСОНАЖИ: spec/fat строки (D вниз U вверх L влево R вправо P рука K нога) */
 ;
 /* ВТОРЫЕ СПЕЦПРИЁМЫ (08.09): по одному на бойца, ввод — 3 кнопки */
@@ -226,8 +233,8 @@ if(Math.random()<agg){f.aiDir=null;const pk=Math.random();if(pk<.07){c.ax.P=true
 if(Math.random()<.28){f.aiDir=null;c.ax.B=true;return;}
 f.aiDir=Math.random()<.6?(dx>0?'r':'l'):null;}
 /* БОЙ */
-function toLobby(gm){setScreen(S,gm);}
-function newBattleDefs(d1,c1,d2,c2,arena){S.battle={p1:new F(d1,c1),p2:new F(d2,c2),round:1,phase:'intro',phaseT:0,timer:60,arena};
+function toLobby(gm){resetInput();setScreen(S,gm);}
+function newBattleDefs(d1,c1,d2,c2,arena){resetInput();S.battle={p1:new F(d1,c1),p2:new F(d2,c2),round:1,phase:'intro',phaseT:0,timer:60,arena};
 S.battle.p1.foe=S.battle.p2;S.battle.p2.foe=S.battle.p1;beginBattle(S,S.battle,{h1:0,d1:0,c1:0,h2:0,d2:0,c2:0});// 08.09: сброс статистики
 startRound();S.GAME='fight';}// 08.09: newBattle теперь расставляет бойцов через startRound — раньше оба спавнились в одной точке x=200
 function newBattle(i1,c1,i2,c2,arena){newBattleDefs(typeof i1==='object'?i1:CH[i1],c1,typeof i2==='object'?i2:CH[i2],c2,arena);}// 25.10: бой принимает и def-объект финального босса
@@ -348,6 +355,7 @@ else if(i===4){OPT.blood=!OPT.blood;saveOpts();SFX.menu();}
 else if(i===5){OPT.shake=!OPT.shake;saveOpts();SFX.menu();}
 else if(i===6){OPT.reduce=!OPT.reduce;if(OPT.reduce){S.shake=0;S.flashS=0;}saveOpts();SFX.menu();}}
 function onKey(k){
+if(S.GAME!=='fight'||S.paused)resetInput();// 25.10: клавиша меню/паузы не становится ударом после возврата в бой
 if(k==='KeyM'){AU.on=!AU.on;setVol();if(!AU.on){try{speechSynthesis.cancel();}catch(e){}}else SFX.menu();saveSet();return;}// 08.09: +сохранение настройки
 if(S.GAME==='fight'&&!S.paused&&S.battle&&(k==='KeyJ'||k==='Enter'||k==='Space')){if(S.battle.phase==='fatal'&&S.battle.phaseT>30){endBattle(S.battle.winner);return;}if(S.battle.phase==='over'&&S.battle.phaseT>30){afterBattle();return;}}
 if(S.GAME==='fight'&&!S.paused&&k==='Escape'){S.paused=true;S.pauseIdx=0;SFX.menu();return;}// 08.09: пауза не активировалась — Escape не ставил paused
@@ -646,6 +654,7 @@ function tuneScale(dt){
 function loop(ts){requestAnimationFrame(loop);if((window.devicePixelRatio||1)!==lastDpr)fit();if(scaleDirty)applyRScale();const rawDt=ts-S.last,dt=Math.min(50,rawDt);S.acc+=dt;S.last=ts;
 while(S.acc>=1000/60){S.acc-=1000/60;step();}render();tuneScale(rawDt);}
 function step(){S.FRAME++;music();
+if(S.GAME==='fight'&&S.battle){S.battle.p1.ctrl.poll(S.FRAME);S.battle.p2.ctrl.poll(S.FRAME);clearPress();}// 25.10: ввод читается до обновления бойцов — удар срабатывает в том же кадре
 if(S.GAME==='fight'){
 const b=S.battle;if(b.phase!=='fight'||!S.paused)ambient();
 if(!S.paused){
@@ -656,8 +665,7 @@ else if(b.phase==='fatal')battleUpd();
 else if(b.phase==='over')battleUpd();
 if(S.battle){updProjs();updParts();updFx();S.shake=Math.max(0,S.shake-.5);S.flashS=Math.max(0,S.flashS-1);
 const mid=(S.battle.p1.x+S.battle.p2.x)/2;S.cam=clamp(lerp(S.cam,mid-RW/2,.12),0,AW-RW);S.cam=Math.round(S.cam);}}// 08.09: целая камера — без дрожания слоёв
-else{updParts();updFx();}
-if(S.battle){S.battle.p1.ctrl.poll(S.FRAME);S.battle.p2.ctrl.poll(S.FRAME);}}
+else{updParts();updFx();}}
 else{updParts();
 if(['title','menu','continue','gameover','top'].includes(S.GAME)&&S.FRAME%3===0)
 S.parts.push({x:rnd(0,RW),y:RH+4,vx:rnd(-.2,.2),vy:-rnd(.6,1.4),c:pick(['#f06020','#c84018','#f0a030']),l:rnd(60,140),s:rnd(1,2),gv:-.005});}

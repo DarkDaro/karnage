@@ -135,7 +135,7 @@ test('adaptive scale drops hard on sustained slowdown and ignores one spike', as
   await page.evaluate(() => window.dispatchEvent(new window.Event('resize')));
 });
 
-test('quick tap between frames reaches the input buffer', async () => {
+test('quick tap between frames starts an attack immediately', async () => {
   const result = await page.evaluate(() => {
     const K = window.KARNAGE;
     K.newBattle(0, new K.Ctrl(K.KM1), 1, new K.Ctrl(K.KM2), 6);
@@ -150,11 +150,64 @@ test('quick tap between frames reaches the input buffer', async () => {
     window.dispatchEvent(new window.KeyboardEvent('keyup', { code: 'KeyJ' }));
     const before = ctrl.buf.length;
     K.step();
-    return { before, after: ctrl.buf.map((entry) => entry.k), pressed: ctrl.pP };
+    return {
+      before,
+      after: ctrl.buf.map((entry) => entry.k),
+      pressed: ctrl.pP,
+      state: K.battle.p1.state,
+      attack: K.battle.p1.atk && K.battle.p1.atk.t
+    };
   });
   assert.equal(result.before, 0);
-  assert.deepEqual(result.after, ['P']);
+  assert.deepEqual(result.after, []);
   assert.equal(result.pressed, true);
+  assert.equal(result.state, 'atk');
+  assert.equal(result.attack, 'punch');
+});
+
+test('confirm key does not leak into fight after pause or VS', async () => {
+  const result = await page.evaluate(() => {
+    const K = window.KARNAGE;
+    const reset = () => {
+      for (const key of Object.keys(K.keys)) K.keys[key] = false;
+      for (const key of Object.keys(K.TOUCH)) K.TOUCH[key] = 0;
+      window.dispatchEvent(new window.KeyboardEvent('keyup', { code: 'KeyJ' }));
+    };
+    const battle = (paused, game) => {
+      K.newBattle(0, new K.Ctrl(K.KM1), 1, new K.Ctrl(K.KM2), 6);
+      K.battle.mode = '2p';
+      K.battle.phase = 'fight';
+      K.battle.phaseT = 200;
+      K.setDebug({ GAME: game, paused });
+      K.battle.p1.ctrl.clear();
+      K.battle.p2.ctrl.clear();
+    };
+    reset();
+    battle(true, 'fight');
+    window.dispatchEvent(new window.KeyboardEvent('keydown', { code: 'KeyJ' }));
+    K.step();
+    const pause = {
+      paused: K.paused,
+      state: K.battle.p1.state,
+      pressed: K.battle.p1.ctrl.pP,
+      held: K.keys.KeyJ
+    };
+    reset();
+    battle(false, 'vs');
+    window.dispatchEvent(new window.KeyboardEvent('keydown', { code: 'KeyJ' }));
+    K.step();
+    const vs = {
+      game: K.GAME,
+      paused: K.paused,
+      state: K.battle.p1.state,
+      pressed: K.battle.p1.ctrl.pP,
+      held: K.keys.KeyJ
+    };
+    reset();
+    return { pause, vs };
+  });
+  assert.deepEqual(result.pause, { paused: false, state: 'idle', pressed: false, held: false });
+  assert.deepEqual(result.vs, { game: 'fight', paused: false, state: 'idle', pressed: false, held: false });
 });
 
 test('stale menu press does not fire after screen change', async () => {

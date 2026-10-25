@@ -2426,6 +2426,8 @@
       }
       clear() {
         this.buf.length = 0;
+        this.tP = -999;
+        this.tK = -999;
       }
     }
     return { keys, TOUCH, KM1, KM2, Ctrl, press, clearPress };
@@ -7660,6 +7662,15 @@
     function arcTotal() {
       return S.ladder.length ? S.ladder.length + 1 : ARC_TOTAL;
     }
+    const { keys, TOUCH, KM1: KM12, KM2: KM22, Ctrl, press, clearPress } = createInput();
+    let resetTouch = () => {
+    };
+    function resetInput() {
+      for (const k in keys) keys[k] = false;
+      for (const k in TOUCH) TOUCH[k] = 0;
+      clearPress();
+      resetTouch();
+    }
     addEventListener("pointerdown", () => {
       initA();
       if (AU.ctx && AU.ctx.state === "suspended") AU.ctx.resume();
@@ -7668,7 +7679,6 @@
         SFX.sel();
       }
     });
-    const { keys, TOUCH, KM1: KM12, KM2: KM22, Ctrl, press, clearPress } = createInput();
     function bindTouch() {
       const isTouch = "ontouchstart" in window || navigator.maxTouchPoints > 0;
       if (!isTouch) return;
@@ -7678,6 +7688,22 @@
       root.innerHTML = '<div class="dpad"><button class="up" data-key="u">\u25B2</button><button class="left" data-key="l">\u25C0</button><button class="down" data-key="d">\u25BC</button><button class="right" data-key="r">\u25B6</button></div><div class="actions"><button class="punch" data-key="P">P</button><button class="kick" data-key="K">K</button><button class="block" data-key="B">\u0411\u041B\u041E\u041A</button></div><button class="pause" data-key="pause">\u2161</button>';
       document.body.appendChild(root);
       const codes = { l: "ArrowLeft", r: "ArrowRight", u: "ArrowUp", d: "ArrowDown", P: "Enter", K: "KeyK", B: "Escape" };
+      const held = /* @__PURE__ */ new Map();
+      const btnOf = (key) => root.querySelector(`[data-key="${key}"]`);
+      const release = (key, id) => {
+        const ids = held.get(key);
+        if (!ids || !ids.delete(id) || ids.size) return;
+        held.delete(key);
+        if (key !== "pause") TOUCH[key] = 0;
+        btnOf(key)?.classList.remove("on");
+      };
+      const releasePointer = (id) => {
+        for (const key of [...held.keys()]) if (held.get(key).has(id)) release(key, id);
+      };
+      const releaseAll = () => {
+        for (const key of [...held.keys()]) for (const id of [...held.get(key)]) release(key, id);
+      };
+      resetTouch = releaseAll;
       for (const btn of root.querySelectorAll("button")) {
         const key = btn.dataset.key;
         const down = (e) => {
@@ -7687,6 +7713,8 @@
             btn.setPointerCapture(e.pointerId);
           } catch (err) {
           }
+          if (!held.has(key)) held.set(key, /* @__PURE__ */ new Set());
+          held.get(key).add(e.pointerId);
           btn.classList.add("on");
           initA();
           if (AU.ctx && AU.ctx.state === "suspended") AU.ctx.resume();
@@ -7701,34 +7729,35 @@
         };
         const up = (e) => {
           e.preventDefault();
-          btn.classList.remove("on");
-          if (key !== "pause") TOUCH[key] = 0;
+          release(key, e.pointerId);
         };
         btn.addEventListener("pointerdown", down);
         btn.addEventListener("pointerup", up);
         btn.addEventListener("pointercancel", up);
         btn.addEventListener("lostpointercapture", up);
       }
+      addEventListener("pointerup", (e) => releasePointer(e.pointerId), true);
+      addEventListener("pointercancel", (e) => releasePointer(e.pointerId), true);
+      addEventListener("touchcancel", releaseAll, { passive: true });
     }
     bindTouch();
     addEventListener("keydown", (e) => {
       if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Space"].includes(e.code)) e.preventDefault();
-      if (!e.repeat) {
-        keys[e.code] = true;
-        press(e.code, S.FRAME);
-        initA();
-        if (AU.ctx && AU.ctx.state === "suspended") AU.ctx.resume();
-        onKey(e.code);
+      if (e.repeat) {
+        if ((S.GAME !== "fight" || S.paused) && ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "KeyW", "KeyA", "KeyS", "KeyD"].includes(e.code)) onKey(e.code);
+        return;
       }
+      keys[e.code] = true;
+      press(e.code, S.FRAME);
+      initA();
+      if (AU.ctx && AU.ctx.state === "suspended") AU.ctx.resume();
+      onKey(e.code);
     });
     addEventListener("keyup", (e) => {
       keys[e.code] = false;
     });
     addEventListener("blur", () => {
-      for (const k in keys) keys[k] = false;
-      for (const k in TOUCH) TOUCH[k] = 0;
-      clearPress();
-      document.querySelectorAll("#touch button.on").forEach((btn) => btn.classList.remove("on"));
+      resetInput();
       if (S.GAME === "fight" && !S.paused) {
         S.paused = true;
         S.pauseIdx = 0;
@@ -7736,10 +7765,7 @@
     });
     addEventListener("visibilitychange", () => {
       if (document.hidden) {
-        for (const k in keys) keys[k] = false;
-        for (const k in TOUCH) TOUCH[k] = 0;
-        clearPress();
-        document.querySelectorAll("#touch button.on").forEach((btn) => btn.classList.remove("on"));
+        resetInput();
         if (S.GAME === "fight" && !S.paused) {
           S.paused = true;
           S.pauseIdx = 0;
@@ -8293,9 +8319,11 @@
       f.aiDir = Math.random() < 0.6 ? dx > 0 ? "r" : "l" : null;
     }
     function toLobby(gm) {
+      resetInput();
       setScreen(S, gm);
     }
     function newBattleDefs(d1, c1, d2, c2, arena) {
+      resetInput();
       S.battle = { p1: new F(d1, c1), p2: new F(d2, c2), round: 1, phase: "intro", phaseT: 0, timer: 60, arena };
       S.battle.p1.foe = S.battle.p2;
       S.battle.p2.foe = S.battle.p1;
@@ -8861,6 +8889,7 @@
       }
     }
     function onKey(k) {
+      if (S.GAME !== "fight" || S.paused) resetInput();
       if (k === "KeyM") {
         AU.on = !AU.on;
         setVol();
@@ -9947,6 +9976,11 @@
     function step() {
       S.FRAME++;
       music();
+      if (S.GAME === "fight" && S.battle) {
+        S.battle.p1.ctrl.poll(S.FRAME);
+        S.battle.p2.ctrl.poll(S.FRAME);
+        clearPress();
+      }
       if (S.GAME === "fight") {
         const b = S.battle;
         if (b.phase !== "fight" || !S.paused) ambient();
@@ -9981,10 +10015,6 @@
         } else {
           updParts();
           updFx();
-        }
-        if (S.battle) {
-          S.battle.p1.ctrl.poll(S.FRAME);
-          S.battle.p2.ctrl.poll(S.FRAME);
         }
       } else {
         updParts();

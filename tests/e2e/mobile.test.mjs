@@ -83,6 +83,30 @@ test('touch controls navigate the menu and hold fight buttons', async () => {
   assert.equal(released, 0);
 });
 
+test('touch button releases when pointerup lands outside it', async () => {
+  await page.evaluate(() => {
+    const K = window.KARNAGE;
+    K.newBattle(0, new K.Ctrl(K.KM1), 1, new K.Ctrl(K.KM2), 9);
+    const battle = K.battle;
+    battle.mode = '2p';
+    battle.phase = 'fight';
+    battle.phaseT = 200;
+  });
+  const button = page.locator('[data-key="P"]');
+  await button.dispatchEvent('pointerdown', { pointerId: 7, pointerType: 'touch' });
+  const held = await page.evaluate(() => window.KARNAGE.TOUCH.P);
+  await page.evaluate(() => {
+    window.dispatchEvent(new window.PointerEvent('pointerup', { pointerId: 7, pointerType: 'touch', bubbles: true }));
+  });
+  const released = await page.evaluate(() => ({
+    touch: window.KARNAGE.TOUCH.P,
+    on: document.querySelector('[data-key="P"]').classList.contains('on')
+  }));
+  assert.equal(held, 1);
+  assert.equal(released.touch, 0);
+  assert.equal(released.on, false);
+});
+
 test('portrait touch layout keeps controls inside the viewport', async () => {
   const portrait = await browser.newPage({
     viewport: { width: 390, height: 844 },
