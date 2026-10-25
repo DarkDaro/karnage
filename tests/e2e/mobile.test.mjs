@@ -223,6 +223,60 @@ test('touch button releases when pointer is canceled or capture is lost', async 
   assert.deepEqual(lost, { touch: 0, on: false });
 });
 
+test('short touch landscape keeps every control inside the viewport', async () => {
+  const short = await browser.newPage({
+    viewport: { width: 568, height: 320 },
+    hasTouch: true,
+    isMobile: true,
+    deviceScaleFactor: 2
+  });
+  await short.addInitScript(() => {
+    window.requestAnimationFrame = () => 0;
+  });
+  try {
+    await short.goto(entry, { waitUntil: 'load' });
+    await short.waitForFunction(() => Boolean(window.KARNAGE), null, { polling: 100 });
+    const layout = await short.evaluate(() => {
+      const rect = (selector) => {
+        const box = document.querySelector(selector).getBoundingClientRect();
+        return { left: box.left, top: box.top, right: box.right, bottom: box.bottom, width: box.width, height: box.height };
+      };
+      return {
+        body: document.body.className,
+        viewport: { width: window.innerWidth, height: window.innerHeight },
+        canvas: rect('#cv'),
+        controls: [
+          '.dpad',
+          '.actions',
+          '[data-action="fullscreen"]',
+          '[data-key="pause"]',
+          '[data-key="P"]',
+          '[data-key="K"]',
+          '[data-key="B"]',
+          '[data-keys="P K"]',
+          '[data-keys="d P K"]'
+        ].map((selector) => [selector, rect(selector)]),
+        overflow: document.documentElement.scrollWidth - window.innerWidth
+      };
+    });
+    assert.match(layout.body, /touch/);
+    assert.doesNotMatch(layout.body, /portrait/);
+    assert.ok(Math.abs(layout.canvas.width - layout.viewport.width) <= 1);
+    assert.ok(Math.abs(layout.canvas.height - layout.viewport.height) <= 1);
+    assert.ok(layout.overflow <= 1);
+    for (const [selector, control] of layout.controls) {
+      assert.ok(control.width >= 36 && control.height >= 36, `${selector}: ${JSON.stringify(control)}`);
+      assert.ok(control.left >= 0 && control.top >= 0, `${selector}: ${JSON.stringify(control)}`);
+      assert.ok(control.right <= layout.viewport.width && control.bottom <= layout.viewport.height, `${selector}: ${JSON.stringify(control)}`);
+    }
+    const actions = ['[data-key="P"]', '[data-key="K"]', '[data-key="B"]', '[data-keys="P K"]', '[data-keys="d P K"]']
+      .map((selector) => layout.controls.find(([name]) => name === selector)[1]);
+    for (const action of actions) assert.ok(action.width >= 44 && action.height >= 44, JSON.stringify(action));
+  } finally {
+    await short.close();
+  }
+});
+
 test('portrait touch layout keeps controls inside the viewport', async () => {
   const portrait = await browser.newPage({
     viewport: { width: 390, height: 844 },

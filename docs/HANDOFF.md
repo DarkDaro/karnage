@@ -96,7 +96,7 @@
 - touch: компактные полупрозрачные кнопки в landscape, портрет центрирует игру, подсказки переключаются на `P`/`B`;
 - 25.10: на touch добавлены отдельные `P+K` и `D+P+K`, кнопки действий увеличены до 44–56 px, D-pad — до 38–46 px; e2e проверяет одновременные виртуальные клавиши и размеры в portrait;
 - 25.10: touch-landscape adaptive view — логическая ширина растёт под 20:9, canvas заполняет 915×412 на Realme 12; portrait остаётся 424×240;
-- 26.10: touch получил кнопку `ЭКРАН` (fullscreen + попытка landscape-lock), в portrait — крупную `РАЗВЕРНУТЬ`, `visualViewport`-раскладку и PWA-манифест с landscape; кнопки адаптируются и по высоте экрана;
+- 26.10: touch получил кнопку `ЭКРАН` (fullscreen + попытка landscape-lock), в portrait — крупную `РАЗВЕРНУТЬ`, `visualViewport`-раскладку и PWA-манифест с landscape; кнопки считаются от видимой области и safe-area, `P+K`/`↓P+K` различаются;
 - передний план всех арен рисуется до бойцов и больше не перекрывает персонажей;
 - исправлены заглушки `?????????` и `?????` в announce.
 - ESLint проверяет `src` целиком; основной монолит больше не исключён.
@@ -198,7 +198,7 @@ npm run assets:build
 1. `git status --short` — нет случайных файлов, `node_modules` и `test-results` не в индексе.
 2. `npm run assets:build` — если менялись `assets/vendor` или `assets/fx`.
 3. `npm run build` — обновить `release/app.js` и `release/assets/fx`.
-4. `npm test` — 90/90.
+4. `npm test` - 91/91.
 5. `npm run check` — ESLint и audit без ошибок.
 6. Открыть `index.html` двойным кликом: титул, меню, бой, эффект удара.
 7. Проверить `release/index.html` отдельно, как переносимую папку.

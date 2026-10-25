@@ -7766,23 +7766,40 @@
       }
       scaleDirty = false;
     }
+    function viewportBox() {
+      const vv = window.visualViewport;
+      let vw = vv && vv.width > 0 ? vv.width : innerWidth, vh = vv && vv.height > 0 ? vv.height : innerHeight;
+      if (vw > 0 && vh > 0 && innerWidth > 0 && innerHeight > 0 && vw > vh !== innerWidth > innerHeight) {
+        vw = innerWidth;
+        vh = innerHeight;
+      }
+      return { vw, vh };
+    }
+    function setAppViewport(vw, vh) {
+      const s = document.documentElement.style;
+      s.setProperty("--app-w", vw + "px");
+      s.setProperty("--app-h", vh + "px");
+    }
     function syncLayoutViewport() {
       const vv = window.visualViewport;
-      if (!vv || !(vv.width > 0) || !(vv.height > 0)) return;
+      const box = viewportBox();
+      if (!(box.vw > 0) || !(box.vh > 0)) return;
+      setAppViewport(box.vw, box.vh);
       for (const id of ["wrap", "touch"]) {
         const el = document.getElementById(id);
         if (!el) continue;
-        el.style.left = vv.offsetLeft + "px";
-        el.style.top = vv.offsetTop + "px";
+        el.style.left = (vv ? vv.offsetLeft : 0) + "px";
+        el.style.top = (vv ? vv.offsetTop : 0) + "px";
         el.style.right = "auto";
         el.style.bottom = "auto";
-        el.style.width = vv.width + "px";
-        el.style.height = vv.height + "px";
+        el.style.width = box.vw + "px";
+        el.style.height = box.vh + "px";
       }
     }
     function fit() {
-      const touch = navigator.maxTouchPoints > 0, vv = window.visualViewport;
-      const vw = Math.max(1, Math.round(vv && vv.width > 0 ? vv.width : innerWidth)), vh = Math.max(1, Math.round(vv && vv.height > 0 ? vv.height : innerHeight));
+      const touch = navigator.maxTouchPoints > 0, box = viewportBox();
+      const vw = Math.max(1, Math.round(box.vw)), vh = Math.max(1, Math.round(box.vh));
+      setAppViewport(vw, vh);
       const aspect = vw / vh;
       const nextRW = touch ? Math.max(BASE_RW, Math.min(AW, Math.round(RH * aspect))) : BASE_RW;
       if (nextRW !== RW) {
@@ -7809,10 +7826,17 @@
       applyRScale();
       syncLayoutViewport();
     }
-    addEventListener("resize", fit);
-    if (window.visualViewport) window.visualViewport.addEventListener("resize", fit);
-    if (window.screen.orientation) window.screen.orientation.addEventListener("change", fit);
-    addEventListener("orientationchange", () => setTimeout(fit, 50));
+    function scheduleFit() {
+      fit();
+      setTimeout(fit, 80);
+      setTimeout(fit, 300);
+    }
+    addEventListener("resize", scheduleFit);
+    if (window.visualViewport) window.visualViewport.addEventListener("resize", scheduleFit);
+    if (window.visualViewport) window.visualViewport.addEventListener("scroll", syncLayoutViewport, { passive: true });
+    if (window.screen.orientation) window.screen.orientation.addEventListener("change", scheduleFit);
+    addEventListener("orientationchange", scheduleFit);
+    addEventListener("scroll", syncLayoutViewport, { passive: true });
     fit();
     if (document.fonts) document.fonts.load('20px "Russo One"');
     const clamp2 = (v, a, b) => v < a ? a : v > b ? b : v, lerp = (a, b, t) => a + (b - a) * t, rnd = (a, b) => a + Math.random() * (b - a), pick = (a) => a[Math.random() * a.length | 0], blink = () => (S.FRAME >> 4) % 2 === 0;
@@ -8017,7 +8041,7 @@
       document.body.classList.add("touch");
       const root = document.createElement("div");
       root.id = "touch";
-      root.innerHTML = '<div class="dpad"><button class="up" data-key="u">\u25B2</button><button class="left" data-key="l">\u25C0</button><button class="down" data-key="d">\u25BC</button><button class="right" data-key="r">\u25B6</button></div><div class="actions"><button class="punch" data-key="P" aria-label="\u0420\u0443\u043A\u0430">P</button><button class="kick" data-key="K" aria-label="\u041D\u043E\u0433\u0430">K</button><button class="block" data-key="B" aria-label="\u0411\u043B\u043E\u043A">\u0411\u041B\u041E\u041A</button><button class="throw" data-keys="P K" aria-label="\u0411\u0440\u043E\u0441\u043E\u043A P+K">P+K</button><button class="cmdthrow" data-keys="d P K" aria-label="\u041A\u043E\u043C\u0430\u043D\u0434\u043D\u044B\u0439 \u0431\u0440\u043E\u0441\u043E\u043A D+P+K">D+P+K</button></div><button class="pause" data-key="pause" aria-label="\u041F\u0430\u0443\u0437\u0430">\u2161</button><button class="fullscreen" data-action="fullscreen" aria-label="\u041F\u043E\u043B\u043D\u044B\u0439 \u044D\u043A\u0440\u0430\u043D">\u042D\u041A\u0420\u0410\u041D</button><button class="rotate" data-action="rotate" aria-label="\u0420\u0430\u0437\u0432\u0435\u0440\u043D\u0443\u0442\u044C \u043D\u0430 \u0432\u0435\u0441\u044C \u044D\u043A\u0440\u0430\u043D">\u0420\u0410\u0417\u0412\u0415\u0420\u041D\u0423\u0422\u042C</button>';
+      root.innerHTML = '<div class="dpad"><button class="up" data-key="u">\u25B2</button><button class="left" data-key="l">\u25C0</button><button class="down" data-key="d">\u25BC</button><button class="right" data-key="r">\u25B6</button></div><div class="actions"><button class="punch" data-key="P" aria-label="\u0420\u0443\u043A\u0430">P</button><button class="kick" data-key="K" aria-label="\u041D\u043E\u0433\u0430">K</button><button class="block" data-key="B" aria-label="\u0411\u043B\u043E\u043A">\u0411\u041B\u041E\u041A</button><button class="throw" data-keys="P K" aria-label="\u0411\u0440\u043E\u0441\u043E\u043A P+K"><span>P+K</span><small>\u0411\u0420\u041E\u0421\u041E\u041A</small></button><button class="cmdthrow" data-keys="d P K" aria-label="\u041A\u043E\u043C\u0430\u043D\u0434\u043D\u044B\u0439 \u0431\u0440\u043E\u0441\u043E\u043A \u0432\u043D\u0438\u0437 P+K"><span>\u2193P+K</span><small>\u041A\u041E\u041C\u0410\u041D\u0414\u041D\u042B\u0419</small></button></div><button class="pause" data-key="pause" aria-label="\u041F\u0430\u0443\u0437\u0430">\u2161</button><button class="fullscreen" data-action="fullscreen" aria-label="\u041F\u043E\u043B\u043D\u044B\u0439 \u044D\u043A\u0440\u0430\u043D">\u042D\u041A\u0420\u0410\u041D</button><button class="rotate" data-action="rotate" aria-label="\u0420\u0430\u0437\u0432\u0435\u0440\u043D\u0443\u0442\u044C \u043D\u0430 \u0432\u0435\u0441\u044C \u044D\u043A\u0440\u0430\u043D">\u0420\u0410\u0417\u0412\u0415\u0420\u041D\u0423\u0422\u042C</button>';
       document.body.appendChild(root);
       syncLayoutViewport();
       const codes = { l: "ArrowLeft", r: "ArrowRight", u: "ArrowUp", d: "ArrowDown", P: "Enter", K: "KeyK", B: "Escape" };
@@ -8080,7 +8104,7 @@
       });
       document.addEventListener("fullscreenchange", () => {
         syncFullscreen();
-        fit();
+        scheduleFit();
         if (document.fullscreenElement && wantLandscape) setTimeout(lockLandscape, 150);
       });
       syncFullscreen();
