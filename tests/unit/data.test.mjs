@@ -61,20 +61,47 @@ test('special and super data is complete and unique', () => {
 });
 
 test('normal and command normal data is complete and distinct', () => {
+  const statuses = new Set(['stagger', 'launch', 'low', 'overhead', 'knockdown']);
   for (const fighter of [...CH, BOSS]) {
     for (const type of ['punch', 'kick', 'upper', 'sweep', 'rh', 'jkick']) {
       const normal = fighter.norm?.[type];
       assert.ok(normal, `${fighter.name} ${type}`);
-      for (const value of Object.values(normal)) assert.ok(Number.isFinite(value), `${fighter.name} ${type}`);
+      for (const [key, value] of Object.entries(normal)) {
+        if (key !== 'status') assert.ok(Number.isFinite(value), `${fighter.name} ${type}.${key}`);
+      }
+      assert.ok(statuses.has(normal.status), `${fighter.name} ${type}.status`);
+      assert.ok(normal.wd >= 3 && normal.rc >= 5 && normal.rng > 0, `${fighter.name} ${type} timings`);
+      assert.ok(normal.hw > 0 && normal.hh > 0 && normal.kb > 0, `${fighter.name} ${type} hitbox`);
     }
     for (const key of ['fP', 'fK', 'bP']) {
       const command = fighter.cmd?.[key];
       assert.ok(command && command.n && command.t, `${fighter.name} ${key}`);
-      assert.ok(command.d > 0 && command.rng > 0, `${fighter.name} ${key}`);
+      for (const field of ['d', 'wd', 'ac', 'rc', 'rng', 'hw', 'hh', 'kb']) assert.ok(command[field] > 0, `${fighter.name} ${key}.${field}`);
+      assert.ok(statuses.has(command.status), `${fighter.name} ${key}.status`);
     }
   }
   const names = CH.flatMap((fighter) => ['fP', 'fK', 'bP'].map((key) => fighter.cmd[key].n));
   assert.equal(new Set(names).size, names.length, 'command normal names must be unique');
+  assert.ok(new Set(CH.map((fighter) => fighter.norm.upper.wd)).size >= 4, 'startup must differ by fighter');
+  assert.ok(new Set(CH.map((fighter) => fighter.norm.rh.rng)).size >= 6, 'range must differ by fighter');
+});
+
+test('grapplers have stronger command throws and every fighter has role answers', () => {
+  const grapplers = CH.filter((fighter) => fighter.grappler);
+  assert.deepEqual(grapplers.map((fighter) => fighter.id), [3, 7]);
+  for (const fighter of grapplers) {
+    assert.ok(fighter.throwCmdD > fighter.throwD, fighter.name);
+    assert.ok(fighter.throwCmdT, fighter.name);
+  }
+  for (const fighter of [...CH, BOSS]) {
+    for (const role of ['zone', 'jump', 'pressure']) {
+      const pick = fighter.roles?.[role];
+      assert.ok(pick, `${fighter.name} ${role}`);
+      if (pick === 'spec' || pick === 'spec2') assert.ok(fighter[pick], `${fighter.name} ${role}`);
+      else if (pick === 'upper' || pick === 'rh') assert.ok(fighter.norm[pick], `${fighter.name} ${role}`);
+      else assert.ok(fighter.cmd[pick], `${fighter.name} ${role}`);
+    }
+  }
 });
 
 test('command throws and target combos are complete', () => {

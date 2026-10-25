@@ -333,6 +333,7 @@ if(k==='KeyM'){AU.on=!AU.on;setVol();if(!AU.on){try{speechSynthesis.cancel();}ca
 if(S.GAME==='fight'&&!S.paused&&S.battle&&(k==='KeyJ'||k==='Enter'||k==='Space')){if(S.battle.phase==='fatal'&&S.battle.phaseT>30){endBattle(S.battle.winner);return;}if(S.battle.phase==='over'&&S.battle.phaseT>30){afterBattle();return;}}
 if(S.GAME==='fight'&&!S.paused&&k==='Escape'){S.paused=true;S.pauseIdx=0;SFX.menu();return;}// 08.09: пауза не активировалась — Escape не ставил paused
 if(S.GAME==='fight'&&!S.paused&&k==='KeyR'&&S.battle&&S.battle.mode==='training'){resetTraining();return;}
+if(S.GAME==='fight'&&!S.paused&&k==='KeyT'&&S.battle&&S.battle.mode==='training'){toggleTrainingBlock();return;}
 if(S.GAME==='title'){toLobby('menu');SFX.sel();say('Karnage');return;}
 if(S.GAME==='fight'&&S.paused){
 if(k==='KeyW'||k==='ArrowUp'){S.pauseIdx=(S.pauseIdx+4)%5;SFX.menu();}
@@ -385,13 +386,14 @@ function startSel(){const s=S.sel;
 const training=s.mode==='training';
 newBattle(s.c1,new Ctrl(KM1),training?DUMMY:s.c2,new Ctrl(KM2),training?DUMMY.arena:(s.ar<0?CH[s.c1].arena:s.ar));// 08.09: выбранная арена
 if(training){
-  const b=S.battle;b.mode='training';b.p2.ctrl.ai=true;b.p2.ctrl.ax={};b.p1.x=300;b.p1.face=1;b.p2.x=380;b.p2.face=-1;b.p1.rage=100;b.p2.rage=100;b.timer=99;b.phase='fight';b.phaseT=200;b.p1.ctrl.clear();b.p2.ctrl.clear();S.lastSel=null;S.announce={txt:'ТРЕНИРОВКА',t:0,col:'#e8c040'};S.GAME='fight';SFX.sel();return;
+  const b=S.battle;b.mode='training';b.trainBlock=false;b.p2.ctrl.ai=true;b.p2.ctrl.ax={};b.p1.x=300;b.p1.face=1;b.p2.x=380;b.p2.face=-1;b.p1.rage=100;b.p2.rage=100;b.timer=99;b.phase='fight';b.phaseT=200;b.p1.ctrl.clear();b.p2.ctrl.clear();S.lastSel=null;S.announce={txt:'ТРЕНИРОВКА',t:0,col:'#e8c040'};S.GAME='fight';SFX.sel();return;
 }
 S.battle.mode=s.mode==='cpu'?'cpu':'2p';
 if(s.mode==='cpu'){S.battle.p2.ctrl.ai=true;S.battle.aiLvl=[2,4,6][s.diff];}// 08.09: сложность CPU
 SFX.vsroar();S.lastSel={mode:s.mode,c1:s.c1,c2:s.c2,diff:s.diff,ar:s.ar};// 08.09: запомнить для реванша
 S.GAME='vs';S.vsT=0;}
-function resetTraining(){const b=S.battle;if(!b||b.mode!=='training')return;b.p1.reset(300,1);b.p2.reset(380,-1);b.p1.rage=100;b.p2.rage=100;b.phase='fight';b.phaseT=200;b.timer=99;S.freeze=0;S.paused=false;S.projs.length=0;S.fx.length=0;S.announce={txt:'СБРОС',t:0,col:'#c8a040'};}
+function resetTraining(){const b=S.battle;if(!b||b.mode!=='training')return;b.trainBlock=false;b.p1.reset(300,1);b.p2.reset(380,-1);b.p2.ctrl.ax={};b.p2.ctrl.poll(S.FRAME);b.p1.rage=100;b.p2.rage=100;b.phase='fight';b.phaseT=200;b.timer=99;S.freeze=0;S.paused=false;S.projs.length=0;S.fx.length=0;S.announce={txt:'СБРОС',t:0,col:'#c8a040'};}
+function toggleTrainingBlock(){const b=S.battle;if(!b||b.mode!=='training')return;b.trainBlock=!b.trainBlock;b.p2.ctrl.ax=b.trainBlock?{B:true}:{};b.p2.ctrl.poll(S.FRAME);if(b.trainBlock&&['idle','walk','crouch'].includes(b.p2.state)){b.p2.state='block';b.p2.st=0;}else if(!b.trainBlock&&b.p2.state==='block')b.p2.state='idle';SFX.menu();}
 function rematchStart(){newBattle(S.lastSel.c1,new Ctrl(KM1),S.lastSel.c2,new Ctrl(KM2),S.lastSel.ar<0?CH[S.lastSel.c1].arena:S.lastSel.ar);// 08.09: реванш теми же бойцами
 S.battle.mode=S.lastSel.mode==='cpu'?'cpu':'2p';
 if(S.lastSel.mode==='cpu'){S.battle.p2.ctrl.ai=true;S.battle.aiLvl=[2,4,6][S.lastSel.diff];}
@@ -657,7 +659,11 @@ if(S.wipe>0&&!OPT.reduce){const wh=RH*(S.wipe/24);g.fillStyle='#000';g.fillRect(
 for(const f of[b.p1,b.p2])if(f.combo>=2&&f.comboT<50){const sc2=1+.25*Math.max(0,1-f.comboT/8);g.save();g.translate(f===b.p1?70:RW-70,80);g.scale(sc2,sc2);g.font='12px "Russo One"';g.textAlign='center';g.fillStyle=f.combo>=5?'#e02020':f.combo>=3?'#f08020':'#e8c040';g.fillText('КОМБО x'+f.combo,0,0);g.restore();}// 08.09: комбо-счётчик — цвет растёт с серией
 if(b.phase==='finish')drawFatalPanel(b);
 if((b.phase==='fatal'||b.phase==='over')&&b.phaseT>30){g.font='8px "Russo One"';g.fillStyle='#e8e0c0';g.textAlign='center';g.fillText(isTouchUI()?'P — ПРОПУСТИТЬ':'J — ПРОПУСТИТЬ',RW/2,232);}
-if(b.mode==='training'){g.font='7px "Russo One"';g.fillStyle=UI_MUTED;g.textAlign='center';g.fillText('R — СБРОС · ESC — ПАУЗА',RW/2,232);}
+if(b.mode==='training'){
+  const ik={L:'←',R:'→',U:'↑',D:'↓',P:'P',K:'K'},recent=b.p1.ctrl.buf.slice(-8).map(e=>ik[e.k]||e.k).join(' ');
+  g.font='6px "Russo One"';g.textAlign='left';g.fillStyle=UI_TEXT;g.fillText('ВВОД: '+(recent||'—'),8,230);
+  g.textAlign='right';g.fillStyle=b.trainBlock?'#f08020':UI_MUTED;g.fillText('МАНЕКЕН: '+(b.trainBlock?'БЛОК':'СТОИТ'),RW-8,230);
+  g.textAlign='center';g.fillStyle=UI_MUTED;g.fillText('T — БЛОК · R — СБРОС · ESC — ПРИЁМЫ',RW/2,238);}
 if(S.announce&&S.announce.t<110){const t=S.announce.t;const sc=t<10?3-t*.2:1;
 let a=1;if(t>90)a=1-(t-90)/20;
 g.save();g.globalAlpha=clamp(a,0,1);

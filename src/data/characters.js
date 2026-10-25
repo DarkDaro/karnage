@@ -76,13 +76,66 @@ Object.assign(BOSS, { throwN: 'ПРИГОВОР КОРОНЫ', throwT: 'royal', 
 const CMD_THROW_NAMES = ['ПЕПЕЛЬНЫЙ ОБХВАТ', 'ТЕНЕВОЙ ПЕРЕЛОМ', 'КОРОТКОЕ ЗАМЫКАНИЕ', 'ГОРНЫЙ СЛОМ', 'ЯДОВИТЫЙ ЗАХВАТ', 'ПЕСЧАНЫЙ ПЛЕН', 'ЛЕДЯНОЙ КАПКАН', 'РЖАВЫЙ ЗАЖИМ', 'СОННЫЙ ПЛЕН', 'КОРОЛЕВСКИЙ ЗАХВАТ', 'АЛЫЙ ПЛЕН', 'ЛУННЫЙ ЗАХВАТ', 'ЗВЁЗДНЫЙ ЗАХВАТ'];
 for (const c of CH) c.throwCmdN = CMD_THROW_NAMES[c.id];
 BOSS.throwCmdN = 'КОРОНА-ЗАХВАТ';
+// 25.10: два тяжёлых грэпплера получили усиленный командный бросок с коротким армором.
+Object.assign(CH[3], { grappler: true, throwCmdD: 18, throwCmdT: 'slam' });
+Object.assign(CH[7], { grappler: true, throwCmdD: 16, throwCmdT: 'blast' });
 
 // 25.10: у каждого бойца свои нормалы и три командных нормала.
+// 25.10: профиль задаёт старт/восстановление/вынос/размер хитбокса/отброс для всех нормалов.
+const NORMAL_BASE = {
+  punch: { d: 6, wd: 5, ac: 3, rc: 8, rng: 28, hw: 28, hh: .72, kb: 2, status: 'stagger' },
+  kick: { d: 9, wd: 7, ac: 4, rc: 11, rng: 36, hw: 36, hh: .6, kb: 3, status: 'stagger' },
+  upper: { d: 15, wd: 6, ac: 4, rc: 15, rng: 24, hw: 24, hh: .5, kb: 3, launch: 1, status: 'launch' },
+  sweep: { d: 10, wd: 6, ac: 3, rc: 13, rng: 38, hw: 38, hh: .12, kb: 3, low: 1, status: 'low' },
+  jkick: { d: 10, wd: 4, ac: 8, rc: 20, rng: 34, hw: 34, hh: .4, kb: 3, overhead: 1, status: 'overhead' },
+  rh: { d: 12, wd: 8, ac: 4, rc: 15, rng: 40, hw: 40, hh: .55, kb: 5, knock: 1, status: 'knockdown' }
+};
+const NORMAL_STYLE = {
+  0: { startup: .98, active: 1, recovery: .96, reach: 1.02, box: 1, kb: 1 },
+  1: { startup: .88, active: 1, recovery: .9, reach: .98, box: .95, kb: .9 },
+  2: { startup: 1, active: 1.05, recovery: 1, reach: 1, box: 1, kb: 1 },
+  3: { startup: 1.24, active: 1.15, recovery: 1.2, reach: 1.12, box: 1.15, kb: 1.35 },
+  4: { startup: .9, active: 1.1, recovery: .92, reach: .98, box: .95, kb: .9 },
+  5: { startup: .82, active: 1, recovery: .88, reach: .96, box: .9, kb: .85 },
+  6: { startup: 1, active: 1, recovery: 1, reach: 1.04, box: 1, kb: 1 },
+  7: { startup: 1.08, active: 1.05, recovery: 1.05, reach: 1.08, box: 1.06, kb: 1.1 },
+  8: { startup: .95, active: 1, recovery: .95, reach: 1.02, box: 1, kb: 1 },
+  9: { startup: 1.12, active: 1.1, recovery: 1.08, reach: 1.1, box: 1.1, kb: 1.2 },
+  10: { startup: .9, active: 1, recovery: .92, reach: .95, box: .92, kb: .9 },
+  11: { startup: .78, active: 1.05, recovery: .85, reach: .96, box: .9, kb: .85 },
+  12: { startup: .9, active: 1, recovery: .95, reach: 1.02, box: .95, kb: .95 }
+};
 const CMD_DEFAULT = {
   fP: { t: 'punch', d: 8, wd: 6, ac: 3, rc: 10, rng: 32, hh: .7 },
   fK: { t: 'kick', d: 11, wd: 8, ac: 4, rc: 14, rng: 40, hh: .55, knock: 1 },
   bP: { t: 'punch', d: 7, wd: 5, ac: 4, rc: 9, rng: 28, hh: .65 }
 };
+function tuneMove(id, base) {
+  const p = NORMAL_STYLE[id] || NORMAL_STYLE[0];
+  return {
+    ...base,
+    wd: Math.max(3, Math.round(base.wd * p.startup)),
+    ac: Math.max(2, Math.round(base.ac * p.active)),
+    rc: Math.max(5, Math.round(base.rc * p.recovery)),
+    rng: Math.round(base.rng * p.reach),
+    hw: Math.round((base.hw || base.rng) * p.reach),
+    hh: +(base.hh * p.box).toFixed(2),
+    kb: +(base.kb * p.kb).toFixed(1)
+  };
+}
+function buildNormals(id, data) {
+  const out = {};
+  for (const type of Object.keys(NORMAL_BASE)) out[type] = { ...tuneMove(id, NORMAL_BASE[type]), ...(data[type] || {}) };
+  return out;
+}
+function buildCommands(id, data) {
+  const out = {};
+  for (const key of Object.keys(CMD_DEFAULT)) {
+    const base = tuneMove(id, { ...CMD_DEFAULT[key], hw: CMD_DEFAULT[key].rng, kb: CMD_DEFAULT[key].knock ? 5 : 2, status: CMD_DEFAULT[key].knock ? 'knockdown' : 'stagger' });
+    out[key] = { ...base, ...(data[key] || {}) };
+  }
+  return out;
+}
 const NORMAL_DATA = {
   0: { norm: { punch: { d: 7 }, kick: { d: 8 }, upper: { d: 16 }, sweep: { d: 9 }, rh: { d: 13 }, jkick: { d: 10 } }, cmd: { fP: { n: 'ПЛАМЕННЫЙ ПРЯМОЙ', d: 9 }, fK: { n: 'ОГНЕННЫЙ ПИНОК', d: 12 }, bP: { n: 'ПЕПЕЛЬНЫЙ КОНТР', d: 8 } } },
   1: { norm: { punch: { d: 5, rng: 30 }, kick: { d: 8, rng: 38 }, upper: { d: 14 }, sweep: { d: 9 }, rh: { d: 11 }, jkick: { d: 11 } }, cmd: { fP: { n: 'ТЕНЕВОЙ ПРЯМОЙ', d: 7, rng: 33 }, fK: { n: 'СКОЛЬЗЯЩИЙ ПИНОК', d: 10, rng: 41 }, bP: { n: 'ОБРАТНЫЙ КОНТР', d: 6, rng: 30 } } },
@@ -100,9 +153,8 @@ const NORMAL_DATA = {
 };
 function applyNormalData(target, data) {
   if (!data) return;
-  target.norm = data.norm;
-  target.cmd = {};
-  for (const key of Object.keys(CMD_DEFAULT)) target.cmd[key] = { ...CMD_DEFAULT[key], ...(data.cmd[key] || {}) };
+  target.norm = buildNormals(target.id, data.norm);
+  target.cmd = buildCommands(target.id, data.cmd);
 }
 for (const c of CH) applyNormalData(c, NORMAL_DATA[c.id]);
 applyNormalData(BOSS, NORMAL_DATA[9]);
@@ -125,6 +177,25 @@ const TARGET_DATA = {
 };
 for (const c of CH) Object.assign(c, TARGET_DATA[c.id]);
 Object.assign(BOSS, TARGET_DATA[9]);
+
+// 25.10: роли набора: чем боец отвечает на зонинг, прыжок и давление.
+const ROLE_PICKS = {
+  0: { zone: 'spec', jump: 'upper', pressure: 'fP' },
+  1: { zone: 'spec', jump: 'upper', pressure: 'spec2' },
+  2: { zone: 'spec', jump: 'upper', pressure: 'fK' },
+  3: { zone: 'spec', jump: 'upper', pressure: 'fP' },
+  4: { zone: 'spec2', jump: 'upper', pressure: 'spec' },
+  5: { zone: 'spec2', jump: 'upper', pressure: 'spec' },
+  6: { zone: 'spec', jump: 'upper', pressure: 'fK' },
+  7: { zone: 'spec', jump: 'upper', pressure: 'bP' },
+  8: { zone: 'spec', jump: 'upper', pressure: 'spec' },
+  9: { zone: 'spec', jump: 'upper', pressure: 'fK' },
+  10: { zone: 'spec', jump: 'upper', pressure: 'spec' },
+  11: { zone: 'spec', jump: 'upper', pressure: 'spec2' },
+  12: { zone: 'spec', jump: 'upper', pressure: 'spec' }
+};
+for (const c of CH) c.roles = ROLE_PICKS[c.id];
+BOSS.roles = ROLE_PICKS[9];
 
 // 25.10: манекен для тренировки — пассивная копия тела, не входит в ростер.
 export const DUMMY = {

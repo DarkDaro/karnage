@@ -548,11 +548,62 @@
   var CMD_THROW_NAMES = ["\u041F\u0415\u041F\u0415\u041B\u042C\u041D\u042B\u0419 \u041E\u0411\u0425\u0412\u0410\u0422", "\u0422\u0415\u041D\u0415\u0412\u041E\u0419 \u041F\u0415\u0420\u0415\u041B\u041E\u041C", "\u041A\u041E\u0420\u041E\u0422\u041A\u041E\u0415 \u0417\u0410\u041C\u042B\u041A\u0410\u041D\u0418\u0415", "\u0413\u041E\u0420\u041D\u042B\u0419 \u0421\u041B\u041E\u041C", "\u042F\u0414\u041E\u0412\u0418\u0422\u042B\u0419 \u0417\u0410\u0425\u0412\u0410\u0422", "\u041F\u0415\u0421\u0427\u0410\u041D\u042B\u0419 \u041F\u041B\u0415\u041D", "\u041B\u0415\u0414\u042F\u041D\u041E\u0419 \u041A\u0410\u041F\u041A\u0410\u041D", "\u0420\u0416\u0410\u0412\u042B\u0419 \u0417\u0410\u0416\u0418\u041C", "\u0421\u041E\u041D\u041D\u042B\u0419 \u041F\u041B\u0415\u041D", "\u041A\u041E\u0420\u041E\u041B\u0415\u0412\u0421\u041A\u0418\u0419 \u0417\u0410\u0425\u0412\u0410\u0422", "\u0410\u041B\u042B\u0419 \u041F\u041B\u0415\u041D", "\u041B\u0423\u041D\u041D\u042B\u0419 \u0417\u0410\u0425\u0412\u0410\u0422", "\u0417\u0412\u0401\u0417\u0414\u041D\u042B\u0419 \u0417\u0410\u0425\u0412\u0410\u0422"];
   for (const c of CH) c.throwCmdN = CMD_THROW_NAMES[c.id];
   BOSS.throwCmdN = "\u041A\u041E\u0420\u041E\u041D\u0410-\u0417\u0410\u0425\u0412\u0410\u0422";
+  Object.assign(CH[3], { grappler: true, throwCmdD: 18, throwCmdT: "slam" });
+  Object.assign(CH[7], { grappler: true, throwCmdD: 16, throwCmdT: "blast" });
+  var NORMAL_BASE = {
+    punch: { d: 6, wd: 5, ac: 3, rc: 8, rng: 28, hw: 28, hh: 0.72, kb: 2, status: "stagger" },
+    kick: { d: 9, wd: 7, ac: 4, rc: 11, rng: 36, hw: 36, hh: 0.6, kb: 3, status: "stagger" },
+    upper: { d: 15, wd: 6, ac: 4, rc: 15, rng: 24, hw: 24, hh: 0.5, kb: 3, launch: 1, status: "launch" },
+    sweep: { d: 10, wd: 6, ac: 3, rc: 13, rng: 38, hw: 38, hh: 0.12, kb: 3, low: 1, status: "low" },
+    jkick: { d: 10, wd: 4, ac: 8, rc: 20, rng: 34, hw: 34, hh: 0.4, kb: 3, overhead: 1, status: "overhead" },
+    rh: { d: 12, wd: 8, ac: 4, rc: 15, rng: 40, hw: 40, hh: 0.55, kb: 5, knock: 1, status: "knockdown" }
+  };
+  var NORMAL_STYLE = {
+    0: { startup: 0.98, active: 1, recovery: 0.96, reach: 1.02, box: 1, kb: 1 },
+    1: { startup: 0.88, active: 1, recovery: 0.9, reach: 0.98, box: 0.95, kb: 0.9 },
+    2: { startup: 1, active: 1.05, recovery: 1, reach: 1, box: 1, kb: 1 },
+    3: { startup: 1.24, active: 1.15, recovery: 1.2, reach: 1.12, box: 1.15, kb: 1.35 },
+    4: { startup: 0.9, active: 1.1, recovery: 0.92, reach: 0.98, box: 0.95, kb: 0.9 },
+    5: { startup: 0.82, active: 1, recovery: 0.88, reach: 0.96, box: 0.9, kb: 0.85 },
+    6: { startup: 1, active: 1, recovery: 1, reach: 1.04, box: 1, kb: 1 },
+    7: { startup: 1.08, active: 1.05, recovery: 1.05, reach: 1.08, box: 1.06, kb: 1.1 },
+    8: { startup: 0.95, active: 1, recovery: 0.95, reach: 1.02, box: 1, kb: 1 },
+    9: { startup: 1.12, active: 1.1, recovery: 1.08, reach: 1.1, box: 1.1, kb: 1.2 },
+    10: { startup: 0.9, active: 1, recovery: 0.92, reach: 0.95, box: 0.92, kb: 0.9 },
+    11: { startup: 0.78, active: 1.05, recovery: 0.85, reach: 0.96, box: 0.9, kb: 0.85 },
+    12: { startup: 0.9, active: 1, recovery: 0.95, reach: 1.02, box: 0.95, kb: 0.95 }
+  };
   var CMD_DEFAULT = {
     fP: { t: "punch", d: 8, wd: 6, ac: 3, rc: 10, rng: 32, hh: 0.7 },
     fK: { t: "kick", d: 11, wd: 8, ac: 4, rc: 14, rng: 40, hh: 0.55, knock: 1 },
     bP: { t: "punch", d: 7, wd: 5, ac: 4, rc: 9, rng: 28, hh: 0.65 }
   };
+  function tuneMove(id, base4) {
+    const p = NORMAL_STYLE[id] || NORMAL_STYLE[0];
+    return {
+      ...base4,
+      wd: Math.max(3, Math.round(base4.wd * p.startup)),
+      ac: Math.max(2, Math.round(base4.ac * p.active)),
+      rc: Math.max(5, Math.round(base4.rc * p.recovery)),
+      rng: Math.round(base4.rng * p.reach),
+      hw: Math.round((base4.hw || base4.rng) * p.reach),
+      hh: +(base4.hh * p.box).toFixed(2),
+      kb: +(base4.kb * p.kb).toFixed(1)
+    };
+  }
+  function buildNormals(id, data) {
+    const out = {};
+    for (const type of Object.keys(NORMAL_BASE)) out[type] = { ...tuneMove(id, NORMAL_BASE[type]), ...data[type] || {} };
+    return out;
+  }
+  function buildCommands(id, data) {
+    const out = {};
+    for (const key of Object.keys(CMD_DEFAULT)) {
+      const base4 = tuneMove(id, { ...CMD_DEFAULT[key], hw: CMD_DEFAULT[key].rng, kb: CMD_DEFAULT[key].knock ? 5 : 2, status: CMD_DEFAULT[key].knock ? "knockdown" : "stagger" });
+      out[key] = { ...base4, ...data[key] || {} };
+    }
+    return out;
+  }
   var NORMAL_DATA = {
     0: { norm: { punch: { d: 7 }, kick: { d: 8 }, upper: { d: 16 }, sweep: { d: 9 }, rh: { d: 13 }, jkick: { d: 10 } }, cmd: { fP: { n: "\u041F\u041B\u0410\u041C\u0415\u041D\u041D\u042B\u0419 \u041F\u0420\u042F\u041C\u041E\u0419", d: 9 }, fK: { n: "\u041E\u0413\u041D\u0415\u041D\u041D\u042B\u0419 \u041F\u0418\u041D\u041E\u041A", d: 12 }, bP: { n: "\u041F\u0415\u041F\u0415\u041B\u042C\u041D\u042B\u0419 \u041A\u041E\u041D\u0422\u0420", d: 8 } } },
     1: { norm: { punch: { d: 5, rng: 30 }, kick: { d: 8, rng: 38 }, upper: { d: 14 }, sweep: { d: 9 }, rh: { d: 11 }, jkick: { d: 11 } }, cmd: { fP: { n: "\u0422\u0415\u041D\u0415\u0412\u041E\u0419 \u041F\u0420\u042F\u041C\u041E\u0419", d: 7, rng: 33 }, fK: { n: "\u0421\u041A\u041E\u041B\u042C\u0417\u042F\u0429\u0418\u0419 \u041F\u0418\u041D\u041E\u041A", d: 10, rng: 41 }, bP: { n: "\u041E\u0411\u0420\u0410\u0422\u041D\u042B\u0419 \u041A\u041E\u041D\u0422\u0420", d: 6, rng: 30 } } },
@@ -570,9 +621,8 @@
   };
   function applyNormalData(target, data) {
     if (!data) return;
-    target.norm = data.norm;
-    target.cmd = {};
-    for (const key of Object.keys(CMD_DEFAULT)) target.cmd[key] = { ...CMD_DEFAULT[key], ...data.cmd[key] || {} };
+    target.norm = buildNormals(target.id, data.norm);
+    target.cmd = buildCommands(target.id, data.cmd);
   }
   for (const c of CH) applyNormalData(c, NORMAL_DATA[c.id]);
   applyNormalData(BOSS, NORMAL_DATA[9]);
@@ -593,6 +643,23 @@
   };
   for (const c of CH) Object.assign(c, TARGET_DATA[c.id]);
   Object.assign(BOSS, TARGET_DATA[9]);
+  var ROLE_PICKS = {
+    0: { zone: "spec", jump: "upper", pressure: "fP" },
+    1: { zone: "spec", jump: "upper", pressure: "spec2" },
+    2: { zone: "spec", jump: "upper", pressure: "fK" },
+    3: { zone: "spec", jump: "upper", pressure: "fP" },
+    4: { zone: "spec2", jump: "upper", pressure: "spec" },
+    5: { zone: "spec2", jump: "upper", pressure: "spec" },
+    6: { zone: "spec", jump: "upper", pressure: "fK" },
+    7: { zone: "spec", jump: "upper", pressure: "bP" },
+    8: { zone: "spec", jump: "upper", pressure: "spec" },
+    9: { zone: "spec", jump: "upper", pressure: "fK" },
+    10: { zone: "spec", jump: "upper", pressure: "spec" },
+    11: { zone: "spec", jump: "upper", pressure: "spec2" },
+    12: { zone: "spec", jump: "upper", pressure: "spec" }
+  };
+  for (const c of CH) c.roles = ROLE_PICKS[c.id];
+  BOSS.roles = ROLE_PICKS[9];
   var DUMMY = {
     ...CH[3],
     id: 13,
@@ -1171,13 +1238,14 @@
           name = n || null;
         }
         const btn = key ? key === "fP" || key === "bP" ? "P" : key === "fK" ? "K" : null : type === "punch" || type === "upper" ? "P" : type === "kick" || type === "sweep" || type === "rh" ? "K" : null;
-        let target = null;
+        let target = null, chainPart = false;
         if (btn) {
           const seq = d.target && d.target.seq, continuing = this.comboT < 60 && this.combo > 0 && this.chainT > 0;
           let chain = continuing ? this.chain + btn : btn;
           if (seq && !seq.startsWith(chain)) chain = btn;
           this.chain = chain;
           this.chainT = 60;
+          chainPart = !!(seq && chain.length < seq.length && seq.startsWith(chain));
           if (seq && chain === seq) target = d.target;
         } else {
           this.chain = "";
@@ -1185,7 +1253,7 @@
         }
         this.state = "atk";
         this.st = 0;
-        this.atk = { t: type, name, A, target, hit: 0, blocked: 0, connected: 0, cancel: 0 };
+        this.atk = { t: type, name, A, target, chainPart, hit: 0, blocked: 0, connected: 0, cancel: 0 };
         this.invis = 0;
         this.spec2go = 0;
         this.jumpGrace = 0;
@@ -1202,6 +1270,7 @@
       startCmdThrow() {
         this.startAtk("throw");
         this.atk.cmdThrow = 1;
+        if (this.def.grappler) this.armor = Math.max(this.armor, 6);
       }
       jump() {
         this.vy = -this.def.jmp;
@@ -1329,7 +1398,7 @@
             else if (this.ctrl.matchRel(d.spec, this.face, 60)) this.startSpec(foe);
             else if (this.ctrl.matchRel(d.spec2, this.face, 60)) this.startSpec2(foe);
             else if (c.pP && c.pK) {
-              if (c.d) this.startCmdThrow();
+              if (c.d || this.def.grappler && fwd) this.startCmdThrow();
               else this.startAtk("throw");
             } else if (!c.d && fwd && btn === "P") this.startCmd("fP");
             else if (!c.d && fwd && btn === "K") this.startCmd("fK");
@@ -1418,7 +1487,7 @@
           if (this.st > A.wd && this.st <= A.wd + A.ac && !this.atk.hit && foe.state !== "down") {
             const hb = this.atkBox();
             if (hb && hitR(hb, foe.box) && (!A.throw || foe.onGround && ["idle", "walk", "block"].includes(foe.state))) {
-              const res = resolveHit(this, foe, A.d, { launch: A.launch, low: A.low, overhead: A.overhead, throw: A.throw, knock: A.knock, grab: A.grab, target: this.atk.target });
+              const res = resolveHit(this, foe, A.d, { launch: A.launch, low: A.low, overhead: A.overhead, throw: A.throw, knock: A.knock, grab: A.grab, kb: A.kb, status: A.status, chain: this.atk.chainPart, target: this.atk.target });
               this.atk.hit = 1;
               this.atk.blocked = res === "block" ? 1 : 0;
               this.atk.connected = res === "hit" || res === "grab" ? 1 : 0;
@@ -1468,12 +1537,12 @@
       }
       atkBox() {
         if (!this.atk) return null;
-        const A = this.atk.A, d = this.def;
-        if (this.atk.t === "jkick") return { x: this.x + (this.face > 0 ? 4 : -4 - A.rng * d.bulk), y: this.y - d.h * 0.05, w: A.rng * d.bulk + 6, h: d.h * 0.6 };
-        return { x: this.x + (this.face > 0 ? 4 : -4 - A.rng * d.bulk), y: this.y - d.h * A.hh - (this.atk.t === "sweep" ? 0 : 6), w: A.rng * d.bulk + 6, h: this.atk.t === "sweep" ? 12 : this.atk.t === "upper" ? 34 : 14 };
+        const A = this.atk.A, d = this.def, w = (A.hw || A.rng) * d.bulk;
+        if (this.atk.t === "jkick") return { x: this.x + (this.face > 0 ? 4 : -4 - w), y: this.y - d.h * 0.05, w: w + 6, h: d.h * 0.6 };
+        return { x: this.x + (this.face > 0 ? 4 : -4 - w), y: this.y - d.h * A.hh - (this.atk.t === "sweep" ? 0 : 6), w: w + 6, h: this.atk.t === "sweep" ? 12 : this.atk.t === "upper" ? 34 : 14 };
       }
       finishThrow(foe) {
-        const d = this.def, cmd = !!(this.atk && this.atk.cmdThrow), type = d.throwT || "slam", col = d.throwC || d.acc || "#f8d060", dmg = cmd ? d.throwCmdD || (d.throwD || 10) + 1 : d.throwD || 10, name = cmd ? d.throwCmdN || d.throwN : d.throwN, launch = type === "star";
+        const d = this.def, cmd = !!(this.atk && this.atk.cmdThrow), type = cmd ? d.throwCmdT || d.throwT || "slam" : d.throwT || "slam", col = d.throwC || d.acc || "#f8d060", dmg = cmd ? d.throwCmdD || (d.throwD || 10) + 1 : d.throwD || 10, name = cmd ? d.throwCmdN || d.throwN : d.throwN, launch = type === "star";
         foe.grabbedBy = 0;
         this.throwTarget = 0;
         const res = resolveHit(this, foe, dmg, { throw: 1, knock: !launch, launch: launch ? 1 : 0 });
@@ -2120,12 +2189,14 @@
       spriteFx(d > 15 ? "hitHeavy" : "hitLight", def.x, def.y - def.def.h * 0.55, { scale: d > 15 ? 1 : 0.65, alpha: d > 15 ? 0.45 : 0.65 });
       for (let i = 0; i < 6; i++) P(def.x - att.face * 8, def.y - def.def.h * 0.55, rnd(-2.5, 2.5), rnd(-2.5, 1), pick(["#fff", "#f8d060", "#f0a030"]), 10, rnd(1, 2), 0.05);
       S.freeze = def.hp <= 0 ? Math.max(S.freeze, 12) : Math.max(S.freeze, Math.min(6, 2 + d * 0.25));
+      const kb = opts.kb || 5;
+      def.hitStatus = opts.status || (opts.launch ? "launch" : opts.knock ? "knockdown" : "stagger");
       if (opts.launch) {
         def.vy = -8;
-        def.vx = att.face * 3;
+        def.vx = att.face * Math.min(3, kb);
         def.state = "hit";
         def.st = 0;
-        def.hvx = att.face * 3;
+        def.hvx = att.face * Math.min(3, kb);
         SFX.upper();
         S.shake = 5;
       } else if (def.hp <= 0 && S.battle.phase === "fight") {
@@ -2133,10 +2204,10 @@
         def.st = 0;
         def.hvx = att.face * 4;
         SFX.hitH();
-      } else if (opts.knock || d > 9 || def.hp <= 0) {
+      } else if ((opts.knock || d > 9 || def.hp <= 0) && !opts.chain) {
         def.state = "down";
         def.st = 0;
-        def.vx = att.face * 5;
+        def.vx = att.face * kb;
         def.vy = -5;
         def.hvx = att.face * 3;
         SFX.hitH();
@@ -2145,7 +2216,11 @@
       } else {
         def.state = "hit";
         def.st = 0;
-        def.hvx = opts.still ? 0 : att.face * 2.4;
+        def.hvx = opts.still ? 0 : att.face * Math.min(2.4, kb);
+        if (opts.chain) {
+          def.vx = 0;
+          def.hvx = 0;
+        }
         def.vy = def.onGround ? -2 : 0;
         (Math.random() < 0.4 ? SFX.hitV : SFX.hit)();
         S.shake = 2;
@@ -6566,6 +6641,10 @@
         resetTraining();
         return;
       }
+      if (S.GAME === "fight" && !S.paused && k === "KeyT" && S.battle && S.battle.mode === "training") {
+        toggleTrainingBlock();
+        return;
+      }
       if (S.GAME === "title") {
         toLobby("menu");
         SFX.sel();
@@ -6778,6 +6857,7 @@
       if (training) {
         const b = S.battle;
         b.mode = "training";
+        b.trainBlock = false;
         b.p2.ctrl.ai = true;
         b.p2.ctrl.ax = {};
         b.p1.x = 300;
@@ -6810,8 +6890,11 @@
     function resetTraining() {
       const b = S.battle;
       if (!b || b.mode !== "training") return;
+      b.trainBlock = false;
       b.p1.reset(300, 1);
       b.p2.reset(380, -1);
+      b.p2.ctrl.ax = {};
+      b.p2.ctrl.poll(S.FRAME);
       b.p1.rage = 100;
       b.p2.rage = 100;
       b.phase = "fight";
@@ -6822,6 +6905,18 @@
       S.projs.length = 0;
       S.fx.length = 0;
       S.announce = { txt: "\u0421\u0411\u0420\u041E\u0421", t: 0, col: "#c8a040" };
+    }
+    function toggleTrainingBlock() {
+      const b = S.battle;
+      if (!b || b.mode !== "training") return;
+      b.trainBlock = !b.trainBlock;
+      b.p2.ctrl.ax = b.trainBlock ? { B: true } : {};
+      b.p2.ctrl.poll(S.FRAME);
+      if (b.trainBlock && ["idle", "walk", "crouch"].includes(b.p2.state)) {
+        b.p2.state = "block";
+        b.p2.st = 0;
+      } else if (!b.trainBlock && b.p2.state === "block") b.p2.state = "idle";
+      SFX.menu();
     }
     function rematchStart() {
       newBattle(S.lastSel.c1, new Ctrl(KM12), S.lastSel.c2, new Ctrl(KM22), S.lastSel.ar < 0 ? CH[S.lastSel.c1].arena : S.lastSel.ar);
@@ -7761,10 +7856,17 @@
         g.fillText(isTouchUI() ? "P \u2014 \u041F\u0420\u041E\u041F\u0423\u0421\u0422\u0418\u0422\u042C" : "J \u2014 \u041F\u0420\u041E\u041F\u0423\u0421\u0422\u0418\u0422\u042C", RW / 2, 232);
       }
       if (b.mode === "training") {
-        g.font = '7px "Russo One"';
-        g.fillStyle = UI_MUTED;
+        const ik = { L: "\u2190", R: "\u2192", U: "\u2191", D: "\u2193", P: "P", K: "K" }, recent = b.p1.ctrl.buf.slice(-8).map((e) => ik[e.k] || e.k).join(" ");
+        g.font = '6px "Russo One"';
+        g.textAlign = "left";
+        g.fillStyle = UI_TEXT;
+        g.fillText("\u0412\u0412\u041E\u0414: " + (recent || "\u2014"), 8, 230);
+        g.textAlign = "right";
+        g.fillStyle = b.trainBlock ? "#f08020" : UI_MUTED;
+        g.fillText("\u041C\u0410\u041D\u0415\u041A\u0415\u041D: " + (b.trainBlock ? "\u0411\u041B\u041E\u041A" : "\u0421\u0422\u041E\u0418\u0422"), RW - 8, 230);
         g.textAlign = "center";
-        g.fillText("R \u2014 \u0421\u0411\u0420\u041E\u0421 \xB7 ESC \u2014 \u041F\u0410\u0423\u0417\u0410", RW / 2, 232);
+        g.fillStyle = UI_MUTED;
+        g.fillText("T \u2014 \u0411\u041B\u041E\u041A \xB7 R \u2014 \u0421\u0411\u0420\u041E\u0421 \xB7 ESC \u2014 \u041F\u0420\u0418\u0401\u041C\u042B", RW / 2, 238);
       }
       if (S.announce && S.announce.t < 110) {
         const t = S.announce.t;

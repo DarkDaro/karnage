@@ -549,16 +549,25 @@ test('training mode uses a passive dummy with endless resources', async () => {
       timer: b.timer,
       phase: b.phase
     };
+    K.onKey('KeyT');
+    K.step();
+    const block = { on: b.trainBlock, ax: b.p2.ctrl.ax.B, state: b.p2.state };
+    K.onKey('KeyT');
+    K.step();
     b.p1.x = 352;
     b.p1.startAtk('punch');
     for (let i = 0; i < 12; i += 1) K.step();
     const hit = { combo: b.p1.combo, hp: b.p2.hp, phase: b.phase };
+    K.keys.KeyJ = true;
+    K.step();
+    K.keys.KeyJ = false;
+    const input = b.p1.ctrl.buf.some((entry) => entry.k === 'P');
     b.timer = 0;
     b.p2.hp = 0;
     K.step();
     const safe = { timer: b.timer, hp: b.p2.hp, defeated: b.p2.defeated, phase: b.phase, p1hp: b.p1.hp, rage: b.p1.rage };
     K.onKey('KeyR');
-    const reset = { x: b.p1.x, p2x: b.p2.x, hp: b.p2.hp, timer: b.timer, phase: b.phase };
+    const reset = { x: b.p1.x, p2x: b.p2.x, hp: b.p2.hp, timer: b.timer, phase: b.phase, block: b.trainBlock };
     let render = 'ok';
     try {
       K.render();
@@ -568,7 +577,7 @@ test('training mode uses a passive dummy with endless resources', async () => {
     } catch (error) {
       render = `${error.name}: ${error.message}`;
     }
-    return { selected, started, hit, safe, reset, render };
+    return { selected, started, block, hit, input, safe, reset, render };
   });
   assert.equal(result.selected, 'select');
   assert.equal(result.started.game, 'fight');
@@ -578,15 +587,17 @@ test('training mode uses a passive dummy with endless resources', async () => {
   assert.equal(result.started.axes, 0);
   assert.equal(result.started.timer, 99);
   assert.equal(result.started.phase, 'fight');
+  assert.deepEqual(result.block, { on: true, ax: true, state: 'block' });
   assert.ok(result.hit.combo >= 1);
   assert.equal(result.hit.hp, 100);
+  assert.equal(result.input, true);
   assert.equal(result.safe.timer, 99);
   assert.equal(result.safe.hp, 100);
   assert.equal(result.safe.defeated, 0);
   assert.equal(result.safe.phase, 'fight');
   assert.equal(result.safe.p1hp, 100);
   assert.equal(result.safe.rage, 100);
-  assert.deepEqual(result.reset, { x: 300, p2x: 380, hp: 100, timer: 99, phase: 'fight' });
+  assert.deepEqual(result.reset, { x: 300, p2x: 380, hp: 100, timer: 99, phase: 'fight', block: false });
   assert.equal(result.render, 'ok');
 });
 

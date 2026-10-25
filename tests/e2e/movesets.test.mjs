@@ -301,6 +301,78 @@ test('command throws and target combos work for every fighter', async () => {
       if (!chainBattle.p1.atk?.target || chainBattle.p1.atk.target.n !== def.target.n) {
         failures.push(`${def.id}: target combo not detected (${chainBattle.p1.chain})`);
       }
+
+      if (def.grappler) {
+        const grappler = setup(def.id);
+        K.keys.KeyD = true;
+        K.step();
+        K.keys.KeyJ = true;
+        K.keys.KeyK = true;
+        K.step();
+        K.keys.KeyJ = false;
+        K.keys.KeyK = false;
+        K.keys.KeyD = false;
+        K.step();
+        if (!grappler.p1.atk?.cmdThrow) failures.push(`${def.id}: signature grab did not start`);
+      }
+    }
+    return failures;
+  });
+  assert.deepEqual(result, []);
+});
+
+test('target combos land every hit and launch opens a juggle window', async () => {
+  const result = await page.evaluate(() => {
+    const K = window.KARNAGE;
+    const failures = [];
+    const setup = (id) => {
+      for (const code in K.keys) K.keys[code] = false;
+      K.setDebug({ GAME: 'fight', paused: false });
+      K.newBattle(id, new K.Ctrl(K.KM1), (id + 1) % K.CH.length, new K.Ctrl(K.KM2), 9);
+      const battle = K.battle;
+      battle.mode = '2p';
+      battle.phase = 'fight';
+      battle.phaseT = 200;
+      battle.p1.ctrl.ai = false;
+      battle.p2.ctrl.ai = false;
+      battle.p1.x = 300;
+      battle.p2.x = 330;
+      battle.p1.y = battle.p2.y = 214;
+      battle.p1.face = 1;
+      battle.p2.face = -1;
+      battle.p1.state = 'idle';
+      battle.p1.st = 0;
+      battle.p1.atk = null;
+      battle.p2.state = 'idle';
+      battle.p2.st = 0;
+      battle.p2.atk = null;
+      battle.p2.hp = 100;
+      battle.p2.defeated = 0;
+      battle.p1.ctrl.clear();
+      battle.p2.ctrl.clear();
+      return battle;
+    };
+
+    for (const def of K.CH) {
+      const battle = setup(def.id);
+      const seq = def.target.seq;
+      let landed = 0;
+      for (const symbol of seq) {
+        battle.p1.startAtk(symbol === 'P' ? 'punch' : 'kick');
+        for (let frame = 0; frame < 12; frame += 1) K.step();
+        if (battle.p1.atk?.hit && battle.p1.atk.connected) landed += 1;
+      }
+      if (landed < seq.length) failures.push(`${def.id}: target ${seq} landed ${landed}/${seq.length}`);
+      if (battle.p1.atk?.target !== def.target) failures.push(`${def.id}: target metadata lost`);
+
+      const juggle = setup(def.id);
+      juggle.p1.startAtk('upper');
+      for (let frame = 0; frame < 12; frame += 1) K.step();
+      if (juggle.p2.hitStatus !== 'launch') failures.push(`${def.id}: upper did not launch`);
+      juggle.p1.x = juggle.p2.x - 28;
+      juggle.p1.startAtk('punch');
+      for (let frame = 0; frame < 10; frame += 1) K.step();
+      if (juggle.p1.combo < 2) failures.push(`${def.id}: juggle did not continue`);
     }
     return failures;
   });
