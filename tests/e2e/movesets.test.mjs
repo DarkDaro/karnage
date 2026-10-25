@@ -141,6 +141,106 @@ test('every special and super starts through real input', async () => {
   assert.deepEqual(result, []);
 });
 
+test('command normals and directional U-specials stay usable from the ground', async () => {
+  const result = await page.evaluate(() => {
+    const K = window.KARNAGE;
+    const failures = [];
+    const setup = (id) => {
+      for (const code in K.keys) K.keys[code] = false;
+      K.setDebug({ GAME: 'fight', paused: false });
+      K.newBattle(id, new K.Ctrl(K.KM1), (id + 1) % K.CH.length, new K.Ctrl(K.KM2), 9);
+      const battle = K.battle;
+      battle.mode = '2p';
+      battle.phase = 'fight';
+      battle.phaseT = 200;
+      battle.p1.ctrl.ai = false;
+      battle.p2.ctrl.ai = false;
+      battle.p1.x = 300;
+      battle.p2.x = 330;
+      battle.p1.y = battle.p2.y = 214;
+      battle.p1.face = 1;
+      battle.p2.face = -1;
+      battle.p1.state = 'idle';
+      battle.p1.st = 0;
+      battle.p1.atk = null;
+      battle.p2.state = 'idle';
+      battle.p2.st = 0;
+      battle.p2.atk = null;
+      battle.p2.hp = 100;
+      battle.p2.defeated = 0;
+      battle.p1.ctrl.clear();
+      battle.p2.ctrl.clear();
+      return battle;
+    };
+    const press = (code) => {
+      K.keys[code] = true;
+      K.step();
+      K.keys[code] = false;
+      K.step();
+    };
+    const input = (command) => {
+      const key = { D: 'KeyS', U: 'KeyW', L: 'KeyA', R: 'KeyD', P: 'KeyJ', K: 'KeyK' };
+      for (const symbol of command) press(key[symbol]);
+    };
+    const snapshot = (battle) => ({
+      projs: K.projs.length,
+      fx: K.fx.length,
+      marks: battle.p1.marks.length,
+      invis: battle.p1.invis,
+      x: battle.p1.x,
+      foeHp: battle.p2.hp,
+      foeState: battle.p2.state
+    });
+    const changed = (before, battle) => (
+      K.projs.length > before.projs ||
+      K.fx.length > before.fx ||
+      battle.p1.marks.length > before.marks ||
+      battle.p1.invis > before.invis ||
+      Math.abs(battle.p1.x - before.x) > 2 ||
+      battle.p2.hp < before.foeHp ||
+      battle.p2.state !== before.foeState
+    );
+
+    for (const def of K.CH) {
+      for (const [key, direction, button] of [
+        ['fP', 'KeyD', 'KeyJ'],
+        ['fK', 'KeyD', 'KeyK'],
+        ['bP', 'KeyA', 'KeyJ']
+      ]) {
+        const battle = setup(def.id);
+        K.keys[direction] = true;
+        K.step();
+        press(button);
+        K.keys[direction] = false;
+        K.step();
+        const started = battle.p1.atk;
+        if (battle.p1.state !== 'atk' || !started || started.name !== def.cmd[key].n) {
+          failures.push(`${def.id}/${key}: not started`);
+          continue;
+        }
+        for (let frame = 0; frame < 12; frame += 1) K.step();
+        if (battle.p2.hp >= 100) failures.push(`${def.id}/${key}: no hit`);
+      }
+
+      for (const [kind, command] of [['spec', def.spec], ['spec2', def.spec2]]) {
+        if (!command.includes('U')) continue;
+        const battle = setup(def.id);
+        const before = snapshot(battle);
+        input(command);
+        const groundExpected = command[0] !== 'U';
+        if (battle.p1.state !== 'cast' || (groundExpected && !battle.p1.onGround)) {
+          failures.push(`${def.id}/${kind}: cast from air (${battle.p1.state}, y=${Math.round(battle.p1.y)})`);
+          continue;
+        }
+        for (let frame = 0; frame < 24; frame += 1) K.step();
+        if (!changed(before, battle)) failures.push(`${def.id}/${kind}: no visible effect`);
+      }
+    }
+    return failures;
+  });
+  assert.deepEqual(result, []);
+});
+
 test('every fatality accepts its command in the finish window', async () => {
   const result = await page.evaluate(() => {
     const K = window.KARNAGE;

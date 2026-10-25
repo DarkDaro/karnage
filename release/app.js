@@ -545,6 +545,34 @@
   };
   for (const c of CH) Object.assign(c, THROW_DATA[c.id]);
   Object.assign(BOSS, { throwN: "\u041F\u0420\u0418\u0413\u041E\u0412\u041E\u0420 \u041A\u041E\u0420\u041E\u041D\u042B", throwT: "royal", throwC: "#f0c850", throwD: 14 });
+  var CMD_DEFAULT = {
+    fP: { t: "punch", d: 8, wd: 6, ac: 3, rc: 10, rng: 32, hh: 0.7 },
+    fK: { t: "kick", d: 11, wd: 8, ac: 4, rc: 14, rng: 40, hh: 0.55, knock: 1 },
+    bP: { t: "punch", d: 7, wd: 5, ac: 4, rc: 9, rng: 28, hh: 0.65 }
+  };
+  var NORMAL_DATA = {
+    0: { norm: { punch: { d: 7 }, kick: { d: 8 }, upper: { d: 16 }, sweep: { d: 9 }, rh: { d: 13 }, jkick: { d: 10 } }, cmd: { fP: { n: "\u041F\u041B\u0410\u041C\u0415\u041D\u041D\u042B\u0419 \u041F\u0420\u042F\u041C\u041E\u0419", d: 9 }, fK: { n: "\u041E\u0413\u041D\u0415\u041D\u041D\u042B\u0419 \u041F\u0418\u041D\u041E\u041A", d: 12 }, bP: { n: "\u041F\u0415\u041F\u0415\u041B\u042C\u041D\u042B\u0419 \u041A\u041E\u041D\u0422\u0420", d: 8 } } },
+    1: { norm: { punch: { d: 5, rng: 30 }, kick: { d: 8, rng: 38 }, upper: { d: 14 }, sweep: { d: 9 }, rh: { d: 11 }, jkick: { d: 11 } }, cmd: { fP: { n: "\u0422\u0415\u041D\u0415\u0412\u041E\u0419 \u041F\u0420\u042F\u041C\u041E\u0419", d: 7, rng: 33 }, fK: { n: "\u0421\u041A\u041E\u041B\u042C\u0417\u042F\u0429\u0418\u0419 \u041F\u0418\u041D\u041E\u041A", d: 10, rng: 41 }, bP: { n: "\u041E\u0411\u0420\u0410\u0422\u041D\u042B\u0419 \u041A\u041E\u041D\u0422\u0420", d: 6, rng: 30 } } },
+    2: { norm: { punch: { d: 6, rng: 30 }, kick: { d: 8 }, upper: { d: 15 }, sweep: { d: 9 }, rh: { d: 12 }, jkick: { d: 10 } }, cmd: { fP: { n: "\u0420\u0410\u0417\u0420\u042F\u0414\u041D\u042B\u0419 \u041F\u0420\u042F\u041C\u041E\u0419", d: 8, rng: 33 }, fK: { n: "\u0413\u0420\u041E\u0417\u041E\u0412\u041E\u0419 \u041F\u0418\u041D\u041E\u041A", d: 11 }, bP: { n: "\u042D\u041B\u0415\u041A\u0422\u0420\u041E\u041A\u041E\u041D\u0422\u0420", d: 7, rng: 29 } } },
+    3: { norm: { punch: { d: 8, wd: 6 }, kick: { d: 11, wd: 8 }, upper: { d: 18, wd: 8 }, sweep: { d: 12, wd: 8 }, rh: { d: 15, wd: 10 }, jkick: { d: 12, wd: 6 } }, cmd: { fP: { n: "\u041A\u0410\u041C\u0415\u041D\u041D\u042B\u0419 \u041F\u0420\u042F\u041C\u041E\u0419", d: 10, wd: 7 }, fK: { n: "\u0422\u042F\u0416\u0401\u041B\u042B\u0419 \u041F\u0418\u041D\u041E\u041A", d: 14, wd: 9 }, bP: { n: "\u0413\u041E\u0420\u041D\u042B\u0419 \u041A\u041E\u041D\u0422\u0420", d: 9, wd: 6 } } },
+    4: { norm: { punch: { d: 5, rng: 29 }, kick: { d: 7, rng: 38 }, upper: { d: 13 }, sweep: { d: 8 }, rh: { d: 10 }, jkick: { d: 9 } }, cmd: { fP: { n: "\u041A\u041E\u0413\u0422\u0415\u0412\u041E\u0419 \u041F\u0420\u042F\u041C\u041E\u0419", d: 7, rng: 32 }, fK: { n: "\u042F\u0414\u041E\u0412\u0418\u0422\u042B\u0419 \u041F\u0418\u041D\u041E\u041A", d: 9, rng: 40 }, bP: { n: "\u0417\u0410\u0421\u0410\u0414\u041D\u042B\u0419 \u041A\u041E\u041D\u0422\u0420", d: 6, rng: 30 } } },
+    5: { norm: { punch: { d: 5, rng: 30 }, kick: { d: 7, rng: 38 }, upper: { d: 12 }, sweep: { d: 9 }, rh: { d: 10 }, jkick: { d: 9 } }, cmd: { fP: { n: "\u041F\u0415\u0421\u0427\u0410\u041D\u042B\u0419 \u041F\u0420\u042F\u041C\u041E\u0419", d: 7, rng: 33 }, fK: { n: "\u0412\u0418\u0425\u0420\u0415\u0412\u041E\u0419 \u041F\u0418\u041D\u041E\u041A", d: 9, rng: 41 }, bP: { n: "\u041C\u0418\u0420\u0410\u0416\u041D\u042B\u0419 \u041A\u041E\u041D\u0422\u0420", d: 6, rng: 30 } } },
+    6: { norm: { punch: { d: 6, rng: 30 }, kick: { d: 8, rng: 38 }, upper: { d: 15 }, sweep: { d: 10 }, rh: { d: 12 }, jkick: { d: 10 } }, cmd: { fP: { n: "\u041B\u0415\u0414\u042F\u041D\u041E\u0419 \u041F\u0420\u042F\u041C\u041E\u0419", d: 8, rng: 33 }, fK: { n: "\u0421\u0422\u0423\u0414\u0401\u041D\u042B\u0419 \u041F\u0418\u041D\u041E\u041A", d: 11 }, bP: { n: "\u041C\u041E\u0420\u041E\u0417\u041D\u042B\u0419 \u041A\u041E\u041D\u0422\u0420", d: 7 } } },
+    7: { norm: { punch: { d: 7 }, kick: { d: 10 }, upper: { d: 16 }, sweep: { d: 11 }, rh: { d: 13 }, jkick: { d: 11 } }, cmd: { fP: { n: "\u0416\u0415\u041B\u0415\u0417\u041D\u042B\u0419 \u041F\u0420\u042F\u041C\u041E\u0419", d: 9 }, fK: { n: "\u0428\u041B\u0410\u041A\u041E\u0412\u042B\u0419 \u041F\u0418\u041D\u041E\u041A", d: 13 }, bP: { n: "\u0420\u0416\u0410\u0412\u042B\u0419 \u041A\u041E\u041D\u0422\u0420", d: 8 } } },
+    8: { norm: { punch: { d: 6, rng: 31 }, kick: { d: 8, rng: 39 }, upper: { d: 14 }, sweep: { d: 9 }, rh: { d: 11 }, jkick: { d: 10 } }, cmd: { fP: { n: "\u0421\u0423\u041C\u0420\u0410\u0427\u041D\u042B\u0419 \u041F\u0420\u042F\u041C\u041E\u0419", d: 8, rng: 34 }, fK: { n: "\u0422\u0415\u041D\u0415\u0412\u041E\u0419 \u041F\u0418\u041D\u041E\u041A", d: 10, rng: 42 }, bP: { n: "\u041A\u041E\u0428\u041C\u0410\u0420\u041D\u042B\u0419 \u041A\u041E\u041D\u0422\u0420", d: 7, rng: 31 } } },
+    9: { norm: { punch: { d: 7, rng: 29 }, kick: { d: 10, rng: 37 }, upper: { d: 17 }, sweep: { d: 11 }, rh: { d: 14 }, jkick: { d: 11 } }, cmd: { fP: { n: "\u041A\u041E\u0420\u041E\u041B\u0415\u0412\u0421\u041A\u0418\u0419 \u041F\u0420\u042F\u041C\u041E\u0419", d: 9 }, fK: { n: "\u0421\u0422\u0410\u041B\u042C\u041D\u041E\u0419 \u041F\u0418\u041D\u041E\u041A", d: 13 }, bP: { n: "\u0412\u041B\u0410\u0421\u0422\u041D\u042B\u0419 \u041A\u041E\u041D\u0422\u0420", d: 8 } } },
+    10: { norm: { punch: { d: 5, rng: 29 }, kick: { d: 7, rng: 37 }, upper: { d: 13 }, sweep: { d: 8 }, rh: { d: 10 }, jkick: { d: 9 } }, cmd: { fP: { n: "\u041A\u0420\u041E\u0412\u0410\u0412\u042B\u0419 \u041F\u0420\u042F\u041C\u041E\u0419", d: 7 }, fK: { n: "\u0410\u041B\u042B\u0419 \u041F\u0418\u041D\u041E\u041A", d: 9 }, bP: { n: "\u0411\u0410\u0413\u0420\u041E\u0412\u042B\u0419 \u041A\u041E\u041D\u0422\u0420", d: 6 } } },
+    11: { norm: { punch: { d: 5, rng: 31, wd: 4 }, kick: { d: 7, rng: 40, wd: 6 }, upper: { d: 12 }, sweep: { d: 8 }, rh: { d: 10 }, jkick: { d: 11 } }, cmd: { fP: { n: "\u041B\u0423\u041D\u041D\u042B\u0419 \u041F\u0420\u042F\u041C\u041E\u0419", d: 7, rng: 34 }, fK: { n: "\u0421\u0415\u0420\u041F\u041E\u0412\u042B\u0419 \u041F\u0418\u041D\u041E\u041A", d: 9, rng: 42 }, bP: { n: "\u0422\u0415\u041D\u0415\u0412\u041E\u0419 \u041A\u041E\u041D\u0422\u0420", d: 6, rng: 31 } } },
+    12: { norm: { punch: { d: 6, rng: 31 }, kick: { d: 8, rng: 40 }, upper: { d: 14 }, sweep: { d: 9 }, rh: { d: 11 }, jkick: { d: 12 } }, cmd: { fP: { n: "\u0417\u0412\u0401\u0417\u0414\u041D\u042B\u0419 \u041F\u0420\u042F\u041C\u041E\u0419", d: 8, rng: 34 }, fK: { n: "\u041A\u041E\u041C\u0415\u0422\u041D\u042B\u0419 \u041F\u0418\u041D\u041E\u041A", d: 10, rng: 42 }, bP: { n: "\u041D\u0415\u0411\u0415\u0421\u041D\u042B\u0419 \u041A\u041E\u041D\u0422\u0420", d: 7, rng: 31 } } }
+  };
+  function applyNormalData(target, data) {
+    if (!data) return;
+    target.norm = data.norm;
+    target.cmd = {};
+    for (const key of Object.keys(CMD_DEFAULT)) target.cmd[key] = { ...CMD_DEFAULT[key], ...data.cmd[key] || {} };
+  }
+  for (const c of CH) applyNormalData(c, NORMAL_DATA[c.id]);
+  applyNormalData(BOSS, NORMAL_DATA[9]);
 
   // src/data/endings.js
   var ENDINGS = [
@@ -1079,6 +1107,7 @@
         this.blockLow = 0;
         this.grabbedBy = 0;
         this.throwTarget = 0;
+        this.jumpGrace = 0;
         this.ctrl.clear();
       }
       get onGround() {
@@ -1088,16 +1117,45 @@
         const d = this.def, bh = this.state === "crouch" ? d.h * 0.55 : d.h;
         return { x: this.x - 9 * d.bulk, y: this.y - bh, w: 18 * d.bulk, h: bh };
       }
-      startAtk(t) {
+      startAtk(t, key) {
+        const d = this.def, c = key && d.cmd ? d.cmd[key] : null, stats = c ? { ...c } : null, type = stats ? stats.t || t : t;
+        let A = { ...ATK[type], ...d.norm?.[type] || {} };
+        let name = null;
+        if (stats) {
+          const { n, ...rest } = stats;
+          delete rest.t;
+          A = { ...A, ...rest };
+          name = n || null;
+        }
         this.state = "atk";
         this.st = 0;
-        this.atk = { t, A: ATK[t], hit: 0, blocked: 0, connected: 0, cancel: 0 };
+        this.atk = { t: type, name, A, hit: 0, blocked: 0, connected: 0, cancel: 0 };
         this.invis = 0;
         this.spec2go = 0;
+        this.jumpGrace = 0;
         if (!S.battle || S.battle.phase === "fight") this.ctrl.buf.length = 0;
         SFX.swing();
       }
-      // 08.09: атака пробивает невидимость; 24.10: буфер очищается для special cancel только в бою
+      // 08.09: атака пробивает невидимость; 24.10: буфер очищается для special cancel только в бою; 25.10: профили нормалов и командные нормалы
+      startCmd(key) {
+        const c = this.def.cmd && this.def.cmd[key];
+        if (!c) return false;
+        this.startAtk(c.t, key);
+        return true;
+      }
+      jump() {
+        this.vy = -this.def.jmp;
+        this.state = "jump";
+        this.jumpGrace = 0;
+        SFX.jump();
+      }
+      motionPrefix() {
+        const d = this.def;
+        return [d.spec, d.spec2].some((seq) => {
+          const p = (seq || "").slice(0, -1);
+          return p.endsWith("U") && this.ctrl.matchRel(p, this.face, 16);
+        });
+      }
       update(FR, foe) {
         const d = this.def, c = S.battle && S.battle.phase === "intro" ? ZEROC : this.ctrl;
         const stunned = this.blockStun > 0;
@@ -1192,20 +1250,26 @@
           if (this.onGround && c.d && ["idle", "walk"].includes(this.state)) this.state = "crouch";
           if (this.state === "crouch" && !c.d) this.state = "idle";
           if (!stunned && this.onGround && c.pu && ["idle", "walk"].includes(this.state)) {
-            this.vy = -d.jmp;
-            this.state = "jump";
-            SFX.jump();
+            if (this.motionPrefix()) this.jumpGrace = 4;
+            else this.jump();
+          }
+          if (this.jumpGrace > 0) {
+            this.jumpGrace--;
+            if (this.jumpGrace === 0 && this.onGround && ["idle", "walk", "crouch"].includes(this.state)) this.jump();
           } else if (!this.onGround && c.pu) this.jbuf = 8;
           else if (this.jbuf > 0) this.jbuf--;
           if (this.onGround && c.B && ["idle", "walk", "crouch"].includes(this.state)) this.state = "block";
           else if (this.state === "block" && !c.B) this.state = c.d ? "crouch" : "idle";
           this.blockLow = this.state === "block" ? !!c.d : 0;
           if (!stunned && ["idle", "walk", "crouch", "block"].includes(this.state) && this.onGround && (c.pP || c.pK)) {
-            const btn = c.pP ? "P" : "K";
+            const btn = c.pP ? "P" : "K", fwd = this.face > 0 ? c.r : c.l, back = this.face > 0 ? c.l : c.r;
             if (this.rage >= 100 && this.ctrl.match("DDP", 60)) this.startSuper();
             else if (this.ctrl.matchRel(d.spec, this.face, 60)) this.startSpec(foe);
             else if (this.ctrl.matchRel(d.spec2, this.face, 60)) this.startSpec2(foe);
             else if (c.pP && c.pK) this.startAtk("throw");
+            else if (!c.d && fwd && btn === "P") this.startCmd("fP");
+            else if (!c.d && fwd && btn === "K") this.startCmd("fK");
+            else if (!c.d && back && btn === "P") this.startCmd("bP");
             else if (btn === "P") this.startAtk(c.d ? "upper" : "punch");
             else if (c.d) this.startAtk("sweep");
             else this.startAtk(c.l && !c.r && this.face > 0 || c.r && !c.l && this.face < 0 ? "rh" : "kick");
@@ -1410,6 +1474,7 @@
         this.st = 0;
         this.face = foe.x < this.x ? -1 : 1;
         this.spec2go = 0;
+        this.jumpGrace = 0;
         SFX.cast();
       }
       startSpec2(foe) {
@@ -1417,6 +1482,7 @@
         this.st = 0;
         this.face = foe.x < this.x ? -1 : 1;
         this.spec2go = 1;
+        this.jumpGrace = 0;
         SFX.cast2();
       }
       // 08.09: второй спец — тот же каст, флаг spec2go выбирает ветку в fireSpec
@@ -1427,6 +1493,7 @@
         this.armor = this.def.boss ? 20 : 12;
         this.supEv = [];
         this.invis = 0;
+        this.jumpGrace = 0;
         S.flashS = Math.max(S.flashS, 4);
         S.shake = Math.max(S.shake, 4);
         SFX.supwave();

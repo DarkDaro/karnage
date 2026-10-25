@@ -23,10 +23,13 @@ export function createFighter({
     for(let i=0;i<8;i++){const a=i/8*Math.PI*2;P(x+Math.cos(a)*3,y+Math.sin(a)*3,Math.cos(a)*rnd(.8,2.2),Math.sin(a)*rnd(.8,2.2),c,16,2,0);}}
   class F{
   constructor(def,ctrl){this.def=def;this.ctrl=ctrl;this.wins=0;this.rage=0;this.aiDir=null;this.reset(200,1);}
-  reset(x,face){this.x=x;this.y=FL+GR;this.vx=0;this.vy=0;this.face=face;this.state='idle';this.st=0;this.hp=100;this.atk=null;this.frozen=0;this.netT=0;this.invis=0;this.invuln=0;this.poison=0;this.charred=0;this.hidden=0;this.tilt=0;this.run=100;this.running=0;this.hpLag=100;this.lastTap=-99;this.tapDir=0;this.animT=0;this.squash=1;this.scale=1;this.flash=0;this.jbuf=0;this.abuf=0;this.abufB='punch';this.dodging=0;this.dvx=0;this.marks=[];this.poisonC=null;this.spec2go=0;this.combo=0;this.comboT=99;this.pale=0;this.defeated=0;this.damageTaken=0;this.armor=0;this.blockStun=0;this.blockLow=0;this.grabbedBy=0;this.throwTarget=0;this.ctrl.clear();}
+  reset(x,face){this.x=x;this.y=FL+GR;this.vx=0;this.vy=0;this.face=face;this.state='idle';this.st=0;this.hp=100;this.atk=null;this.frozen=0;this.netT=0;this.invis=0;this.invuln=0;this.poison=0;this.charred=0;this.hidden=0;this.tilt=0;this.run=100;this.running=0;this.hpLag=100;this.lastTap=-99;this.tapDir=0;this.animT=0;this.squash=1;this.scale=1;this.flash=0;this.jbuf=0;this.abuf=0;this.abufB='punch';this.dodging=0;this.dvx=0;this.marks=[];this.poisonC=null;this.spec2go=0;this.combo=0;this.comboT=99;this.pale=0;this.defeated=0;this.damageTaken=0;this.armor=0;this.blockStun=0;this.blockLow=0;this.grabbedBy=0;this.throwTarget=0;this.jumpGrace=0;this.ctrl.clear();}
   get onGround(){return this.y>=FL+GR-.5;}
   get box(){const d=this.def,bh=(this.state==='crouch')?d.h*.55:d.h;return{x:this.x-9*d.bulk,y:this.y-bh,w:18*d.bulk,h:bh};}
-  startAtk(t){this.state='atk';this.st=0;this.atk={t,A:ATK[t],hit:0,blocked:0,connected:0,cancel:0};this.invis=0;this.spec2go=0;if(!S.battle||S.battle.phase==='fight')this.ctrl.buf.length=0;SFX.swing();}// 08.09: атака пробивает невидимость; 24.10: буфер очищается для special cancel только в бою
+  startAtk(t,key){const d=this.def,c=key&&d.cmd?d.cmd[key]:null,stats=c?{...c}:null,type=stats?(stats.t||t):t;let A={...ATK[type],...(d.norm?.[type]||{})};let name=null;if(stats){const {n,...rest}=stats;delete rest.t;A={...A,...rest};name=n||null;}this.state='atk';this.st=0;this.atk={t:type,name,A,hit:0,blocked:0,connected:0,cancel:0};this.invis=0;this.spec2go=0;this.jumpGrace=0;if(!S.battle||S.battle.phase==='fight')this.ctrl.buf.length=0;SFX.swing();}// 08.09: атака пробивает невидимость; 24.10: буфер очищается для special cancel только в бою; 25.10: профили нормалов и командные нормалы
+  startCmd(key){const c=this.def.cmd&&this.def.cmd[key];if(!c)return false;this.startAtk(c.t,key);return true;}
+  jump(){this.vy=-this.def.jmp;this.state='jump';this.jumpGrace=0;SFX.jump();}
+  motionPrefix(){const d=this.def;return [d.spec,d.spec2].some((seq)=>{const p=(seq||'').slice(0,-1);return p.endsWith('U')&&this.ctrl.matchRel(p,this.face,16);});}
   update(FR,foe){const d=this.def,c=(S.battle&&S.battle.phase==='intro')?ZEROC:this.ctrl;const stunned=this.blockStun>0;if(stunned)this.blockStun--;// 08.09: в интро ввод заблокирован, но бойцы дышат
   this.animT++;this.st++;this.flash=Math.max(0,this.flash-1);this.squash=lerp(this.squash,1,.12);this.hpLag=Math.max(this.hp,this.hpLag-.4);// 08.09: отстающий бар урона + восстановление сквоша
   if(this.defeated){this.tilt=lerp(this.tilt,this.state==='dizzy'?0:-1.4,.2);return;}
@@ -51,16 +54,22 @@ export function createFighter({
   if(!mv&&this.state==='walk')this.state='idle';
   if(this.onGround&&c.d&&['idle','walk'].includes(this.state))this.state='crouch';
   if(this.state==='crouch'&&!c.d)this.state='idle';
-  if(!stunned&&this.onGround&&c.pu&&['idle','walk'].includes(this.state)){this.vy=-d.jmp;this.state='jump';SFX.jump();}
-  else if(!this.onGround&&c.pu)this.jbuf=8;else if(this.jbuf>0)this.jbuf--;// 30.09: буфер прыжка 8 кадров// 08.09: свист прыжка
+  if(!stunned&&this.onGround&&c.pu&&['idle','walk'].includes(this.state)){
+    if(this.motionPrefix())this.jumpGrace=4;else this.jump();
+  }
+  if(this.jumpGrace>0){this.jumpGrace--;if(this.jumpGrace===0&&this.onGround&&['idle','walk','crouch'].includes(this.state))this.jump();}
+  else if(!this.onGround&&c.pu)this.jbuf=8;else if(this.jbuf>0)this.jbuf--;// 30.09: буфер прыжка 8 кадров; 25.10: pre-jump окно для наземных U-спецов
   if(this.onGround&&c.B&&['idle','walk','crouch'].includes(this.state))this.state='block';
   else if(this.state==='block'&&!c.B)this.state=c.d?'crouch':'idle';this.blockLow=this.state==='block'?!!c.d:0;
-  if(!stunned&&['idle','walk','crouch','block'].includes(this.state)&&this.onGround&&(c.pP||c.pK)){const btn=c.pP?'P':'K';
+  if(!stunned&&['idle','walk','crouch','block'].includes(this.state)&&this.onGround&&(c.pP||c.pK)){const btn=c.pP?'P':'K',fwd=this.face>0?c.r:c.l,back=this.face>0?c.l:c.r;
   if(this.rage>=100&&this.ctrl.match('DDP',60))this.startSuper();
   else if(this.ctrl.matchRel(d.spec,this.face,60))this.startSpec(foe);
   else if(this.ctrl.matchRel(d.spec2,this.face,60))this.startSpec2(foe);// 08.09: второй спецприём
   else if(c.pP&&c.pK)this.startAtk('throw');// 24.10: бросок P+K
-  else if(btn==='P')this.startAtk(c.d?'upper':'punch');else if(c.d)this.startAtk('sweep');else this.startAtk(((c.l&&!c.r&&this.face>0)||(c.r&&!c.l&&this.face<0))?'rh':'kick');}// 08.09: назад+нога = roundhouse
+  else if(!c.d&&fwd&&btn==='P')this.startCmd('fP');
+  else if(!c.d&&fwd&&btn==='K')this.startCmd('fK');
+  else if(!c.d&&back&&btn==='P')this.startCmd('bP');
+  else if(btn==='P')this.startAtk(c.d?'upper':'punch');else if(c.d)this.startAtk('sweep');else this.startAtk(((c.l&&!c.r&&this.face>0)||(c.r&&!c.l&&this.face<0))?'rh':'kick');}// 08.09: назад+нога = roundhouse; 25.10: командные нормалы
   if(this.state==='jump'&&(c.pP||c.pK)){if(this.ctrl.matchRel(d.spec,this.face,60))this.startSpec(foe);else if(this.ctrl.matchRel(d.spec2,this.face,60))this.startSpec2(foe);else this.startAtk('jkick');}}// 08.09: спец Вольта (DUP) перехватывался прыжком — теперь комбо проверяется в воздухе
   else this.vx*=.98;
   if(this.state==='hit'){this.vx=this.hvx;if(this.st>18&&this.onGround){this.state='idle';this.vx=0;}}
@@ -107,9 +116,9 @@ export function createFighter({
   else if(type==='blade'){SFX.slash();blood(foe.x,foe.y-foe.def.h*.5,9,1.3);}
   else if(type==='star'){SFX.cast2();}
   for(let i=0;i<10;i++)P(foe.x+rnd(-12,12),foe.y-rnd(8,50),rnd(-2,2),rnd(-2.5,0),col,24,2,-.01);}
-  startSpec(foe){this.state='cast';this.st=0;this.face=foe.x<this.x?-1:1;this.spec2go=0;SFX.cast();}
-  startSpec2(foe){this.state='cast';this.st=0;this.face=foe.x<this.x?-1:1;this.spec2go=1;SFX.cast2();}// 08.09: второй спец — тот же каст, флаг spec2go выбирает ветку в fireSpec
-  startSuper(){this.state='super';this.st=0;this.rage=0;this.armor=this.def.boss?20:12;this.supEv=[];this.invis=0;S.flashS=Math.max(S.flashS,4);S.shake=Math.max(S.shake,4);SFX.supwave();// 08.09: +пробивание невидимости; 25.10: у босса больше армора
+  startSpec(foe){this.state='cast';this.st=0;this.face=foe.x<this.x?-1:1;this.spec2go=0;this.jumpGrace=0;SFX.cast();}
+  startSpec2(foe){this.state='cast';this.st=0;this.face=foe.x<this.x?-1:1;this.spec2go=1;this.jumpGrace=0;SFX.cast2();}// 08.09: второй спец — тот же каст, флаг spec2go выбирает ветку в fireSpec
+  startSuper(){this.state='super';this.st=0;this.rage=0;this.armor=this.def.boss?20:12;this.supEv=[];this.invis=0;this.jumpGrace=0;S.flashS=Math.max(S.flashS,4);S.shake=Math.max(S.shake,4);SFX.supwave();// 08.09: +пробивание невидимости; 25.10: у босса больше армора
   const sy=this.y-this.def.h*.55;S.fx.push({ty:'super',x:this.x,y:sy,gy:this.y,t:0,life:26,col:this.def.acc||'#e8c040'});for(let i=0;i<18;i++){const a=i/18*Math.PI*2;P(this.x+Math.cos(a)*7,sy+Math.sin(a)*7,Math.cos(a)*rnd(1.2,3),Math.sin(a)*rnd(1.2,3),i%2?this.def.acc:'#f8e8b0',26,2,-.02);}// 25.10: вспышка ауры супера
   const me=this;const E=(t,fn)=>this.supEv.push({t,fn,done:0});const id=this.def.id;
   if(this.def.boss){SFX.fire();SFX.boom();S.shake=6;for(let i=0;i<8;i++)E(14+i*7,()=>{S.projs.push({ty:'meteor',x:clamp(me.foe.x+rnd(-54,54),20,AW-20),y:-10,vx:0,vy:5.8,o:me,d:3.4,l:120});SFX.shoot();});E(74,()=>{S.shake=8;S.flashS=Math.max(S.flashS,4);for(let i=0;i<18;i++){const a=i/18*Math.PI*2;P(me.x+Math.cos(a)*8,me.y-30+Math.sin(a)*8,Math.cos(a)*rnd(1,3),Math.sin(a)*rnd(1,3),'#f0c850',30,2,-.02);}});}// 25.10: «Орбитальная корона» — метеоры вокруг цели

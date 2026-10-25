@@ -71,3 +71,33 @@ const THROW_DATA = {
 };
 for (const c of CH) Object.assign(c, THROW_DATA[c.id]);
 Object.assign(BOSS, { throwN: 'ПРИГОВОР КОРОНЫ', throwT: 'royal', throwC: '#f0c850', throwD: 14 });
+
+// 25.10: у каждого бойца свои нормалы и три командных нормала.
+const CMD_DEFAULT = {
+  fP: { t: 'punch', d: 8, wd: 6, ac: 3, rc: 10, rng: 32, hh: .7 },
+  fK: { t: 'kick', d: 11, wd: 8, ac: 4, rc: 14, rng: 40, hh: .55, knock: 1 },
+  bP: { t: 'punch', d: 7, wd: 5, ac: 4, rc: 9, rng: 28, hh: .65 }
+};
+const NORMAL_DATA = {
+  0: { norm: { punch: { d: 7 }, kick: { d: 8 }, upper: { d: 16 }, sweep: { d: 9 }, rh: { d: 13 }, jkick: { d: 10 } }, cmd: { fP: { n: 'ПЛАМЕННЫЙ ПРЯМОЙ', d: 9 }, fK: { n: 'ОГНЕННЫЙ ПИНОК', d: 12 }, bP: { n: 'ПЕПЕЛЬНЫЙ КОНТР', d: 8 } } },
+  1: { norm: { punch: { d: 5, rng: 30 }, kick: { d: 8, rng: 38 }, upper: { d: 14 }, sweep: { d: 9 }, rh: { d: 11 }, jkick: { d: 11 } }, cmd: { fP: { n: 'ТЕНЕВОЙ ПРЯМОЙ', d: 7, rng: 33 }, fK: { n: 'СКОЛЬЗЯЩИЙ ПИНОК', d: 10, rng: 41 }, bP: { n: 'ОБРАТНЫЙ КОНТР', d: 6, rng: 30 } } },
+  2: { norm: { punch: { d: 6, rng: 30 }, kick: { d: 8 }, upper: { d: 15 }, sweep: { d: 9 }, rh: { d: 12 }, jkick: { d: 10 } }, cmd: { fP: { n: 'РАЗРЯДНЫЙ ПРЯМОЙ', d: 8, rng: 33 }, fK: { n: 'ГРОЗОВОЙ ПИНОК', d: 11 }, bP: { n: 'ЭЛЕКТРОКОНТР', d: 7, rng: 29 } } },
+  3: { norm: { punch: { d: 8, wd: 6 }, kick: { d: 11, wd: 8 }, upper: { d: 18, wd: 8 }, sweep: { d: 12, wd: 8 }, rh: { d: 15, wd: 10 }, jkick: { d: 12, wd: 6 } }, cmd: { fP: { n: 'КАМЕННЫЙ ПРЯМОЙ', d: 10, wd: 7 }, fK: { n: 'ТЯЖЁЛЫЙ ПИНОК', d: 14, wd: 9 }, bP: { n: 'ГОРНЫЙ КОНТР', d: 9, wd: 6 } } },
+  4: { norm: { punch: { d: 5, rng: 29 }, kick: { d: 7, rng: 38 }, upper: { d: 13 }, sweep: { d: 8 }, rh: { d: 10 }, jkick: { d: 9 } }, cmd: { fP: { n: 'КОГТЕВОЙ ПРЯМОЙ', d: 7, rng: 32 }, fK: { n: 'ЯДОВИТЫЙ ПИНОК', d: 9, rng: 40 }, bP: { n: 'ЗАСАДНЫЙ КОНТР', d: 6, rng: 30 } } },
+  5: { norm: { punch: { d: 5, rng: 30 }, kick: { d: 7, rng: 38 }, upper: { d: 12 }, sweep: { d: 9 }, rh: { d: 10 }, jkick: { d: 9 } }, cmd: { fP: { n: 'ПЕСЧАНЫЙ ПРЯМОЙ', d: 7, rng: 33 }, fK: { n: 'ВИХРЕВОЙ ПИНОК', d: 9, rng: 41 }, bP: { n: 'МИРАЖНЫЙ КОНТР', d: 6, rng: 30 } } },
+  6: { norm: { punch: { d: 6, rng: 30 }, kick: { d: 8, rng: 38 }, upper: { d: 15 }, sweep: { d: 10 }, rh: { d: 12 }, jkick: { d: 10 } }, cmd: { fP: { n: 'ЛЕДЯНОЙ ПРЯМОЙ', d: 8, rng: 33 }, fK: { n: 'СТУДЁНЫЙ ПИНОК', d: 11 }, bP: { n: 'МОРОЗНЫЙ КОНТР', d: 7 } } },
+  7: { norm: { punch: { d: 7 }, kick: { d: 10 }, upper: { d: 16 }, sweep: { d: 11 }, rh: { d: 13 }, jkick: { d: 11 } }, cmd: { fP: { n: 'ЖЕЛЕЗНЫЙ ПРЯМОЙ', d: 9 }, fK: { n: 'ШЛАКОВЫЙ ПИНОК', d: 13 }, bP: { n: 'РЖАВЫЙ КОНТР', d: 8 } } },
+  8: { norm: { punch: { d: 6, rng: 31 }, kick: { d: 8, rng: 39 }, upper: { d: 14 }, sweep: { d: 9 }, rh: { d: 11 }, jkick: { d: 10 } }, cmd: { fP: { n: 'СУМРАЧНЫЙ ПРЯМОЙ', d: 8, rng: 34 }, fK: { n: 'ТЕНЕВОЙ ПИНОК', d: 10, rng: 42 }, bP: { n: 'КОШМАРНЫЙ КОНТР', d: 7, rng: 31 } } },
+  9: { norm: { punch: { d: 7, rng: 29 }, kick: { d: 10, rng: 37 }, upper: { d: 17 }, sweep: { d: 11 }, rh: { d: 14 }, jkick: { d: 11 } }, cmd: { fP: { n: 'КОРОЛЕВСКИЙ ПРЯМОЙ', d: 9 }, fK: { n: 'СТАЛЬНОЙ ПИНОК', d: 13 }, bP: { n: 'ВЛАСТНЫЙ КОНТР', d: 8 } } },
+  10: { norm: { punch: { d: 5, rng: 29 }, kick: { d: 7, rng: 37 }, upper: { d: 13 }, sweep: { d: 8 }, rh: { d: 10 }, jkick: { d: 9 } }, cmd: { fP: { n: 'КРОВАВЫЙ ПРЯМОЙ', d: 7 }, fK: { n: 'АЛЫЙ ПИНОК', d: 9 }, bP: { n: 'БАГРОВЫЙ КОНТР', d: 6 } } },
+  11: { norm: { punch: { d: 5, rng: 31, wd: 4 }, kick: { d: 7, rng: 40, wd: 6 }, upper: { d: 12 }, sweep: { d: 8 }, rh: { d: 10 }, jkick: { d: 11 } }, cmd: { fP: { n: 'ЛУННЫЙ ПРЯМОЙ', d: 7, rng: 34 }, fK: { n: 'СЕРПОВЫЙ ПИНОК', d: 9, rng: 42 }, bP: { n: 'ТЕНЕВОЙ КОНТР', d: 6, rng: 31 } } },
+  12: { norm: { punch: { d: 6, rng: 31 }, kick: { d: 8, rng: 40 }, upper: { d: 14 }, sweep: { d: 9 }, rh: { d: 11 }, jkick: { d: 12 } }, cmd: { fP: { n: 'ЗВЁЗДНЫЙ ПРЯМОЙ', d: 8, rng: 34 }, fK: { n: 'КОМЕТНЫЙ ПИНОК', d: 10, rng: 42 }, bP: { n: 'НЕБЕСНЫЙ КОНТР', d: 7, rng: 31 } } }
+};
+function applyNormalData(target, data) {
+  if (!data) return;
+  target.norm = data.norm;
+  target.cmd = {};
+  for (const key of Object.keys(CMD_DEFAULT)) target.cmd[key] = { ...CMD_DEFAULT[key], ...(data.cmd[key] || {}) };
+}
+for (const c of CH) applyNormalData(c, NORMAL_DATA[c.id]);
+applyNormalData(BOSS, NORMAL_DATA[9]);

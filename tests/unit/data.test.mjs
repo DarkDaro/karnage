@@ -60,6 +60,23 @@ test('special and super data is complete and unique', () => {
   assert.equal(new Set(fatalityCommands).size, fatalityCommands.length, 'fatality commands must be unique');
 });
 
+test('normal and command normal data is complete and distinct', () => {
+  for (const fighter of [...CH, BOSS]) {
+    for (const type of ['punch', 'kick', 'upper', 'sweep', 'rh', 'jkick']) {
+      const normal = fighter.norm?.[type];
+      assert.ok(normal, `${fighter.name} ${type}`);
+      for (const value of Object.values(normal)) assert.ok(Number.isFinite(value), `${fighter.name} ${type}`);
+    }
+    for (const key of ['fP', 'fK', 'bP']) {
+      const command = fighter.cmd?.[key];
+      assert.ok(command && command.n && command.t, `${fighter.name} ${key}`);
+      assert.ok(command.d > 0 && command.rng > 0, `${fighter.name} ${key}`);
+    }
+  }
+  const names = CH.flatMap((fighter) => ['fP', 'fK', 'bP'].map((key) => fighter.cmd[key].n));
+  assert.equal(new Set(names).size, names.length, 'command normal names must be unique');
+});
+
 test('every fighter has a named throw finisher', () => {
   for (const fighter of [...CH, BOSS]) {
     assert.ok(fighter.throwN && fighter.throwN.length <= 24, fighter.name);
