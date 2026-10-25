@@ -4411,10 +4411,12 @@
         g.fillRect(x, 44, w, 2);
         g.fillStyle = "#c8b040";
         g.fillRect(dir > 0 ? x : x + w - w * f.run / 100, 44, w * f.run / 100, 2);
-        if (f.rage >= 100 && blink()) {
+        if (f.rage >= 100) {
           g.fillStyle = "#ff5030";
           g.font = '7px "Russo One"';
+          g.globalAlpha = 0.72 + 0.28 * (0.5 + 0.5 * Math.sin(S.FRAME * 0.08));
           g.fillText("\u0421\u0423\u041F\u0415\u0420 \u0413\u041E\u0422\u041E\u0412", dir > 0 ? x + 2 : x + w - 2, 52);
+          g.globalAlpha = 1;
         }
       };
       bar(p1, 40, 1);
@@ -4502,10 +4504,10 @@
       g.fillRect(x, y, w, h);
       frame(x, y, w, h);
     }
-    const seqTxt = (s, p2, face = 1) => s.split("").map((x) => {
+    const seqTxt = (s, p2, face = 1, generic = false) => s.split("").map((x) => {
       if (face < 0 && x === "L") x = "R";
       else if (face < 0 && x === "R") x = "L";
-      return { D: "\u2193", U: "\u2191", L: "\u2190", R: "\u2192", P: p2 ? "I" : "J", K: p2 ? "O" : "K" }[x];
+      return { D: "\u2193", U: "\u2191", L: "\u2190", R: "\u2192", P: generic ? "P" : p2 ? "I" : "J", K: generic ? "K" : p2 ? "O" : "K" }[x];
     }).join(" ");
     function drawFatalPanel(b) {
       const left = Math.max(0, 1 - b.phaseT / fatalFrames);
@@ -6706,7 +6708,7 @@
       g.font = size + 'px "Russo One"';
       g.textAlign = "center";
       g.fillStyle = col;
-      g.globalAlpha = 0.72 + 0.28 * (0.5 + 0.5 * Math.sin(S.FRAME * 0.08));
+      g.globalAlpha = 0.8 + 0.2 * (0.5 + 0.5 * Math.sin(S.FRAME * 0.08));
       g.fillText(text, RW / 2, y);
       g.globalAlpha = 1;
     }
@@ -6773,7 +6775,7 @@
       g.fillText("\u0412\u042B\u0411\u041E\u0420 \u0411\u041E\u0419\u0426\u0410", RW / 2, 16);
       g.font = '7px "Russo One"';
       g.fillStyle = "#807850";
-      const hdr = s.mode === "arcade" ? loadArcRun() ? "\u041D\u041E\u0412\u0410\u042F \u0410\u0420\u041A\u0410\u0414\u0410 \u0417\u0410\u041C\u0415\u041D\u0418\u0422 \u0421\u041E\u0425\u0420\u0410\u041D\u0401\u041D\u041D\u0423\u042E" : "\u0412\u042B\u0411\u0415\u0420\u0418 \u0411\u041E\u0419\u0426\u0410 \u2014 " + ARC_TOTAL + " \u0411\u041E\u0401\u0412, \u0424\u0418\u041D\u0410\u041B\u042C\u041D\u042B\u0419 \u0411\u041E\u0421\u0421" : s.ph === 2 ? "\u041F\u041E\u0414\u0413\u041E\u0422\u041E\u0412\u041A\u0410 \u041A \u0411\u041E\u042E" : s.mode === "cpu" ? s.ph === 0 ? "\u0412\u042B\u0411\u0415\u0420\u0418 \u0421\u0412\u041E\u0415\u0413\u041E \u0411\u041E\u0419\u0426\u0410" : "\u0412\u042B\u0411\u0415\u0420\u0418 \u0421\u041E\u041F\u0415\u0420\u041D\u0418\u041A\u0410" : "P1: WASD + J \xB7 P2: \u0421\u0422\u0420\u0415\u041B\u041A\u0418 + I";
+      const hdr = s.mode === "arcade" ? loadArcRun() ? "\u041D\u041E\u0412\u0410\u042F \u0410\u0420\u041A\u0410\u0414\u0410 \u0417\u0410\u041C\u0415\u041D\u0418\u0422 \u0421\u041E\u0425\u0420\u0410\u041D\u0401\u041D\u041D\u0423\u042E" : "\u0412\u042B\u0411\u0415\u0420\u0418 \u0411\u041E\u0419\u0426\u0410 \u2014 " + ARC_TOTAL + " \u0411\u041E\u0401\u0412 \xB7 \u0411\u041E\u0421\u0421 \u0412 \u0424\u0418\u041D\u0410\u041B\u0415" : s.ph === 2 ? "\u041F\u041E\u0414\u0413\u041E\u0422\u041E\u0412\u041A\u0410 \u041A \u0411\u041E\u042E" : s.mode === "cpu" ? s.ph === 0 ? "\u0412\u042B\u0411\u0415\u0420\u0418 \u0421\u0412\u041E\u0415\u0413\u041E \u0411\u041E\u0419\u0426\u0410" : "\u0412\u042B\u0411\u0415\u0420\u0418 \u0421\u041E\u041F\u0415\u0420\u041D\u0418\u041A\u0410" : "P1: WASD + J \xB7 P2: \u0421\u0422\u0420\u0415\u041B\u041A\u0418 + I";
       g.fillText(hdr, RW / 2, 27);
       for (let i = 0; i < CH.length; i++) {
         const x = 12 + i % 5 * 37, y = 36 + (i / 5 | 0) * 46;
@@ -6810,7 +6812,7 @@
       g.fillStyle = "rgba(200,160,64,.22)";
       g.fillRect(196, 34, 1, 150);
       const cur = s.mode === "2p" ? s.last === "c2" ? s.c2 : s.c1 : s.mode === "cpu" ? s.ph === 0 ? s.c1 : s.c2 : s.c1;
-      const showP2 = s.mode === "2p" ? cur === s.c2 : s.mode === "cpu" && s.ph === 1;
+      const seqP2 = s.mode === "2p" && cur === s.c2, seqGeneric = s.mode === "cpu" && s.ph === 1;
       const d = CH[cur];
       panel(200, 34, 216, 150);
       g.fillStyle = d.acc;
@@ -6845,10 +6847,10 @@
         g.font = '7px "Russo One"';
         g.fillStyle = "#e8c040";
         g.fillText("\u0421\u041F\u0415\u0426: " + d.specN, 298, 116);
-        g.fillText("[" + seqTxt(d.spec, showP2) + "]", 298, 125);
+        g.fillText("[" + seqTxt(d.spec, seqP2, 1, seqGeneric) + "]", 298, 125);
         g.fillStyle = "#c8a040";
         g.fillText("\u0421\u041F\u0415\u04262: " + d.spec2N, 298, 136);
-        g.fillText("[" + seqTxt(d.spec2, showP2) + "]", 298, 145);
+        g.fillText("[" + seqTxt(d.spec2, seqP2, 1, seqGeneric) + "]", 298, 145);
         g.fillStyle = "#e8c040";
         g.fillText("\u0421\u0423\u041F\u0415\u0420: " + d.sup, 298, 157);
         g.fillStyle = "#807850";
@@ -7204,12 +7206,10 @@
     }
     function drawSettings() {
       bgFill();
-      g.font = '20px "Rubik Mono One","Russo One",sans-serif';
+      g.font = '16px "Russo One"';
       g.textAlign = "center";
-      g.fillStyle = "#000";
-      g.fillText("\u041D\u0410\u0421\u0422\u0420\u041E\u0419\u041A\u0418", RW / 2 + 2, 38);
-      g.fillStyle = "#e02020";
-      g.fillText("\u041D\u0410\u0421\u0422\u0420\u041E\u0419\u041A\u0418", RW / 2, 36);
+      g.fillStyle = UI_GOLD;
+      g.fillText("\u041D\u0410\u0421\u0422\u0420\u041E\u0419\u041A\u0418", RW / 2, 24);
       panel(30, 50, RW - 60, 158);
       g.fillStyle = "rgba(200,160,64,.16)";
       g.fillRect(52, 110, RW - 104, 1);
@@ -7244,23 +7244,23 @@
       g.fillStyle = "rgba(200,160,64,.38)";
       g.fillRect(24, 68, RW - 48, 1);
       g.fillStyle = "rgba(0,0,0,.28)";
-      g.fillRect(20, 74, 110, 126);
-      g.fillRect(138, 74, 122, 126);
-      g.fillRect(268, 74, 136, 126);
+      g.fillRect(20, 74, 120, 126);
+      g.fillRect(146, 74, 126, 126);
+      g.fillRect(278, 74, 126, 126);
       g.fillStyle = "rgba(200,160,64,.24)";
-      g.fillRect(20, 74, 110, 1);
-      g.fillRect(138, 74, 122, 1);
-      g.fillRect(268, 74, 136, 1);
+      g.fillRect(20, 74, 120, 1);
+      g.fillRect(146, 74, 126, 1);
+      g.fillRect(278, 74, 126, 1);
       pauseItems().forEach((it, i) => {
         const y = 92 + i * 17, on = i === S.pauseIdx;
         if (on) {
           g.fillStyle = "rgba(224,32,32,.10)";
-          g.fillRect(24, y - 11, 102, 15);
+          g.fillRect(24, y - 11, 112, 15);
         }
         g.font = on ? '8px "Russo One"' : '7px "Russo One"';
         g.fillStyle = on ? "#fff" : "#c8a040";
         g.textAlign = "center";
-        g.fillText(it, 75, y);
+        g.fillText(it, 80, y);
       });
       const ab = (f, x) => {
         const d = f.def, p2 = f === S.battle.p2;
@@ -7269,7 +7269,7 @@
         g.textAlign = "center";
         g.fillText(d.name, x, 88);
         g.fillStyle = "rgba(200,160,64,.22)";
-        g.fillRect(x - 50, 92, 100, 1);
+        g.fillRect(x - 56, 92, 112, 1);
         g.font = '7px "Russo One"';
         g.fillStyle = "#e8e0c0";
         g.fillText("\u0421\u041F\u0415\u0426: " + d.specN, x, 104);
@@ -7286,12 +7286,12 @@
         g.fillStyle = "#e8e0c0";
         g.fillText("\u0424\u0410\u0422\u0410\u041B\u0418\u0422\u0418: [" + seqTxt(d.fat, p2, f.face) + "]", x, 161);
         g.fillStyle = "#e8e0c0";
-        g.fillText("\u0411\u0420\u041E\u0421\u041E\u041A: " + (d.throwN || "\u0417\u0410\u0425\u0412\u0410\u0422"), x, 172, 128);
+        g.fillText("\u0411\u0420\u041E\u0421\u041E\u041A: " + (d.throwN || "\u0417\u0410\u0425\u0412\u0410\u0422"), x, 172, 118);
         g.fillStyle = "#c8a040";
         g.fillText(p2 ? "[I + O]" : "[J + K]", x, 183);
       };
-      ab(S.battle.p1, 199);
-      ab(S.battle.p2, 336);
+      ab(S.battle.p1, 209);
+      ab(S.battle.p2, 341);
       uiHint(isTouchUI() ? "P \u2014 \u0412\u042B\u0411\u041E\u0420/\u0413\u0420\u041E\u041C\u041A\u041E\u0421\u0422\u042C \xB7 B \u2014 \u0417\u0410\u041A\u0420\u042B\u0422\u042C" : "J \u2014 \u0412\u042B\u0411\u041E\u0420 \xB7 A/D \u2014 \u0413\u0420\u041E\u041C\u041A\u041E\u0421\u0422\u042C \xB7 ESC \u2014 \u0417\u0410\u041A\u0420\u042B\u0422\u042C", 228);
     }
     function loop(ts) {

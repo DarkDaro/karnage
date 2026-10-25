@@ -239,7 +239,7 @@ g.fillStyle='#2a0a0a';g.fillRect(x,40,w,3);
 g.fillStyle=f.rage>=100?(blink()?'#ff7050':'#c02010'):'#8a2018';g.fillRect(dir>0?x:x+w-w*f.rage/100,40,w*f.rage/100,3);
 if(f.rage>=100){g.fillStyle='rgba(255,96,64,.35)';g.fillRect(dir>0?x:x+w-w,40,w,3);}// свечение полной ярости
 g.fillStyle='#3a3418';g.fillRect(x,44,w,2);g.fillStyle='#c8b040';g.fillRect(dir>0?x:x+w-w*f.run/100,44,w*f.run/100,2);
-if(f.rage>=100&&blink()){g.fillStyle='#ff5030';g.font='7px "Russo One"';g.fillText('СУПЕР ГОТОВ',dir>0?x+2:x+w-2,52);}};
+if(f.rage>=100){g.fillStyle='#ff5030';g.font='7px "Russo One"';g.globalAlpha=.72+.28*(.5+.5*Math.sin(S.FRAME*.08));g.fillText('СУПЕР ГОТОВ',dir>0?x+2:x+w-2,52);g.globalAlpha=1;}};
 bar(p1,40,1);bar(p2,RW-190,-1);
 drawPort(p1.def,24,26.5,.8);drawPort(p2.def,RW-24,26.5,.8);
 const pt1=portraitTop(p1.def),pt2=portraitTop(p2.def);// рамки портретов в цвете стихии, с запасом под рога/нимб/корону
@@ -252,7 +252,7 @@ for(let i=0;i<2;i++){pip(RW/2-45-i*9,10,i<p1.wins);pip(RW/2+39+i*9,10,i<p2.wins)
 function bigText(t,y,col,sc){g.save();g.translate(RW/2,y);g.scale(sc,sc);g.font='20px "Rubik Mono One","Russo One",sans-serif';g.textAlign='center';g.fillStyle='#000';for(let dx=-2;dx<=2;dx+=2)for(let dy=-2;dy<=2;dy+=2)g.fillText(t,dx,dy);g.fillStyle=col;g.fillText(t,0,0);g.restore();}// 08.09: заголовочный шрифт Rubik Mono One
 function frame(x,y,w,h,key='panel'){const p=UI[key];if(p&&p.ready){const sm=p.slice||12,dm=Math.min(sm,Math.max(2,Math.floor(Math.min(w,h)/2))),iw=p.image.width,ih=p.image.height,cw=iw-sm*2,ch=ih-sm*2;g.save();g.imageSmoothingEnabled=false;g.drawImage(p.image,0,0,sm,sm,x,y,dm,dm);g.drawImage(p.image,iw-sm,0,sm,sm,x+w-dm,y,dm,dm);g.drawImage(p.image,0,ih-sm,sm,sm,x,y+h-dm,dm,dm);g.drawImage(p.image,iw-sm,ih-sm,sm,sm,x+w-dm,y+h-dm,dm,dm);g.drawImage(p.image,sm,0,cw,sm,x+dm,y,w-dm*2,dm);g.drawImage(p.image,sm,ih-sm,cw,sm,x+dm,y+h-dm,w-dm*2,dm);g.drawImage(p.image,0,sm,sm,ch,x,y+dm,dm,h-dm*2);g.drawImage(p.image,iw-sm,sm,sm,ch,x+w-dm,y+dm,dm,h-dm*2);g.restore();return true;}g.strokeStyle='#c8a040';g.lineWidth=1;g.strokeRect(x+.5,y+.5,w-1,h-1);g.fillStyle='#c8a040';g.fillRect(x,y,3,3);g.fillRect(x+w-3,y,3,3);g.fillRect(x,y+h-3,3,3);g.fillRect(x+w-3,y+h-3,3,3);return false;}
 function panel(x,y,w,h){g.fillStyle='rgba(10,8,6,.93)';g.fillRect(x,y,w,h);frame(x,y,w,h);}
-const seqTxt=(s,p2,face=1)=>s.split('').map(x=>{if(face<0&&x==='L')x='R';else if(face<0&&x==='R')x='L';return ({D:'\u2193',U:'\u2191',L:'\u2190',R:'\u2192',P:p2?'I':'J',K:p2?'O':'K'})[x];}).join(' ');
+const seqTxt=(s,p2,face=1,generic=false)=>s.split('').map(x=>{if(face<0&&x==='L')x='R';else if(face<0&&x==='R')x='L';return ({D:'\u2193',U:'\u2191',L:'\u2190',R:'\u2192',P:generic?'P':p2?'I':'J',K:generic?'K':p2?'O':'K'})[x];}).join(' ');
 function drawFatalPanel(b){
 const left=Math.max(0,1-b.phaseT/fatalFrames);g.fillStyle='rgba(0,0,0,.6)';g.fillRect(RW/2-80,220,160,5);g.fillStyle=left>.35?'#c8a040':'#e04020';g.fillRect(RW/2-80,220,160*left,5);g.strokeStyle='#c8a040';g.lineWidth=1;g.strokeRect(RW/2-80.5,219.5,161,6);
 if(!b.winner.ctrl.ai){const w=b.winner,p2=w===b.p2,prog=b.fatalProg||0,seq=fatalMapped(w.def.fat,w.face),n=seq.length,secs=Math.max(0,Math.ceil((fatalFrames-b.phaseT)/60));
