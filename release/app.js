@@ -6767,19 +6767,29 @@
     const FX = fxAssets || {}, ARENA_IMG = arenaAssets || {}, UI = uiAssets || {};
     const S = createState();
     const cv = document.getElementById("cv"), g = cv.getContext("2d");
-    let RSCALE = 5;
+    let RSCALE = 5, MAX_SCALE = 6, MIN_SCALE = 3, scaleReady = false, scaleDirty = false;
+    function applyRScale() {
+      const w = RW * RSCALE, h = RH * RSCALE;
+      if (cv.width !== w || cv.height !== h) {
+        cv.width = w;
+        cv.height = h;
+      }
+      scaleDirty = false;
+    }
     function fit() {
       let s = Math.min(innerWidth / RW, innerHeight / RH);
       if (s >= 2) s = Math.floor(s);
       cv.style.width = s * RW + "px";
       cv.style.height = s * RH + "px";
       document.body.classList.toggle("portrait", innerHeight > innerWidth);
-      const touch = navigator.maxTouchPoints > 0, dpr = Math.min(3, window.devicePixelRatio || 1), cap = touch ? 4 : 6, min = touch ? 3 : 4;
-      RSCALE = Math.max(min, Math.min(cap, Math.round(s * dpr * 1.5)));
-      if (cv.width !== RW * RSCALE || cv.height !== RH * RSCALE) {
-        cv.width = RW * RSCALE;
-        cv.height = RH * RSCALE;
-      }
+      const touch = navigator.maxTouchPoints > 0, dpr = Math.min(3, window.devicePixelRatio || 1), cap = touch ? 4 : 6;
+      MAX_SCALE = Math.max(touch ? 3 : 4, Math.min(cap, Math.round(s * dpr * 1.5)));
+      MIN_SCALE = Math.min(touch ? 2 : 3, MAX_SCALE);
+      if (!scaleReady) {
+        RSCALE = MAX_SCALE;
+        scaleReady = true;
+      } else RSCALE = Math.max(MIN_SCALE, Math.min(MAX_SCALE, RSCALE));
+      applyRScale();
     }
     addEventListener("resize", fit);
     fit();
@@ -9146,15 +9156,68 @@
       ab(S.battle.p2, 341);
       uiHint(isTouchUI() ? "P \u2014 \u0412\u042B\u0411\u041E\u0420/\u0413\u0420\u041E\u041C\u041A\u041E\u0421\u0422\u042C \xB7 B \u2014 \u0417\u0410\u041A\u0420\u042B\u0422\u042C" : "J \u2014 \u0412\u042B\u0411\u041E\u0420 \xB7 A/D \u2014 \u0413\u0420\u041E\u041C\u041A\u041E\u0421\u0422\u042C \xB7 ESC \u2014 \u0417\u0410\u041A\u0420\u042B\u0422\u042C", 228);
     }
+    let perfAcc = 0, perfFrames = 0, perfBadWin = 0, perfGoodWin = 0, perfWarm = 800, perfCool = 0, perfLast = 0, perfAvg = 0;
+    function tuneScale(dt) {
+      perfLast = dt;
+      if (document.hidden || S.paused || dt < 1 || dt > 1e3) return;
+      if (perfWarm > 0) {
+        perfWarm = Math.max(0, perfWarm - dt);
+        return;
+      }
+      if (perfCool > 0) {
+        perfCool = Math.max(0, perfCool - dt);
+        if (perfCool === 0) {
+          perfAcc = 0;
+          perfFrames = 0;
+          perfBadWin = 0;
+          perfGoodWin = 0;
+        }
+        return;
+      }
+      perfAcc += Math.min(500, dt);
+      perfFrames++;
+      if (perfAcc < 1e3 || perfFrames < 8) return;
+      perfAvg = perfAcc / perfFrames;
+      perfAcc = 0;
+      perfFrames = 0;
+      if (perfAvg > 20) {
+        perfGoodWin = 0;
+        if (RSCALE > MIN_SCALE) perfBadWin++;
+      } else if (perfAvg < 17.2) {
+        perfBadWin = 0;
+        if (RSCALE < MAX_SCALE) perfGoodWin++;
+      } else {
+        perfBadWin = 0;
+        perfGoodWin = 0;
+      }
+      if (perfBadWin >= 2 && RSCALE > MIN_SCALE) {
+        RSCALE--;
+        scaleDirty = true;
+        perfCool = 1500;
+        perfBadWin = 0;
+        perfGoodWin = 0;
+        return;
+      }
+      if (perfGoodWin >= 4 && RSCALE < MAX_SCALE) {
+        RSCALE++;
+        scaleDirty = true;
+        perfCool = 2e3;
+        perfBadWin = 0;
+        perfGoodWin = 0;
+      }
+    }
     function loop(ts) {
       requestAnimationFrame(loop);
-      S.acc += Math.min(50, ts - S.last);
+      if (scaleDirty) applyRScale();
+      const rawDt = ts - S.last, dt = Math.min(50, rawDt);
+      S.acc += dt;
       S.last = ts;
       while (S.acc >= 1e3 / 60) {
         S.acc -= 1e3 / 60;
         step();
       }
       render();
+      tuneScale(rawDt);
     }
     function step() {
       S.FRAME++;
@@ -9420,6 +9483,21 @@
         },
         get paused() {
           return S.paused;
+        },
+        get RSCALE() {
+          return RSCALE;
+        },
+        get maxRSCALE() {
+          return MAX_SCALE;
+        },
+        get minRSCALE() {
+          return MIN_SCALE;
+        },
+        get perf() {
+          return { warm: Math.round(perfWarm), cool: Math.round(perfCool), frames: perfFrames, avg: Math.round(perfAvg * 10) / 10, good: perfGoodWin, bad: perfBadWin, dt: Math.round(perfLast) };
+        },
+        tuneFrame(dt) {
+          tuneScale(dt);
         },
         get battle() {
           return S.battle;

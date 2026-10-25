@@ -79,6 +79,35 @@ test('renders at an internal resolution above the logical world', async () => {
   assert.ok(canvas.width >= 424 * 4);
   assert.ok(canvas.height >= 240 * 4);
   assert.ok(Math.abs(canvas.ratio - canvas.logicalRatio) < 0.001);
+  const scale = await page.evaluate(() => ({
+    current: window.KARNAGE.RSCALE,
+    min: window.KARNAGE.minRSCALE,
+    max: window.KARNAGE.maxRSCALE
+  }));
+  assert.ok(scale.current >= 4);
+  assert.ok(scale.current >= scale.min);
+  assert.ok(scale.current <= scale.max);
+});
+
+test('adaptive scale rises on steady frames and falls on slow ones', async () => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await page.evaluate(() => window.dispatchEvent(new window.Event('resize')));
+  const before = await page.evaluate(() => window.KARNAGE.RSCALE);
+  assert.equal(before, 5);
+  const raised = await page.evaluate(() => {
+    for (let i = 0; i < 320; i += 1) window.KARNAGE.tuneFrame(16.7);
+    return window.KARNAGE.RSCALE;
+  });
+  assert.equal(raised, 6);
+  const lowered = await page.evaluate(() => {
+    for (let i = 0; i < 120; i += 1) window.KARNAGE.tuneFrame(16.7);
+    for (let i = 0; i < 120; i += 1) window.KARNAGE.tuneFrame(25);
+    return window.KARNAGE.RSCALE;
+  });
+  assert.equal(lowered, 5);
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await page.evaluate(() => window.dispatchEvent(new window.Event('resize')));
+  assert.equal(await page.evaluate(() => window.KARNAGE.RSCALE), 5);
 });
 
 test('renders every screen', async () => {

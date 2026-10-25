@@ -30,7 +30,7 @@
 - CC0-эффекты: `hitLight`, `hitHeavy`, `dust`.
 - Все 10 арен — 4 слоя, параллакс, свет, туман и погода; передний слой не закрывает бойцов.
 - Звук включён по умолчанию; WAV-эффекты и MP3-музыка, выбор сохраняется.
-- Тесты: 59 сценариев (12 unit + 47 Playwright).
+- Тесты: 60 сценариев (12 unit + 48 Playwright).
 - `npm run check`: синтаксис, ESLint, UTF-8/BOM, ростер, checksums архивов.
 
 ## Текущий технический проход
@@ -66,7 +66,7 @@
 - все 10 арен на ассетах с fallback, слои `far/mid/props/fg`, свет и погода;
 - `src/game/world/arena.js` вынесен из монолита;
 - `src/render/render.js` выносит бойцов, гир, портреты, HUD, панель фаталити и эффекты; новый комиксовый рендер тела/лиц/гира и портретов — в `src/render/fighter-art.js`; старый рендер доступен как `drawFLegacy`/`drawPortLegacy`;
-- внутреннее разрешение canvas динамическое 2–6× с supersampling (`RSCALE` в `fit()`/`render()`, `image-rendering: auto`), логический мир остаётся `424×240`;
+- внутреннее разрешение canvas динамическое: старт 4–6× с supersampling (`RSCALE` в `fit()`/`render()`, `image-rendering: auto`), логический мир остаётся `424×240`; `tuneScale()` снижает до 3×/2× при средней задержке >20 мс и возвращает вверх при стабильных <17.2 мс, с warmup, cooldown и гистерезисом;
 - `src/audio/audio.js` хранит AU, WAV/MP3-банк, синтез SFX, голос и музыку;
 - `src/game/core/state.js` хранит состояние сессии, боя, выбора и эффектов;
 - `src/game/fx/particles.js` отвечает за частицы, кровь, декали и лимиты;
@@ -191,7 +191,7 @@ npm run assets:build
 1. `git status --short` — нет случайных файлов, `node_modules` и `test-results` не в индексе.
 2. `npm run assets:build` — если менялись `assets/vendor` или `assets/fx`.
 3. `npm run build` — обновить `release/app.js` и `release/assets/fx`.
-4. `npm test` — 59/59.
+4. `npm test` — 60/60.
 5. `npm run check` — ESLint и audit без ошибок.
 6. Открыть `index.html` двойным кликом: титул, меню, бой, эффект удара.
 7. Проверить `release/index.html` отдельно, как переносимую папку.
