@@ -240,10 +240,10 @@
       image.src = src;
     });
   }
-  async function loadLayer(key, layer) {
-    const source = layer.image || `${key}/${layer.file}`;
+  async function loadLayer(key, layer2) {
+    const source = layer2.image || `${key}/${layer2.file}`;
     const image = await loadImage(new URL(source, base).href);
-    return { ...layer, image };
+    return { ...layer2, image };
   }
   async function loadArenaAssets() {
     const entries = await Promise.all(
@@ -258,7 +258,7 @@
               props = null;
             }
           }
-          const layers = Array.isArray(definition.layers) ? await Promise.all(definition.layers.map((layer) => loadLayer(key, layer))) : [];
+          const layers = Array.isArray(definition.layers) ? await Promise.all(definition.layers.map((layer2) => loadLayer(key, layer2))) : [];
           return [key, { ...definition, image, props, layers, ready: true }];
         } catch {
           return [key, { ...definition, layers: [], ready: false }];
@@ -796,17 +796,17 @@
     return `rgba(${r},${g},${b},${alpha})`;
   }
   function createArenaView({ g, RW, RH, FL, AR: AR2, assets, shade, mix }) {
-    function drawLayer(layer, cam, opacity = 1) {
-      const image = layer.image;
+    function drawLayer(layer2, cam, opacity = 1) {
+      const image = layer2.image;
       if (!image) return;
       const maxSource = Math.max(0, image.width - RW);
-      const sourceX = clamp(Math.round(cam * (layer.scroll ?? 1)), 0, maxSource);
-      const height = Math.min(layer.height ?? RH, RH);
-      const y = layer.y ?? 0;
+      const sourceX = clamp(Math.round(cam * (layer2.scroll ?? 1)), 0, maxSource);
+      const height = Math.min(layer2.height ?? RH, RH);
+      const y = layer2.y ?? 0;
       g.save();
-      g.globalAlpha = (layer.alpha ?? 1) * opacity;
+      g.globalAlpha = (layer2.alpha ?? 1) * opacity;
       g.imageSmoothingEnabled = false;
-      if (layer.blend) g.globalCompositeOperation = layer.blend;
+      if (layer2.blend) g.globalCompositeOperation = layer2.blend;
       g.drawImage(image, sourceX, 0, RW, height, 0, y, RW, height);
       g.restore();
     }
@@ -912,8 +912,8 @@
       const asset = assets[ai];
       if (!asset || !asset.ready || !Array.isArray(asset.layers) || !asset.layers.length) return false;
       const A = AR2[ai] || AR2[0];
-      for (const layer of asset.layers) {
-        if (!layer.foreground) drawLayer(layer, cam);
+      for (const layer2 of asset.layers) {
+        if (!layer2.foreground) drawLayer(layer2, cam);
       }
       drawFog(asset, cam, time);
       drawGround(A, asset, cam, time);
@@ -924,16 +924,16 @@
       const asset = assets[ai];
       if (!asset || !asset.ready || !Array.isArray(asset.layers)) return false;
       let drawn = false;
-      for (const layer of asset.layers) {
-        if (!layer.foreground) continue;
-        drawLayer(layer, cam, 0.7);
+      for (const layer2 of asset.layers) {
+        if (!layer2.foreground) continue;
+        drawLayer(layer2, cam, 0.7);
         drawn = true;
       }
       return drawn;
     }
     function hasForeground(ai) {
       const asset = assets[ai];
-      return Boolean(asset && asset.ready && Array.isArray(asset.layers) && asset.layers.some((layer) => layer.foreground));
+      return Boolean(asset && asset.ready && Array.isArray(asset.layers) && asset.layers.some((layer2) => layer2.foreground));
     }
     function post() {
       const vignette = g.createRadialGradient(RW * 0.5, FL * 0.52, 80, RW * 0.5, FL * 0.52, 310);
@@ -6443,6 +6443,521 @@
     };
   }
 
+  // src/render/ui-art.js
+  var CACHE_SCALE = 3;
+  function layer(width, height, scale) {
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.ceil(width * scale);
+    canvas.height = Math.ceil(height * scale);
+    const context = canvas.getContext("2d");
+    context.setTransform(scale, 0, 0, scale, 0, 0);
+    context.imageSmoothingEnabled = true;
+    return { canvas, context, width, height, ready: false };
+  }
+  function fillBase(context, RW, RH) {
+    const sky = context.createLinearGradient(0, 0, 0, RH);
+    sky.addColorStop(0, "#0b0706");
+    sky.addColorStop(0.58, "#090605");
+    sky.addColorStop(1, "#050303");
+    context.fillStyle = sky;
+    context.fillRect(0, 0, RW, RH);
+    const glow = context.createRadialGradient(RW / 2, 78, 6, RW / 2, 78, 190);
+    glow.addColorStop(0, "rgba(118,24,16,.20)");
+    glow.addColorStop(0.5, "rgba(70,14,10,.07)");
+    glow.addColorStop(1, "rgba(0,0,0,0)");
+    context.fillStyle = glow;
+    context.fillRect(0, 0, RW, RH);
+    const floor = context.createLinearGradient(0, RH - 72, 0, RH);
+    floor.addColorStop(0, "rgba(0,0,0,0)");
+    floor.addColorStop(1, "rgba(0,0,0,.42)");
+    context.fillStyle = floor;
+    context.fillRect(0, RH - 72, RW, 72);
+    const vignette = context.createRadialGradient(RW / 2, RH * 0.5, 70, RW / 2, RH * 0.5, 255);
+    vignette.addColorStop(0, "rgba(0,0,0,0)");
+    vignette.addColorStop(0.72, "rgba(0,0,0,.10)");
+    vignette.addColorStop(1, "rgba(0,0,0,.55)");
+    context.fillStyle = vignette;
+    context.fillRect(0, 0, RW, RH);
+  }
+  function drawSigil(context, x, y, radius, alpha) {
+    context.save();
+    context.translate(x, y);
+    context.strokeStyle = `rgba(200,160,64,${alpha})`;
+    context.lineWidth = 1;
+    context.beginPath();
+    context.arc(0, 0, radius, 0, Math.PI * 2);
+    context.stroke();
+    context.beginPath();
+    context.arc(0, 0, radius - 5, 0, Math.PI * 2);
+    context.stroke();
+    for (let i = 0; i < 16; i += 1) {
+      const angle = i * Math.PI / 8;
+      const inner = radius - 10;
+      const outer = radius - (i % 2 ? 2 : 5);
+      context.beginPath();
+      context.moveTo(Math.cos(angle) * inner, Math.sin(angle) * inner);
+      context.lineTo(Math.cos(angle) * outer, Math.sin(angle) * outer);
+      context.stroke();
+    }
+    context.restore();
+  }
+  function buildTitleLayer(context, RW, RH, baseCanvas) {
+    context.drawImage(baseCanvas, 0, 0, RW, RH);
+    const distant = context.createRadialGradient(RW / 2, 92, 14, RW / 2, 92, 220);
+    distant.addColorStop(0, "rgba(150,24,14,.20)");
+    distant.addColorStop(0.46, "rgba(74,10,8,.08)");
+    distant.addColorStop(1, "rgba(0,0,0,0)");
+    context.fillStyle = distant;
+    context.fillRect(0, 0, RW, RH);
+    context.save();
+    context.fillStyle = "#070403";
+    context.fillRect(0, 0, 28, RH);
+    context.fillRect(RW - 28, 0, 28, RH);
+    context.fillStyle = "#0d0806";
+    context.fillRect(28, 0, 10, RH);
+    context.fillRect(RW - 38, 0, 10, RH);
+    context.strokeStyle = "rgba(200,160,64,.12)";
+    context.lineWidth = 1;
+    context.beginPath();
+    context.moveTo(27.5, 0);
+    context.lineTo(27.5, RH);
+    context.moveTo(RW - 27.5, 0);
+    context.lineTo(RW - 27.5, RH);
+    context.stroke();
+    context.restore();
+    context.save();
+    context.strokeStyle = "rgba(200,160,64,.10)";
+    context.lineWidth = 1;
+    context.beginPath();
+    context.moveTo(62, 190);
+    context.lineTo(62, 48);
+    context.quadraticCurveTo(92, 18, 140, 12);
+    context.lineTo(284, 12);
+    context.quadraticCurveTo(332, 18, 362, 48);
+    context.lineTo(362, 190);
+    context.stroke();
+    context.beginPath();
+    context.moveTo(78, 190);
+    context.lineTo(78, 55);
+    context.quadraticCurveTo(106, 30, 146, 24);
+    context.lineTo(278, 24);
+    context.quadraticCurveTo(318, 30, 346, 55);
+    context.lineTo(346, 190);
+    context.stroke();
+    context.restore();
+    for (const x of [58, RW - 58]) {
+      const sway = x < RW / 2 ? -2 : 2;
+      context.strokeStyle = "rgba(180,170,140,.14)";
+      context.lineWidth = 1.2;
+      context.beginPath();
+      context.moveTo(x, 0);
+      context.quadraticCurveTo(x + sway, 42, x + sway * 2, 84);
+      context.stroke();
+      for (let y = 8; y < 84; y += 9) {
+        context.strokeRect(x + sway * (y / 42) - 2, y, 4, 5);
+      }
+    }
+    const floor = context.createLinearGradient(0, 184, 0, RH);
+    floor.addColorStop(0, "rgba(44,30,22,.42)");
+    floor.addColorStop(0.35, "rgba(20,12,9,.82)");
+    floor.addColorStop(1, "rgba(4,3,3,.98)");
+    context.fillStyle = floor;
+    context.fillRect(0, 184, RW, RH - 184);
+    context.strokeStyle = "rgba(200,160,64,.12)";
+    context.beginPath();
+    context.moveTo(0, 184.5);
+    context.lineTo(RW, 184.5);
+    context.stroke();
+    context.strokeStyle = "rgba(200,160,64,.055)";
+    for (let i = -5; i <= 5; i += 1) {
+      context.beginPath();
+      context.moveTo(RW / 2 + i * 12, 184);
+      context.lineTo(RW / 2 + i * 42, RH);
+      context.stroke();
+    }
+    for (const y of [196, 212, 232]) {
+      context.beginPath();
+      context.moveTo(0, y);
+      context.lineTo(RW, y);
+      context.stroke();
+    }
+    drawSigil(context, RW / 2, 42, 59, 0.12);
+    const haze = context.createLinearGradient(0, 168, 0, 216);
+    haze.addColorStop(0, "rgba(120,90,70,0)");
+    haze.addColorStop(0.55, "rgba(120,90,70,.035)");
+    haze.addColorStop(1, "rgba(120,90,70,0)");
+    context.fillStyle = haze;
+    context.fillRect(0, 168, RW, 48);
+    const edge = context.createLinearGradient(0, 0, RW, 0);
+    edge.addColorStop(0, "rgba(0,0,0,.42)");
+    edge.addColorStop(0.2, "rgba(0,0,0,0)");
+    edge.addColorStop(0.8, "rgba(0,0,0,0)");
+    edge.addColorStop(1, "rgba(0,0,0,.42)");
+    context.fillStyle = edge;
+    context.fillRect(0, 0, RW, RH);
+  }
+  function buildLogoLayer(context, RW) {
+    const cx = RW / 2;
+    const cy = 40;
+    const backGlow = context.createRadialGradient(cx, cy, 4, cx, cy, 82);
+    backGlow.addColorStop(0, "rgba(236,54,28,.22)");
+    backGlow.addColorStop(0.4, "rgba(150,18,12,.12)");
+    backGlow.addColorStop(1, "rgba(0,0,0,0)");
+    context.fillStyle = backGlow;
+    context.fillRect(cx - 88, 0, 176, 112);
+    context.save();
+    context.strokeStyle = "rgba(200,160,64,.24)";
+    context.lineWidth = 1.4;
+    context.beginPath();
+    context.arc(cx, cy + 1, 48, 0, Math.PI * 2);
+    context.stroke();
+    context.strokeStyle = "rgba(224,32,32,.18)";
+    context.setLineDash([2, 6]);
+    context.beginPath();
+    context.arc(cx, cy + 1, 53, 0, Math.PI * 2);
+    context.stroke();
+    context.setLineDash([]);
+    context.restore();
+    context.save();
+    context.translate(cx, cy + 1);
+    context.scale(0.9, 0.9);
+    const crown = context.createLinearGradient(0, -48, 0, -27);
+    crown.addColorStop(0, "#8a5a16");
+    crown.addColorStop(0.45, "#e8c040");
+    crown.addColorStop(1, "#6e3f0c");
+    context.fillStyle = crown;
+    context.strokeStyle = "#170b05";
+    context.lineWidth = 1.4;
+    context.beginPath();
+    context.moveTo(-20, -20);
+    context.lineTo(-18, -35);
+    context.lineTo(-11, -28);
+    context.lineTo(-7, -43);
+    context.lineTo(0, -32);
+    context.lineTo(7, -43);
+    context.lineTo(11, -28);
+    context.lineTo(18, -35);
+    context.lineTo(20, -20);
+    context.closePath();
+    context.fill();
+    context.stroke();
+    context.fillStyle = "rgba(255,236,150,.38)";
+    context.fillRect(-18, -22, 36, 1);
+    const horn = context.createLinearGradient(-30, -35, -10, -8);
+    horn.addColorStop(0, "#8a7a62");
+    horn.addColorStop(0.55, "#c4b59c");
+    horn.addColorStop(1, "#4d3d2d");
+    context.fillStyle = horn;
+    context.strokeStyle = "#160c08";
+    context.lineWidth = 1.6;
+    context.beginPath();
+    context.moveTo(-19, -21);
+    context.bezierCurveTo(-28, -29, -33, -42, -29, -46);
+    context.bezierCurveTo(-23, -37, -16, -31, -10, -28);
+    context.closePath();
+    context.fill();
+    context.stroke();
+    context.beginPath();
+    context.moveTo(19, -21);
+    context.bezierCurveTo(28, -29, 33, -42, 29, -46);
+    context.bezierCurveTo(23, -37, 16, -31, 10, -28);
+    context.closePath();
+    context.fill();
+    context.stroke();
+    const bone = context.createLinearGradient(-24, -34, 24, 36);
+    bone.addColorStop(0, "#efe2c8");
+    bone.addColorStop(0.3, "#cfbea2");
+    bone.addColorStop(0.66, "#9c896e");
+    bone.addColorStop(1, "#5d4a38");
+    context.fillStyle = bone;
+    context.strokeStyle = "#160d09";
+    context.lineWidth = 2;
+    context.beginPath();
+    context.moveTo(-24, -12);
+    context.bezierCurveTo(-27, -28, -15, -37, 0, -37);
+    context.bezierCurveTo(15, -37, 27, -28, 24, -12);
+    context.lineTo(26, 2);
+    context.bezierCurveTo(26, 16, 19, 25, 12, 27);
+    context.lineTo(12, 32);
+    context.lineTo(-12, 32);
+    context.lineTo(-12, 27);
+    context.bezierCurveTo(-19, 25, -26, 16, -26, 2);
+    context.closePath();
+    context.fill();
+    context.stroke();
+    context.fillStyle = "rgba(58,30,22,.38)";
+    context.beginPath();
+    context.ellipse(-20, 8, 5, 12, -0.18, 0, Math.PI * 2);
+    context.fill();
+    context.beginPath();
+    context.ellipse(20, 8, 5, 12, 0.18, 0, Math.PI * 2);
+    context.fill();
+    context.fillStyle = "#1a0705";
+    context.beginPath();
+    context.ellipse(-10, -2, 7.5, 8.5, -0.08, 0, Math.PI * 2);
+    context.fill();
+    context.beginPath();
+    context.ellipse(10, -2, 7.5, 8.5, 0.08, 0, Math.PI * 2);
+    context.fill();
+    const ember = context.createRadialGradient(-10, -1, 0, -10, -1, 5);
+    ember.addColorStop(0, "rgba(255,90,52,.72)");
+    ember.addColorStop(0.45, "rgba(180,18,12,.34)");
+    ember.addColorStop(1, "rgba(20,3,3,0)");
+    context.fillStyle = ember;
+    context.beginPath();
+    context.arc(-10, -1, 5, 0, Math.PI * 2);
+    context.fill();
+    context.beginPath();
+    context.arc(10, -1, 5, 0, Math.PI * 2);
+    context.fill();
+    context.fillStyle = "#220b07";
+    context.beginPath();
+    context.moveTo(0, 6);
+    context.lineTo(-4, 15);
+    context.lineTo(4, 15);
+    context.closePath();
+    context.fill();
+    context.strokeStyle = "rgba(38,20,14,.58)";
+    context.lineWidth = 1.1;
+    context.beginPath();
+    context.moveTo(19, -20);
+    context.lineTo(14, -9);
+    context.lineTo(18, 1);
+    context.moveTo(-18, 5);
+    context.lineTo(-24, 14);
+    context.moveTo(6, 24);
+    context.lineTo(9, 31);
+    context.stroke();
+    context.fillStyle = "#2a0e09";
+    context.strokeStyle = "#160d09";
+    context.lineWidth = 1.4;
+    context.beginPath();
+    context.moveTo(-15, 29);
+    context.quadraticCurveTo(-18, 39, -11, 45);
+    context.quadraticCurveTo(0, 49, 11, 45);
+    context.quadraticCurveTo(18, 39, 15, 29);
+    context.closePath();
+    context.fill();
+    context.stroke();
+    context.fillStyle = "#0d0504";
+    context.fillRect(-13, 35, 26, 8);
+    context.fillStyle = "#c5b293";
+    for (let i = 0; i < 5; i += 1) {
+      context.fillRect(-11 + i * 5, 35, 3, 4);
+      context.fillRect(-9 + i * 5, 41, 3, 3);
+    }
+    context.fillStyle = "rgba(255,238,200,.42)";
+    context.fillRect(-13, 35, 26, 1);
+    context.strokeStyle = "rgba(224,32,32,.32)";
+    context.lineWidth = 1.5;
+    context.beginPath();
+    context.moveTo(22, -18);
+    context.quadraticCurveTo(28, 4, 19, 25);
+    context.stroke();
+    context.restore();
+    const word = "KARNAGE";
+    context.save();
+    context.font = '50px "Russo One", sans-serif';
+    const measured = context.measureText(word).width || 260;
+    const stretch = 286 / measured;
+    context.translate(cx, 130);
+    context.scale(stretch, 1);
+    context.textAlign = "center";
+    context.textBaseline = "alphabetic";
+    context.lineJoin = "round";
+    context.shadowColor = "rgba(180,20,10,.72)";
+    context.shadowBlur = 12;
+    context.strokeStyle = "#0d0303";
+    context.lineWidth = 7;
+    context.strokeText(word, 0, 0);
+    context.shadowBlur = 0;
+    context.strokeStyle = "#4b0b08";
+    context.lineWidth = 2.4;
+    context.strokeText(word, 0, 0);
+    const metal = context.createLinearGradient(0, -49, 0, 2);
+    metal.addColorStop(0, "#fff0b8");
+    metal.addColorStop(0.28, "#f2ce68");
+    metal.addColorStop(0.52, "#d55a2c");
+    metal.addColorStop(0.76, "#90140c");
+    metal.addColorStop(1, "#360504");
+    context.fillStyle = metal;
+    context.fillText(word, 0, 0);
+    context.restore();
+    context.fillStyle = "#c8a040";
+    context.fillRect(cx - 102, 139, 84, 1);
+    context.fillRect(cx + 18, 139, 84, 1);
+    context.fillStyle = "#e02020";
+    context.fillRect(cx - 12, 138, 24, 3);
+    context.fillStyle = "rgba(255,220,140,.55)";
+    context.fillRect(cx - 12, 138, 24, 1);
+    context.font = '9px "Russo One", sans-serif';
+    context.textAlign = "center";
+    context.fillStyle = "#e8c040";
+    context.fillText("\u0421 \u041C \u0415 \u0420 \u0422 \u0415 \u041B \u042C \u041D \u042B \u0419   \u0422 \u0423 \u0420 \u041D \u0418 \u0420", cx, 154);
+  }
+  function buildCompactLogo(context, RW) {
+    const cx = RW / 2;
+    const glow = context.createRadialGradient(cx, 23, 4, cx, 23, 86);
+    glow.addColorStop(0, "rgba(224,32,32,.22)");
+    glow.addColorStop(0.55, "rgba(128,16,12,.08)");
+    glow.addColorStop(1, "rgba(0,0,0,0)");
+    context.fillStyle = glow;
+    context.fillRect(cx - 90, 0, 180, 48);
+    context.font = '24px "Rubik Mono One", "Russo One", sans-serif';
+    context.textAlign = "center";
+    context.textBaseline = "alphabetic";
+    context.lineJoin = "round";
+    context.shadowColor = "rgba(180,20,10,.68)";
+    context.shadowBlur = 8;
+    context.strokeStyle = "#0d0303";
+    context.lineWidth = 4;
+    context.strokeText("KARNAGE", cx, 30);
+    context.shadowBlur = 0;
+    context.strokeStyle = "#4b0b08";
+    context.lineWidth = 1.5;
+    context.strokeText("KARNAGE", cx, 30);
+    const metal = context.createLinearGradient(0, 8, 0, 32);
+    metal.addColorStop(0, "#fff0b8");
+    metal.addColorStop(0.36, "#f2ce68");
+    metal.addColorStop(0.68, "#c4341c");
+    metal.addColorStop(1, "#4c0705");
+    context.fillStyle = metal;
+    context.fillText("KARNAGE", cx, 30);
+    context.fillStyle = "rgba(200,160,64,.48)";
+    context.fillRect(cx - 62, 37, 46, 1);
+    context.fillRect(cx + 16, 37, 46, 1);
+    context.fillStyle = "#e02020";
+    context.fillRect(cx - 9, 36, 18, 3);
+    context.fillStyle = "rgba(255,220,140,.6)";
+    context.fillRect(cx - 9, 36, 18, 1);
+  }
+  function createUiArt({ RW, RH }) {
+    const base4 = layer(RW, RH, 2);
+    const title = layer(RW, RH, 2);
+    const logo = layer(RW, 160, CACHE_SCALE);
+    const compact = layer(RW, 48, CACHE_SCALE);
+    let revision = 0;
+    const ensureBase = () => {
+      if (base4.ready) return;
+      base4.context.clearRect(0, 0, RW, RH);
+      fillBase(base4.context, RW, RH);
+      base4.ready = true;
+      revision += 1;
+    };
+    const ensureTitle = () => {
+      ensureBase();
+      if (title.ready) return;
+      title.context.clearRect(0, 0, RW, RH);
+      buildTitleLayer(title.context, RW, RH, base4.canvas);
+      title.ready = true;
+      revision += 1;
+    };
+    const ensureLogo = () => {
+      if (logo.ready) return;
+      logo.context.clearRect(0, 0, RW, 160);
+      buildLogoLayer(logo.context, RW);
+      logo.ready = true;
+      revision += 1;
+    };
+    const ensureCompact = () => {
+      if (compact.ready) return;
+      compact.context.clearRect(0, 0, RW, 48);
+      buildCompactLogo(compact.context, RW);
+      compact.ready = true;
+      revision += 1;
+    };
+    function drawBase(context) {
+      ensureBase();
+      context.drawImage(base4.canvas, 0, 0, RW, RH);
+    }
+    function drawTitleBackground(context, time) {
+      ensureTitle();
+      context.drawImage(title.canvas, 0, 0, RW, RH);
+      context.save();
+      context.translate(RW / 2, 41);
+      context.rotate(time * 28e-4);
+      context.strokeStyle = "rgba(200,160,64,.16)";
+      context.lineWidth = 1;
+      context.setLineDash([3, 9]);
+      context.beginPath();
+      context.arc(0, 0, 57, 0, Math.PI * 2);
+      context.stroke();
+      context.setLineDash([]);
+      context.restore();
+      for (const [x, phase] of [[37, 0], [RW - 37, 1.7]]) {
+        const pulse = 0.1 + 0.045 * (0.5 + 0.5 * Math.sin(time * 0.11 + phase));
+        const glow = context.createRadialGradient(x, 94, 1, x, 94, 22);
+        glow.addColorStop(0, `rgba(248,180,80,${pulse})`);
+        glow.addColorStop(0.45, `rgba(220,72,24,${pulse * 0.45})`);
+        glow.addColorStop(1, "rgba(0,0,0,0)");
+        context.fillStyle = glow;
+        context.fillRect(x - 22, 72, 44, 44);
+        context.fillStyle = `rgba(248,206,118,${0.36 + pulse})`;
+        context.fillRect(x - 1, 88 + Math.sin(time * 0.12 + phase) * 1.5, 2, 7);
+      }
+    }
+    function drawLogo(context, time) {
+      ensureLogo();
+      const breathe = 1 + 4e-3 * Math.sin(time * 0.025);
+      context.save();
+      context.translate(RW / 2, 0);
+      context.scale(breathe, breathe);
+      context.translate(-RW / 2, 0);
+      context.drawImage(logo.canvas, 0, 0, RW, 160);
+      context.restore();
+      const pulse = 0.5 + 0.5 * Math.sin(time * 0.09);
+      context.save();
+      context.globalCompositeOperation = "lighter";
+      for (const x of [RW / 2 - 9, RW / 2 + 9]) {
+        const glow = context.createRadialGradient(x, 39, 0, x, 39, 8);
+        glow.addColorStop(0, `rgba(255,110,64,${0.2 + pulse * 0.22})`);
+        glow.addColorStop(0.4, `rgba(204,30,16,${0.1 + pulse * 0.12})`);
+        glow.addColorStop(1, "rgba(0,0,0,0)");
+        context.fillStyle = glow;
+        context.fillRect(x - 8, 31, 16, 16);
+      }
+      context.restore();
+    }
+    function drawMenuBackground(context, time) {
+      ensureTitle();
+      context.save();
+      context.globalAlpha = 0.82;
+      context.drawImage(title.canvas, 0, 0, RW, RH);
+      context.restore();
+      const shade = context.createLinearGradient(0, 0, 0, RH);
+      shade.addColorStop(0, "rgba(4,3,2,.24)");
+      shade.addColorStop(0.55, "rgba(4,3,2,.38)");
+      shade.addColorStop(1, "rgba(2,1,1,.72)");
+      context.fillStyle = shade;
+      context.fillRect(0, 0, RW, RH);
+      const glow = context.createRadialGradient(RW / 2, 26, 4, RW / 2, 26, 120);
+      glow.addColorStop(0, `rgba(150,22,14,${0.1 + 0.025 * Math.sin(time * 0.04)})`);
+      glow.addColorStop(1, "rgba(0,0,0,0)");
+      context.fillStyle = glow;
+      context.fillRect(RW / 2 - 128, 0, 256, 76);
+    }
+    function drawCompact(context) {
+      ensureCompact();
+      context.drawImage(compact.canvas, 0, 0, RW, 48);
+    }
+    function invalidate() {
+      base4.ready = false;
+      title.ready = false;
+      logo.ready = false;
+      compact.ready = false;
+    }
+    function info() {
+      return {
+        base: base4.ready,
+        title: title.ready,
+        logo: logo.ready,
+        compact: compact.ready,
+        revision
+      };
+    }
+    return { drawBase, drawTitleBackground, drawLogo, drawMenuBackground, drawCompact, invalidate, info };
+  }
+
   // src/audio/audio.js
   function createAudio({ S, clamp: clamp2, rnd }) {
     const AU = { ctx: null, on: true, voice: true, vol: 100, samples: {}, loading: {}, audioLoading: false, musicSrc: null, musicEl: null, musicNode: null, musicGain: null, musicTrack: "", lastSample: "" };
@@ -6977,7 +7492,7 @@
       const touch = navigator.maxTouchPoints > 0, dpr = Math.min(3, window.devicePixelRatio || 1), cap = touch ? 4 : 6;
       lastDpr = window.devicePixelRatio || 1;
       MAX_SCALE = Math.max(touch ? 3 : 4, Math.min(cap, Math.round(s * dpr * 1.5)));
-      MIN_SCALE = Math.min(touch ? 2 : 3, MAX_SCALE);
+      MIN_SCALE = Math.min(touch ? 2 : 4, MAX_SCALE);
       if (!scaleReady) {
         RSCALE = MAX_SCALE;
         scaleReady = true;
@@ -7041,6 +7556,16 @@
       fatalMapped,
       fatalFrames: FATAL_FRAMES
     });
+    const uiArt = createUiArt({ RW, RH });
+    const redrawUiArt = () => uiArt.invalidate();
+    if (document.fonts) {
+      document.fonts.load('20px "Russo One"').then(redrawUiArt).catch(() => {
+      });
+      document.fonts.load('50px "Russo One"').then(redrawUiArt).catch(() => {
+      });
+      document.fonts.load('24px "Rubik Mono One"').then(redrawUiArt).catch(() => {
+      });
+    }
     const arenaView = createArenaView({ g, RW, RH, FL, AR, assets: ARENA_IMG, shade, mix });
     const OPT = { crt: true, blood: true, shake: true, reduce: false };
     try {
@@ -8766,29 +9291,7 @@
       g.globalAlpha = 1;
     }
     function bgFill() {
-      const sky = g.createLinearGradient(0, 0, 0, RH);
-      sky.addColorStop(0, "#0b0706");
-      sky.addColorStop(0.58, "#090605");
-      sky.addColorStop(1, "#050303");
-      g.fillStyle = sky;
-      g.fillRect(0, 0, RW, RH);
-      const glow = g.createRadialGradient(RW / 2, 78, 6, RW / 2, 78, 190);
-      glow.addColorStop(0, "rgba(118,24,16,.20)");
-      glow.addColorStop(0.5, "rgba(70,14,10,.07)");
-      glow.addColorStop(1, "rgba(0,0,0,0)");
-      g.fillStyle = glow;
-      g.fillRect(0, 0, RW, RH);
-      const floor = g.createLinearGradient(0, RH - 72, 0, RH);
-      floor.addColorStop(0, "rgba(0,0,0,0)");
-      floor.addColorStop(1, "rgba(0,0,0,.42)");
-      g.fillStyle = floor;
-      g.fillRect(0, RH - 72, RW, 72);
-      const vg = g.createRadialGradient(RW / 2, RH * 0.5, 70, RW / 2, RH * 0.5, 255);
-      vg.addColorStop(0, "rgba(0,0,0,0)");
-      vg.addColorStop(0.72, "rgba(0,0,0,.10)");
-      vg.addColorStop(1, "rgba(0,0,0,.55)");
-      g.fillStyle = vg;
-      g.fillRect(0, 0, RW, RH);
+      uiArt.drawBase(g);
     }
     function drawControls() {
       bgFill();
@@ -9104,7 +9607,7 @@
       uiHint(isTouchUI() ? "P \u2014 \u0414\u0410 \xB7 B \u2014 \u0412 \u041C\u0415\u041D\u042E" : "J \u2014 \u0414\u0410 \xB7 ESC \u2014 \u0412 \u041C\u0415\u041D\u042E", 228, 10, UI_TEXT);
     }
     const SK = ["....SSSSSSSS....", "..SSSSSSSSSSSS..", ".SSSSSSSSSSSSSS.", ".SSSSSSSSSSSSSS.", "SSSSSSSSSSSSSSS", "SSSSSSSSSSSSSSSS", "SSSSSSSSSSSSSSSS", "SSEESSSSSSEESSSS", "SSEESSSSSSEESSSS", "SSSSSSSSSSSSSSSS", ".SSSSSDDDSSSSSS.", "..SSDDDDDDDSS...", "...TDTDTDTDT....", "....SSSSSSSS...."];
-    function drawSkull(cx, cy, px) {
+    function _drawSkull(cx, cy, px) {
       const w = SK[0].length, h = SK.length, ox = cx - w * px / 2, oy = cy - h * px / 2;
       for (let r = 0; r < h; r++) for (let c = 0; c < w; c++) {
         const ch = SK[r][c];
@@ -9117,92 +9620,114 @@
       g.fillRect(ox + 10 * px, oy + 7 * px, 2 * px, 2 * px);
     }
     function drawTitle() {
-      bgFill();
-      const halo = g.createRadialGradient(RW / 2, 58, 6, RW / 2, 58, 68);
-      halo.addColorStop(0, "rgba(200,42,28,.22)");
-      halo.addColorStop(0.55, "rgba(110,16,12,.08)");
-      halo.addColorStop(1, "rgba(0,0,0,0)");
-      g.fillStyle = halo;
-      g.fillRect(RW / 2 - 78, 0, 156, 132);
-      g.fillStyle = "rgba(0,0,0,.38)";
-      g.beginPath();
-      g.ellipse(RW / 2, 112, 52, 7, 0, 0, 7);
-      g.fill();
-      drawSkull(RW / 2, 58 + Math.sin(S.titleT * 0.03) * 3, 4.2);
-      g.font = '42px "Russo One"';
-      g.textAlign = "center";
-      g.fillStyle = "#000";
-      g.fillText("KARNAGE", RW / 2 + 3, 163);
-      g.fillStyle = "#e02020";
-      g.fillText("KARNAGE", RW / 2, 160);
-      g.fillStyle = "#7a0e0e";
-      g.fillRect(RW / 2 - 108, 168, 216, 3);
-      g.fillStyle = "#c8a040";
-      g.fillRect(RW / 2 - 108, 172, 216, 1);
-      g.font = '9px "Russo One"';
-      g.fillStyle = "#e8c040";
-      g.fillText("\u0421 \u041C \u0415 \u0420 \u0422 \u0415 \u041B \u042C \u041D \u042B \u0419   \u0422 \u0423 \u0420 \u041D \u0418 \u0420", RW / 2, 186);
+      uiArt.drawTitleBackground(g, S.titleT);
+      uiArt.drawLogo(g, S.titleT);
       try {
         const tp = TOP();
         if (tp.length) {
-          g.font = '9px "Russo One"';
-          g.fillStyle = "#c8a040";
-          g.fillText("\u0420\u0415\u041A\u041E\u0420\u0414: " + CH[tp[0].id].name + " \u2014 " + tp[0].step + " / " + ARC_TOTAL, RW / 2, 200);
+          g.font = '8px "Russo One"';
+          g.fillStyle = UI_ACCENT;
+          g.textAlign = "center";
+          g.fillText("\u0420\u0415\u041A\u041E\u0420\u0414: " + CH[tp[0].id].name + " \u2014 " + tp[0].step + " / " + ARC_TOTAL, RW / 2, 198);
+        } else {
+          g.font = '7px "Russo One"';
+          g.fillStyle = UI_MUTED;
+          g.textAlign = "center";
+          g.fillText("11 \u0411\u041E\u0419\u0426\u041E\u0412 \xB7 10 \u0410\u0420\u0415\u041D \xB7 \u041E\u0414\u0418\u041D \u041F\u041E\u0411\u0415\u0414\u0418\u0422\u0415\u041B\u042C", RW / 2, 198);
         }
       } catch (e) {
       }
+      g.fillStyle = "rgba(200,160,64,.22)";
+      g.fillRect(RW / 2 - 58, 207, 116, 1);
       uiHint(isTouchUI() ? "\u041A\u041E\u0421\u041D\u0418\u0421\u042C \u042D\u041A\u0420\u0410\u041D\u0410" : "\u041D\u0410\u0416\u041C\u0418 \u041B\u042E\u0411\u0423\u042E \u041A\u041B\u0410\u0412\u0418\u0428\u0423", 228, 11, UI_TEXT);
     }
     function drawMenu() {
-      bgFill();
-      const pulse = 0.15 + Math.sin(S.FRAME * 0.04) * 0.05;
-      const lg = g.createRadialGradient(RW / 2, 30, 4, RW / 2, 30, 104);
-      lg.addColorStop(0, "rgba(224,32,32," + pulse + ")");
-      lg.addColorStop(0.58, "rgba(150,18,14," + pulse * 0.35 + ")");
-      lg.addColorStop(1, "rgba(0,0,0,0)");
-      g.fillStyle = lg;
-      g.fillRect(RW / 2 - 112, 0, 224, 74);
-      g.font = '22px "Rubik Mono One","Russo One",sans-serif';
-      g.textAlign = "center";
-      g.fillStyle = "#000";
-      g.fillText("KARNAGE", RW / 2 + 2, 42);
-      g.fillStyle = "#e02020";
-      g.fillText("KARNAGE", RW / 2, 40);
-      g.fillStyle = "rgba(200,160,64,.42)";
-      g.fillRect(RW / 2 - 74, 50, 148, 1);
-      panel(36, 62, 196, 140);
-      const items = menuItems().map((it) => it.label), gap = items.length > 7 ? 15 : items.length > 6 ? 17 : 19;
+      uiArt.drawMenuBackground(g, S.FRAME);
+      uiArt.drawCompact(g);
+      panel(20, 54, 208, 160);
+      panel(244, 54, 160, 160);
+      const items = menuItems();
       S.menuIdx = clamp2(S.menuIdx, 0, items.length - 1);
-      items.forEach((it, i) => {
-        const y = 82 + i * gap, on = i === S.menuIdx;
+      const secondaryIds = ["settings", "controls", "top"];
+      const primary = items.filter((it) => !secondaryIds.includes(it.id)), secondary = items.filter((it) => secondaryIds.includes(it.id));
+      let y = 76;
+      const row = (item, step2) => {
+        const i = items.indexOf(item), on = i === S.menuIdx, font = on ? 12 : 10;
         if (on) {
-          g.fillStyle = "rgba(224,32,32,.08)";
-          g.fillRect(56, y - 13, 156, 18);
-          frame(56, y - 13, 156, 18, "button");
-          g.fillStyle = "rgba(54,8,6,.50)";
-          g.fillRect(56, y - 13, 156, 18);
+          g.fillStyle = "rgba(224,32,32,.12)";
+          g.fillRect(30, y - 12, 188, 17);
+          frame(30, y - 12, 188, 17, "button");
+          g.fillStyle = "rgba(54,8,6,.55)";
+          g.fillRect(30, y - 12, 188, 17);
+          g.fillStyle = "#e02020";
+          g.fillRect(34, y - 9, 2, 11);
         }
-        g.font = on ? '12px "Russo One"' : '10px "Russo One"';
-        g.fillStyle = on ? "#fff" : "#c8a040";
+        g.font = font + 'px "Russo One"';
         g.textAlign = "center";
-        g.fillText(it, 134, y);
+        g.fillStyle = on ? "#fff5dc" : "#c8a040";
+        if (on) {
+          g.shadowColor = "rgba(0,0,0,.9)";
+          g.shadowBlur = 2;
+        }
+        g.fillText(item.label, 124, y);
+        g.shadowBlur = 0;
         if (on) {
           g.fillStyle = "#e02020";
           g.beginPath();
-          g.moveTo(48, y - 7);
-          g.lineTo(55, y - 3);
-          g.lineTo(48, y + 1);
+          g.moveTo(38, y - 6);
+          g.lineTo(45, y - 3);
+          g.lineTo(38, y);
+          g.closePath();
+          g.fill();
+          g.fillStyle = UI_GOLD;
+          g.beginPath();
+          g.moveTo(206, y - 6);
+          g.lineTo(201, y - 3);
+          g.lineTo(206, y);
+          g.closePath();
           g.fill();
         }
-      });
-      panel(252, 66, 136, 116);
-      const si = S.FRAME / 300 % CH.length | 0;
-      drawFake(si, 320, 158, 1.15, -1);
-      g.font = '8px "Russo One"';
-      g.fillStyle = "#e8e0c0";
+        y += step2;
+      };
+      primary.forEach((item) => row(item, 18));
+      g.fillStyle = "rgba(200,160,64,.22)";
+      g.fillRect(38, y - 7, 172, 1);
+      y += 9;
+      secondary.forEach((item) => row(item, 15));
+      const si = S.FRAME / 300 % CH.length | 0, d = CH[si];
+      g.save();
+      g.globalCompositeOperation = "lighter";
+      g.globalAlpha = 0.11;
+      const pg = g.createRadialGradient(324, 126, 4, 324, 126, 58);
+      pg.addColorStop(0, d.acc);
+      pg.addColorStop(0.5, d.acc);
+      pg.addColorStop(1, "rgba(0,0,0,0)");
+      g.fillStyle = pg;
+      g.fillRect(266, 68, 116, 116);
+      g.restore();
+      g.fillStyle = "rgba(0,0,0,.45)";
+      g.beginPath();
+      g.ellipse(324, 179, 34, 5, 0, 0, 7);
+      g.fill();
+      g.fillStyle = d.acc;
+      g.fillRect(246, 56, 2, 156);
+      g.font = '7px "Russo One"';
+      g.fillStyle = UI_MUTED;
       g.textAlign = "center";
-      g.fillText(CH[si].name, 320, 172);
-      uiHint(isTouchUI() ? "D-PAD \u2014 \u0412\u042B\u0411\u041E\u0420 \xB7 P \u2014 \u041F\u041E\u0414\u0422\u0412\u0415\u0420\u0414\u0418\u0422\u042C" : "W/S \u2014 \u0412\u042B\u0411\u041E\u0420 \xB7 J \u2014 \u041F\u041E\u0414\u0422\u0412\u0415\u0420\u0414\u0418\u0422\u042C \xB7 M \u2014 \u0417\u0412\u0423\u041A", 228, 8);
+      g.fillText("\u041F\u0420\u0415\u0422\u0415\u041D\u0414\u0415\u041D\u0422 " + (si + 1) + " / " + CH.length, 324, 68);
+      drawFake(si, 324, 179, 1.08, -1);
+      g.fillStyle = "rgba(0,0,0,.72)";
+      g.fillRect(248, 181, 152, 24);
+      g.fillStyle = d.acc;
+      g.fillRect(248, 181, 152, 1);
+      g.font = '9px "Russo One"';
+      g.fillStyle = "#f0e8d0";
+      g.textAlign = "center";
+      g.fillText(d.name, 324, 192);
+      g.font = '7px "Russo One"';
+      g.fillStyle = d.acc;
+      g.fillText(RANGED.includes(d.id) ? "\u0414\u0410\u041B\u042C\u041D\u0418\u0419 \u0411\u041E\u0419" : "\u0411\u041B\u0418\u0416\u041D\u0418\u0419 \u0411\u041E\u0419", 324, 201);
+      uiHint(isTouchUI() ? "D-PAD \u2014 \u0412\u042B\u0411\u041E\u0420 \xB7 P \u2014 \u041F\u041E\u0414\u0422\u0412\u0415\u0420\u0414\u0418\u0422\u042C" : "W/S \u2014 \u0412\u042B\u0411\u041E\u0420 \xB7 J \u2014 \u041F\u041E\u0414\u0422\u0412\u0415\u0420\u0414\u0418\u0422\u042C \xB7 M \u2014 \u0417\u0412\u0423\u041A: " + (AU.on ? "\u0412\u041A\u041B" : "\u0412\u042B\u041A\u041B"), 228, 8);
     }
     function settingsIcon(kind, x, y, on) {
       g.save();
@@ -9737,6 +10262,9 @@
         },
         get uiAssets() {
           return UI;
+        },
+        get uiCache() {
+          return uiArt.info();
         },
         get OPT() {
           return OPT;
