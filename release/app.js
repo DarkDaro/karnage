@@ -8017,6 +8017,7 @@
     }
     const { keys, TOUCH, KM1: KM12, KM2: KM22, Ctrl, press, clearPress } = createInput();
     let resetTouch = () => {
+    }, touchSync = () => {
     };
     function resetInput() {
       for (const k in keys) keys[k] = false;
@@ -8122,6 +8123,14 @@
         else p.startSpec(foe);
       };
       for (const [kind, selector] of [["spec1", ".spec1"], ["spec2", ".spec2"], ["super", ".super"]]) root.querySelector(selector).addEventListener("pointerdown", (e) => touchMove(kind, e));
+      const spec1Btn = root.querySelector(".spec1"), spec2Btn = root.querySelector(".spec2"), superBtn = root.querySelector(".super");
+      touchSync = () => {
+        const p = S.battle && S.GAME === "fight" && !S.paused && S.battle.phase === "fight" ? S.battle.p1 : null;
+        const can = !!p && !p.defeated && ["idle", "walk", "crouch", "block", "jump"].includes(p.state);
+        for (const btn of [spec1Btn, spec2Btn]) btn.classList.toggle("locked", !can || p.specCd > 0);
+        superBtn.classList.toggle("locked", !can || p.rage < 100);
+        superBtn.classList.toggle("ready", !!p && can && p.rage >= 100);
+      };
       document.addEventListener("fullscreenchange", () => {
         syncFullscreen();
         scheduleFit();
@@ -10570,6 +10579,7 @@
       if (S.vsEscT > 0) S.vsEscT--;
     }
     function render() {
+      touchSync();
       g.setTransform(RSCALE, 0, 0, RSCALE, 0, 0);
       g.fillStyle = "#000";
       g.fillRect(0, 0, RW, RH);

@@ -192,6 +192,17 @@ body.touch.portrait #touch::before {
 #touch .spec1 { grid-area: 3 / 1; font-size: 9px; border-color: rgba(56, 104, 200, .8); color: #c8d8ff; }
 #touch .spec2 { grid-area: 3 / 2; font-size: 9px; border-color: rgba(56, 104, 200, .8); color: #c8d8ff; }
 #touch .super { grid-area: 3 / 3; font-size: 9px; border-color: rgba(232, 160, 32, .9); color: #ffe0a0; }
+#touch .spec1.locked,
+#touch .spec2.locked,
+#touch .super.locked {
+  opacity: .42;
+}
+#touch .super.ready {
+  background: radial-gradient(circle at 35% 28%, rgba(120, 72, 18, .82), rgba(40, 22, 8, .72));
+  border-color: #f8d060;
+  color: #fff4c0;
+  box-shadow: 0 0 14px rgba(248, 208, 96, .18), inset 0 0 12px rgba(0, 0, 0, .42);
+}
 #touch .pause {
   position: absolute;
   top: calc(10px + env(safe-area-inset-top));
