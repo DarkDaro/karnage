@@ -223,6 +223,43 @@ test('touch button releases when pointer is canceled or capture is lost', async 
   assert.deepEqual(lost, { touch: 0, on: false });
 });
 
+test('touch special buttons cast both specials and the super', async () => {
+  const reset = () => page.evaluate(() => {
+    const K = window.KARNAGE;
+    K.newBattle(0, new K.Ctrl(K.KM1), 1, new K.Ctrl(K.KM2), 9);
+    const battle = K.battle;
+    battle.mode = '2p';
+    battle.phase = 'fight';
+    battle.phaseT = 200;
+    battle.p1.state = 'idle';
+    battle.p1.specCd = 0;
+    battle.p1.rage = 100;
+  });
+
+  await reset();
+  await page.locator('[data-action="spec1"]').dispatchEvent('pointerdown', { pointerId: 31, pointerType: 'touch' });
+  const first = await page.evaluate(() => ({
+    state: window.KARNAGE.battle.p1.state,
+    spec2go: window.KARNAGE.battle.p1.spec2go
+  }));
+  assert.equal(first.state, 'cast');
+  assert.equal(first.spec2go, 0);
+
+  await reset();
+  await page.locator('[data-action="spec2"]').dispatchEvent('pointerdown', { pointerId: 32, pointerType: 'touch' });
+  const second = await page.evaluate(() => ({
+    state: window.KARNAGE.battle.p1.state,
+    spec2go: window.KARNAGE.battle.p1.spec2go
+  }));
+  assert.equal(second.state, 'cast');
+  assert.equal(second.spec2go, 1);
+
+  await reset();
+  await page.locator('[data-action="super"]').dispatchEvent('pointerdown', { pointerId: 33, pointerType: 'touch' });
+  const superState = await page.evaluate(() => window.KARNAGE.battle.p1.state);
+  assert.equal(superState, 'super');
+});
+
 test('short touch landscape keeps every control inside the viewport', async () => {
   const short = await browser.newPage({
     viewport: { width: 568, height: 320 },
@@ -254,7 +291,10 @@ test('short touch landscape keeps every control inside the viewport', async () =
           '[data-key="K"]',
           '[data-key="B"]',
           '[data-keys="P K"]',
-          '[data-keys="d P K"]'
+          '[data-keys="d P K"]',
+          '[data-action="spec1"]',
+          '[data-action="spec2"]',
+          '[data-action="super"]'
         ].map((selector) => [selector, rect(selector)]),
         overflow: document.documentElement.scrollWidth - window.innerWidth
       };
@@ -269,7 +309,7 @@ test('short touch landscape keeps every control inside the viewport', async () =
       assert.ok(control.left >= 0 && control.top >= 0, `${selector}: ${JSON.stringify(control)}`);
       assert.ok(control.right <= layout.viewport.width && control.bottom <= layout.viewport.height, `${selector}: ${JSON.stringify(control)}`);
     }
-    const actions = ['[data-key="P"]', '[data-key="K"]', '[data-key="B"]', '[data-keys="P K"]', '[data-keys="d P K"]']
+    const actions = ['[data-key="P"]', '[data-key="K"]', '[data-key="B"]', '[data-keys="P K"]', '[data-keys="d P K"]', '[data-action="spec1"]', '[data-action="spec2"]', '[data-action="super"]']
       .map((selector) => layout.controls.find(([name]) => name === selector)[1]);
     for (const action of actions) assert.ok(action.width >= 44 && action.height >= 44, JSON.stringify(action));
   } finally {
@@ -306,7 +346,10 @@ test('portrait touch layout keeps controls inside the viewport', async () => {
           '[data-key="K"]',
           '[data-key="B"]',
           '[data-keys="P K"]',
-          '[data-keys="d P K"]'
+          '[data-keys="d P K"]',
+          '[data-action="spec1"]',
+          '[data-action="spec2"]',
+          '[data-action="super"]'
         ].map((selector) => rect(selector)),
         overflow: document.documentElement.scrollWidth - window.innerWidth
       };

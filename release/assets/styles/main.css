@@ -110,7 +110,7 @@ body.touch.portrait #touch::before {
   content: "ИГРА РАССЧИТАНА НА ГОРИЗОНТАЛЬНЫЙ ЭКРАН";
   position: absolute;
   left: 50%;
-  bottom: calc(172px + env(safe-area-inset-bottom));
+  bottom: calc(3 * var(--act) + 2 * var(--gap) + var(--edge) + 58px + env(safe-area-inset-bottom));
   transform: translateX(-50%);
   color: #807850;
   font: 9px "Russo One", sans-serif;
@@ -133,7 +133,7 @@ body.touch.portrait #touch::before {
   right: calc(var(--edge) + env(safe-area-inset-right));
   bottom: calc(var(--edge) + env(safe-area-inset-bottom));
   display: grid;
-  grid-template: repeat(2, var(--act)) / repeat(3, var(--act));
+  grid-template: repeat(3, var(--act)) / repeat(3, var(--act));
   gap: var(--gap);
   pointer-events: none;
 }
@@ -189,6 +189,9 @@ body.touch.portrait #touch::before {
 }
 #touch .cmdthrow span { font-size: 10px; }
 #touch .cmdthrow small { font-size: 7px; }
+#touch .spec1 { grid-area: 3 / 1; font-size: 9px; border-color: rgba(56, 104, 200, .8); color: #c8d8ff; }
+#touch .spec2 { grid-area: 3 / 2; font-size: 9px; border-color: rgba(56, 104, 200, .8); color: #c8d8ff; }
+#touch .super { grid-area: 3 / 3; font-size: 9px; border-color: rgba(232, 160, 32, .9); color: #ffe0a0; }
 #touch .pause {
   position: absolute;
   top: calc(10px + env(safe-area-inset-top));
@@ -213,7 +216,7 @@ body.touch.portrait #touch::before {
   display: none;
   position: absolute;
   left: 50%;
-  bottom: calc(190px + env(safe-area-inset-bottom));
+  bottom: calc(3 * var(--act) + 2 * var(--gap) + var(--edge) + 4px + env(safe-area-inset-bottom));
   width: 180px;
   height: 48px;
   transform: translateX(-50%);

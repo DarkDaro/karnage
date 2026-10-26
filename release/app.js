@@ -8041,7 +8041,7 @@
       document.body.classList.add("touch");
       const root = document.createElement("div");
       root.id = "touch";
-      root.innerHTML = '<div class="dpad"><button class="up" data-key="u">\u25B2</button><button class="left" data-key="l">\u25C0</button><button class="down" data-key="d">\u25BC</button><button class="right" data-key="r">\u25B6</button></div><div class="actions"><button class="punch" data-key="P" aria-label="\u0420\u0443\u043A\u0430">P</button><button class="kick" data-key="K" aria-label="\u041D\u043E\u0433\u0430">K</button><button class="block" data-key="B" aria-label="\u0411\u043B\u043E\u043A">\u0411\u041B\u041E\u041A</button><button class="throw" data-keys="P K" aria-label="\u0411\u0440\u043E\u0441\u043E\u043A P+K"><span>P+K</span><small>\u0411\u0420\u041E\u0421\u041E\u041A</small></button><button class="cmdthrow" data-keys="d P K" aria-label="\u041A\u043E\u043C\u0430\u043D\u0434\u043D\u044B\u0439 \u0431\u0440\u043E\u0441\u043E\u043A \u0432\u043D\u0438\u0437 P+K"><span>\u2193P+K</span><small>\u041A\u041E\u041C\u0410\u041D\u0414\u041D\u042B\u0419</small></button></div><button class="pause" data-key="pause" aria-label="\u041F\u0430\u0443\u0437\u0430">\u2161</button><button class="fullscreen" data-action="fullscreen" aria-label="\u041F\u043E\u043B\u043D\u044B\u0439 \u044D\u043A\u0440\u0430\u043D">\u042D\u041A\u0420\u0410\u041D</button><button class="rotate" data-action="rotate" aria-label="\u0420\u0430\u0437\u0432\u0435\u0440\u043D\u0443\u0442\u044C \u043D\u0430 \u0432\u0435\u0441\u044C \u044D\u043A\u0440\u0430\u043D">\u0420\u0410\u0417\u0412\u0415\u0420\u041D\u0423\u0422\u042C</button>';
+      root.innerHTML = '<div class="dpad"><button class="up" data-key="u">\u25B2</button><button class="left" data-key="l">\u25C0</button><button class="down" data-key="d">\u25BC</button><button class="right" data-key="r">\u25B6</button></div><div class="actions"><button class="punch" data-key="P" aria-label="\u0420\u0443\u043A\u0430">P</button><button class="kick" data-key="K" aria-label="\u041D\u043E\u0433\u0430">K</button><button class="block" data-key="B" aria-label="\u0411\u043B\u043E\u043A">\u0411\u041B\u041E\u041A</button><button class="throw" data-keys="P K" aria-label="\u0411\u0440\u043E\u0441\u043E\u043A P+K"><span>P+K</span><small>\u0411\u0420\u041E\u0421\u041E\u041A</small></button><button class="cmdthrow" data-keys="d P K" aria-label="\u041A\u043E\u043C\u0430\u043D\u0434\u043D\u044B\u0439 \u0431\u0440\u043E\u0441\u043E\u043A \u0432\u043D\u0438\u0437 P+K"><span>\u2193P+K</span><small>\u041A\u041E\u041C\u0410\u041D\u0414\u041D\u042B\u0419</small></button><button class="spec1" data-action="spec1" aria-label="\u041F\u0435\u0440\u0432\u044B\u0439 \u0441\u043F\u0435\u0446\u043F\u0440\u0438\u0451\u043C">\u0421\u041F\u0415\u04261</button><button class="spec2" data-action="spec2" aria-label="\u0412\u0442\u043E\u0440\u043E\u0439 \u0441\u043F\u0435\u0446\u043F\u0440\u0438\u0451\u043C">\u0421\u041F\u0415\u04262</button><button class="super" data-action="super" aria-label="\u0421\u0443\u043F\u0435\u0440\u043F\u0440\u0438\u0451\u043C">\u0421\u0423\u041F\u0415\u0420</button></div><button class="pause" data-key="pause" aria-label="\u041F\u0430\u0443\u0437\u0430">\u2161</button><button class="fullscreen" data-action="fullscreen" aria-label="\u041F\u043E\u043B\u043D\u044B\u0439 \u044D\u043A\u0440\u0430\u043D">\u042D\u041A\u0420\u0410\u041D</button><button class="rotate" data-action="rotate" aria-label="\u0420\u0430\u0437\u0432\u0435\u0440\u043D\u0443\u0442\u044C \u043D\u0430 \u0432\u0435\u0441\u044C \u044D\u043A\u0440\u0430\u043D">\u0420\u0410\u0417\u0412\u0415\u0420\u041D\u0423\u0422\u042C</button>';
       document.body.appendChild(root);
       syncLayoutViewport();
       const codes = { l: "ArrowLeft", r: "ArrowRight", u: "ArrowUp", d: "ArrowDown", P: "Enter", K: "KeyK", B: "Escape" };
@@ -8102,6 +8102,26 @@
         }
         toggleFullscreen();
       });
+      const touchMove = (kind, e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (S.GAME !== "fight" || S.paused || !S.battle || S.battle.phase !== "fight") return;
+        const p = S.battle.p1, foe = S.battle.p2;
+        if (!p || !foe || p.defeated || !["idle", "walk", "crouch", "block", "jump"].includes(p.state)) return;
+        initA();
+        if (AU.ctx && AU.ctx.state === "suspended") AU.ctx.resume();
+        if (kind === "super") {
+          if (p.rage < 100) {
+            S.fx.push({ ty: "name", x: p.x + p.face * 10, y: p.y - p.def.h - 10, txt: "\u041D\u0415\u0422 \u042F\u0420\u041E\u0421\u0422\u0418", col: "#c8a040", life: 28, t: 0 });
+            SFX.whiff();
+            return;
+          }
+          if (!p.onGround) return;
+          p.startSuper();
+        } else if (kind === "spec2") p.startSpec2(foe);
+        else p.startSpec(foe);
+      };
+      for (const [kind, selector] of [["spec1", ".spec1"], ["spec2", ".spec2"], ["super", ".super"]]) root.querySelector(selector).addEventListener("pointerdown", (e) => touchMove(kind, e));
       document.addEventListener("fullscreenchange", () => {
         syncFullscreen();
         scheduleFit();
