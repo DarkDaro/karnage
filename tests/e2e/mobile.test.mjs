@@ -273,6 +273,14 @@ test('short touch landscape keeps every control inside the viewport', async () =
   try {
     await short.goto(entry, { waitUntil: 'load' });
     await short.waitForFunction(() => Boolean(window.KARNAGE), null, { polling: 100 });
+    await short.evaluate(() => {
+      const K = window.KARNAGE;
+      K.newBattle(0, new K.Ctrl(K.KM1), 1, new K.Ctrl(K.KM2), 9);
+      K.battle.mode = '2p';
+      K.battle.phase = 'fight';
+      K.battle.phaseT = 200;
+      K.render();
+    });
     const layout = await short.evaluate(() => {
       const rect = (selector) => {
         const box = document.querySelector(selector).getBoundingClientRect();
@@ -330,6 +338,14 @@ test('portrait touch layout keeps controls inside the viewport', async () => {
   try {
     await portrait.goto(entry, { waitUntil: 'load' });
     await portrait.waitForFunction(() => Boolean(window.KARNAGE), null, { polling: 100 });
+    await portrait.evaluate(() => {
+      const K = window.KARNAGE;
+      K.newBattle(0, new K.Ctrl(K.KM1), 1, new K.Ctrl(K.KM2), 9);
+      K.battle.mode = '2p';
+      K.battle.phase = 'fight';
+      K.battle.phaseT = 200;
+      K.render();
+    });
     const layout = await portrait.evaluate(() => {
       const rect = (selector) => {
         const box = document.querySelector(selector).getBoundingClientRect();

@@ -77,6 +77,7 @@ canvas {
 #touch {
   --edge: clamp(10px, 1.4vh, 14px);
   --gap: clamp(4px, 1.2vh, 7px);
+  --action-rows: 3;
   --safe-x: calc(env(safe-area-inset-left) + env(safe-area-inset-right));
   --safe-y: calc(env(safe-area-inset-top) + env(safe-area-inset-bottom));
   --dpad: clamp(36px, min(10.5vw, 13vh, calc((var(--app-h) - var(--safe-y) - 2 * var(--edge) - 2 * var(--gap)) / 3)), 46px);
@@ -92,6 +93,20 @@ canvas {
 
 body.touch #touch {
   display: block;
+}
+
+body.touch:not(.is-fighting) #touch {
+  --action-rows: 2;
+}
+
+body.touch:not(.is-fighting) #touch .spec1,
+body.touch:not(.is-fighting) #touch .spec2,
+body.touch:not(.is-fighting) #touch .super {
+  display: none;
+}
+
+body.touch:not(.is-fighting) #touch .actions {
+  grid-template-rows: repeat(2, var(--act));
 }
 
 body.touch #wrap {
@@ -110,7 +125,7 @@ body.touch.portrait #touch::before {
   content: "ИГРА РАССЧИТАНА НА ГОРИЗОНТАЛЬНЫЙ ЭКРАН";
   position: absolute;
   left: 50%;
-  bottom: calc(3 * var(--act) + 2 * var(--gap) + var(--edge) + 58px + env(safe-area-inset-bottom));
+  bottom: calc(var(--action-rows) * var(--act) + (var(--action-rows) - 1) * var(--gap) + var(--edge) + 58px + env(safe-area-inset-bottom));
   transform: translateX(-50%);
   color: #807850;
   font: 9px "Russo One", sans-serif;
@@ -227,7 +242,7 @@ body.touch.portrait #touch::before {
   display: none;
   position: absolute;
   left: 50%;
-  bottom: calc(3 * var(--act) + 2 * var(--gap) + var(--edge) + 4px + env(safe-area-inset-bottom));
+  bottom: calc(var(--action-rows) * var(--act) + (var(--action-rows) - 1) * var(--gap) + var(--edge) + 4px + env(safe-area-inset-bottom));
   width: 180px;
   height: 48px;
   transform: translateX(-50%);

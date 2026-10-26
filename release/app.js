@@ -8125,6 +8125,7 @@
       for (const [kind, selector] of [["spec1", ".spec1"], ["spec2", ".spec2"], ["super", ".super"]]) root.querySelector(selector).addEventListener("pointerdown", (e) => touchMove(kind, e));
       const spec1Btn = root.querySelector(".spec1"), spec2Btn = root.querySelector(".spec2"), superBtn = root.querySelector(".super");
       touchSync = () => {
+        document.body.classList.toggle("is-fighting", S.GAME === "fight" && !S.paused);
         const p = S.battle && S.GAME === "fight" && !S.paused && S.battle.phase === "fight" ? S.battle.p1 : null;
         const can = !!p && !p.defeated && ["idle", "walk", "crouch", "block", "jump"].includes(p.state);
         for (const btn of [spec1Btn, spec2Btn]) btn.classList.toggle("locked", !can || p.specCd > 0);
