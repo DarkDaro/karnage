@@ -8129,8 +8129,8 @@
         const p = S.battle && S.GAME === "fight" && !S.paused && S.battle.phase === "fight" ? S.battle.p1 : null;
         const can = !!p && !p.defeated && ["idle", "walk", "crouch", "block", "jump"].includes(p.state);
         for (const btn of [spec1Btn, spec2Btn]) btn.classList.toggle("locked", !can || p.specCd > 0);
-        superBtn.classList.toggle("locked", !can || p.rage < 100);
-        superBtn.classList.toggle("ready", !!p && can && p.rage >= 100);
+        superBtn.classList.toggle("locked", !can || !p.onGround || p.rage < 100);
+        superBtn.classList.toggle("ready", !!p && can && p.onGround && p.rage >= 100);
       };
       document.addEventListener("fullscreenchange", () => {
         syncFullscreen();
